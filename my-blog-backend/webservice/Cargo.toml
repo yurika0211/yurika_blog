@@ -1,0 +1,33 @@
+[package]
+name = "webservice"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = "4.3.2"
+actix-rt = "2.3.2"
+jsonwebtoken = "9"
+serde = {version = "1.0.128", features = ["derive"]}
+chrono = {version = "0.4.19", features = ["serde"]}
+dotenv = "0.15.0"
+openssl = {version ="0.10.30", features = ["vendored"]}
+sqlx = {version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "macros", "chrono",]}
+actix-cors = "0.6"
+# tracing 核心宏 (类似 log)
+tracing = "0.1"
+# 负责把日志格式化并输出到终端或文件
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+argon2 = { version = "0.5", features = ["std"] }
+
+[dev-dependencies]
+actix-web = "4.3.2"
+actix-rt = "2.3.2"
+serde = {version = "1.0.128", features = ["derive"]}
+chrono = {version = "0.4.19", features = ["serde"]}
+dotenv = "0.15.0"
+openssl = {version ="0.10.30", features = ["vendored"]}
+sqlx = {version = "0.8.6", features = ["runtime-tokio-rustls", "postgres", "macros", "chrono",]}
+actix-cors = "0.6"
+
+[[bin]]
+name = "blog_service"

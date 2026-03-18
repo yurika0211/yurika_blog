@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-ssr/
+target/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+config.json
+
+# Docker images (tar archives)
+images/*.tar
+
+# Database dumps (large files)
+docker-compose-db-dump.sql
+DB/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temp files
+temp/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Claude Code
+.claude/

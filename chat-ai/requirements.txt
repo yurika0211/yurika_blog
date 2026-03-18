@@ -1,0 +1,2 @@
+# Python dependencies (placeholder)
+# This is a Go project - see go.mod for actual dependencies

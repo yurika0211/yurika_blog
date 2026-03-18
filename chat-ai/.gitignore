@@ -1,0 +1,3 @@
+cmd/chat/__debug_bin*
+cmd/chat/config.json
+tidy/

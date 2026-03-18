@@ -1,0 +1,72 @@
+use crate::errors::MyError;
+use actix_web::web;
+use chrono::NaiveDateTime;
+use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
+use std::convert::TryFrom;
+
+#[derive(Serialize, Debug, Clone, FromRow)]
+pub struct Article {
+    pub id: i32,
+    pub title: String,
+    pub date: Option<NaiveDateTime>,
+    pub summary: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub content: Option<String>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct CreateArticle {
+    pub title: Option<String>,
+    pub date: Option<NaiveDateTime>,
+    pub summary: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub content: Option<String>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct UpdateArticle {
+    pub title: Option<String>,
+    pub date: Option<NaiveDateTime>,
+    pub summary: Option<String>,
+    pub tags: Option<Vec<String>>,
+    pub content: Option<String>,
+}
+
+impl From<web::Json<Article>> for Article {
+    fn from(article: web::Json<Article>) -> Self {
+        Article {
+            id: article.id,
+            title: article.title.clone(),
+            date: article.date.clone(),
+            summary: article.summary.clone(),
+            tags: article.tags.clone(),
+            content: article.content.clone(),
+        }
+    }
+}
+
+impl TryFrom<web::Json<CreateArticle>> for CreateArticle {
+    type Error = MyError;
+    fn try_from(article: web::Json<CreateArticle>) -> Result<CreateArticle, MyError> {
+        Ok(CreateArticle {
+            title: article.title.clone(),
+            date: article.date.clone(),
+            summary: article.summary.clone(),
+            tags: article.tags.clone(),
+            content: article.content.clone(),
+        })
+    }
+}
+
+impl From<web::Json<UpdateArticle>> for UpdateArticle {
+    fn from(article: web::Json<UpdateArticle>) -> Self {
+        UpdateArticle {
+            title: article.title.clone(),
+            date: article.date.clone(),
+            summary: article.summary.clone(),
+            tags: article.tags.clone(),
+            content: article.content.clone(),
+        }
+    }
+}

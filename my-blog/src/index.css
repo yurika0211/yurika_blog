@@ -1,0 +1,36 @@
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@font-face {
+    font-family: "LXGW WenKai Custom";
+    src: url("./assets/LXGWWenKai-Regular.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+:root {
+    --app-font-sans: "LXGW WenKai Custom", "LXGW WenKai", "Noto Sans CJK SC",
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+html,
+body,
+#root {
+    font-family: var(--app-font-sans);
+}
+
+/* 👇 暴力强制黑夜模式 */
+/* 只要 html 标签上有 dark 类，body 和 root 必须变黑，谁来都没用 */
+html.dark body,
+html.dark #root {
+    background-color: #030712 !important;
+    /* gray-950 的颜色 */
+    color: #f3f4f6 !important;
+    /* gray-100 的颜色 */
+}
+
+/* 强制清除可能导致白色的属性干扰 */
+html.dark body[data-rm-theme="light"] {
+    background-color: #030712 !important;
+}
