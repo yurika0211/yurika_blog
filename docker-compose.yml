@@ -1,22 +1,43 @@
+# Cloud-safe production deployment
+# Usage:
+#   1. Copy .env.example to .env and fill in secrets
+#   2. docker compose up -d
+
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: postgres
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./DB/blog/DB:/docker-entrypoint-initdb.d/10_blog.sql:ro
+      - ./DB/dump.sql:/docker-entrypoint-initdb.d/10_blog.sql:ro
       - ./chat-ai/dbaccess/db.sql:/docker-entrypoint-initdb.d/20_chat_ai.sql:ro
     ports:
-      - "5433:5432"
+      - "5432:5432"
+    networks:
+      - internal
+      - frontend
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U admin -d postgres"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   backend:
     build:
@@ -24,12 +45,62 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://admin:password123@db:5432/postgres
-    ports:
-      - "3001:3001"
+      DATABASE_URL: postgres://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@db:5432/${POSTGRES_DB:-postgres}
+      NODE_ENV: production
+    expose:
+      - "3001"
+    networks:
+      - internal
+      - frontend
     depends_on:
       db:
         condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  chat-ai:
+    build:
+      context: ./chat-ai
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@db:5432/${POSTGRES_DB:-postgres}
+    expose:
+      - "8080"
+    networks:
+      - internal
+      - frontend
+    depends_on:
+      db:
+        condition: service_healthy
+    read_only: true
+    tmpfs:
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   frontend:
     build:
@@ -40,23 +111,36 @@ services:
         VITE_CHAT_API_BASE_URL: ${VITE_CHAT_API_BASE_URL:-}
     restart: unless-stopped
     ports:
-      - "3000:80"
+      - "${FRONTEND_PORT:-3000}:80"
+    networks:
+      - frontend
     depends_on:
       - backend
       - chat-ai
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: "0.25"
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
-  chat-ai:
-    build:
-      context: ./chat-ai
-      dockerfile: Dockerfile
-    restart: unless-stopped
-    environment:
-      DATABASE_URL: postgres://admin:password123@db:5432/postgres?sslmode=disable
-    ports:
-      - "8080:8080"
-    depends_on:
-      db:
-        condition: service_healthy
+networks:
+  internal:
+    # DB and backend/chat-ai only — not reachable from outside
+    internal: true
+  frontend:
+    # frontend <-> backend/chat-ai
 
 volumes:
   pgdata:
