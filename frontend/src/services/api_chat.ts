@@ -31,22 +31,8 @@ const collectBaseUrlCandidates = () => {
   };
 
   push(import.meta.env.VITE_CHAT_API_BASE_URL);
+  push("/chat/api/v1");
   push("/api/v1");
-
-  if (typeof window !== "undefined") {
-    const { protocol, hostname } = window.location;
-    if (hostname) {
-      push(`${protocol}//${hostname}:8080/api/v1`);
-      push(`http://${hostname}:8080/api/v1`);
-      push(`${protocol}//${hostname}:3001/api/v1`);
-      push(`http://${hostname}:3001/api/v1`);
-    }
-  }
-
-  push("http://127.0.0.1:8080/api/v1");
-  push("http://localhost:8080/api/v1");
-  push("http://127.0.0.1:3001/api/v1");
-  push("http://localhost:3001/api/v1");
 
   return candidates;
 };

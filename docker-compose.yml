@@ -13,7 +13,7 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./DB/dump.sql:/docker-entrypoint-initdb.d/10_blog.sql:ro
+      - ./backend/db/db.sql:/docker-entrypoint-initdb.d/10_blog.sql:ro
       - ./chat-ai/dbaccess/db.sql:/docker-entrypoint-initdb.d/20_chat_ai.sql:ro
     ports:
       - "5432:5432"

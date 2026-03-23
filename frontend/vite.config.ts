@@ -16,6 +16,16 @@ export default defineConfig(({ mode }) => {
           target: chatProxyTarget,
           changeOrigin: true,
         },
+        "/chat/": {
+          target: chatProxyTarget,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/chat/, ""),
+        },
+        "/api/": {
+          target: "http://127.0.0.1:3001",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ""),
+        },
       },
     },
   };
