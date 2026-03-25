@@ -1,9 +1,9 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useMemo, isValidElement, type ReactNode } from 'react';
+import { useState, useEffect, useMemo, useRef, isValidElement, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { ArrowLeft, Calendar, AlertCircle, Loader, Edit, Trash2, List } from 'lucide-react';
+import { ArrowLeft, Calendar, AlertCircle, Loader, Edit, Trash2, List, Copy, Check } from 'lucide-react';
 import { blog, comment as commentApi } from '../services/api';
 import type { BlogPost, BlogComment } from '../types';
 import Comment from '../components/Comment';
@@ -12,6 +12,7 @@ import { useAuth } from '../hooks/useAuth';
 
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
 import 'katex/dist/katex.min.css';
 
 type TocHeading = {
@@ -22,6 +23,23 @@ type TocHeading = {
 
 const APP_NAME = "Yurikas's Blog";
 type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+
+/** 将独占一行的视频链接自动转换为嵌入标签 */
+const autoEmbedVideos = (markdown: string): string =>
+  markdown.replace(/^(https?:\/\/\S+)$/gm, (_match, url: string) => {
+    // YouTube
+    const yt = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+    if (yt) return `<iframe src="https://www.youtube.com/embed/${yt[1]}" allowfullscreen></iframe>`;
+
+    // Bilibili
+    const bili = url.match(/bilibili\.com\/video\/(BV[\w]+)/i);
+    if (bili) return `<iframe src="https://player.bilibili.com/player.html?bvid=${bili[1]}&autoplay=0" allowfullscreen></iframe>`;
+
+    // 直接视频文件
+    if (/\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(url)) return `<video src="${url}" controls></video>`;
+
+    return url;
+  });
 
 const getFirstImageFromMarkdown = (markdown: string): string | null => {
   const markdownImg = markdown.match(/!\[[^\]]*]\(([^)\s]+)(?:\s+["'][^"']*["'])?\)/);
@@ -95,6 +113,63 @@ const extractHeadings = (markdown: string): TocHeading[] => {
 
   return headings;
 };
+
+function CodeBlock({ language, code }: { language: string; code: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="group relative my-5 rounded-xl overflow-hidden shadow-lg bg-[#1e1e1e]">
+      {/* macOS title bar */}
+      <div className="flex items-center px-4 py-2.5 bg-[#2d2d2d] border-b border-gray-700/40">
+        {/* Traffic lights */}
+        <div className="flex items-center gap-2">
+          <span className="w-3 h-3 rounded-full bg-[#ff5f57] shadow-[inset_0_-1px_1px_rgba(0,0,0,0.2)]" />
+          <span className="w-3 h-3 rounded-full bg-[#febc2e] shadow-[inset_0_-1px_1px_rgba(0,0,0,0.2)]" />
+          <span className="w-3 h-3 rounded-full bg-[#28c840] shadow-[inset_0_-1px_1px_rgba(0,0,0,0.2)]" />
+        </div>
+        {/* Language label (centered) */}
+        <span className="flex-1 text-center text-xs font-medium text-gray-500 tracking-wide">{language}</span>
+        {/* Copy button */}
+        <button
+          type="button"
+          onClick={() => void handleCopy()}
+          className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-gray-500 transition-all hover:bg-white/10 hover:text-gray-300"
+        >
+          {copied ? (
+            <>
+              <Check className="w-3.5 h-3.5 text-green-400" />
+              <span className="text-green-400">Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-3.5 h-3.5" />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+      {/* Code content */}
+      <div className="overflow-x-auto">
+        <SyntaxHighlighter
+          style={vscDarkPlus}
+          language={language}
+          PreTag="div"
+          customStyle={{ margin: 0, padding: '1rem 1.25rem', background: 'transparent', fontSize: '0.85rem', lineHeight: '1.7' }}
+          showLineNumbers
+          lineNumberStyle={{ minWidth: '2.5em', paddingRight: '1em', color: '#4a4a4a', userSelect: 'none' }}
+        >
+          {code}
+        </SyntaxHighlighter>
+      </div>
+    </div>
+  );
+}
 
 const getTextContent = (children: ReactNode): string => {
   if (typeof children === 'string' || typeof children === 'number') {
@@ -200,14 +275,21 @@ export default function Post() {
     document.title = `${post.title} | ${APP_NAME}`;
   }, [loading, error, post]);
 
-  const jumpToHeading = (headingId: string, smooth = true) => {
-    const target = document.getElementById(headingId);
-    if (!target) {
-      return;
-    }
+  const articleRef = useRef<HTMLDivElement>(null);
 
-    target.scrollIntoView({ behavior: smooth ? 'smooth' : 'auto', block: 'start' });
-    window.history.replaceState(null, '', `#${encodeURIComponent(headingId)}`);
+  const jumpToHeading = (tocIndex: number, smooth = true) => {
+    if (!articleRef.current) return;
+    const headings = articleRef.current.querySelectorAll('h1, h2, h3, h4, h5, h6');
+    const target = headings[tocIndex];
+    if (!target) return;
+
+    const headerOffset = 96;
+    const y = target.getBoundingClientRect().top + window.scrollY - headerOffset;
+    window.scrollTo({ top: y, behavior: smooth ? 'smooth' : 'auto' });
+    const headingId = tocHeadings[tocIndex]?.id ?? '';
+    if (headingId) {
+      window.history.replaceState(null, '', `#${encodeURIComponent(headingId)}`);
+    }
   };
 
   useEffect(() => {
@@ -227,9 +309,12 @@ export default function Post() {
       headingId = rawHash;
     }
 
-    requestAnimationFrame(() => {
-      jumpToHeading(headingId, false);
-    });
+    const idx = tocHeadings.findIndex((h) => h.id === headingId);
+    if (idx >= 0) {
+      requestAnimationFrame(() => {
+        jumpToHeading(idx, false);
+      });
+    }
   }, [post, tocHeadings.length]);
 
   if (loading) {
@@ -360,13 +445,7 @@ export default function Post() {
     }
   };
 
-  const headingIdTracker: Record<string, number> = {};
-  const resolveHeadingId = (rawText: string): string => {
-    const base = slugifyHeading(rawText);
-    const current = (headingIdTracker[base] ?? 0) + 1;
-    headingIdTracker[base] = current;
-    return current === 1 ? base : `${base}-${current}`;
-  };
+  const headingIndexRef = { current: 0 };
 
   const headingClassMap: Record<1 | 2 | 3 | 4 | 5 | 6, string> = {
     1: '!text-[1.3rem] !leading-8 mt-9 mb-4',
@@ -380,13 +459,15 @@ export default function Post() {
   const renderHeading =
     (level: 1 | 2 | 3 | 4 | 5 | 6) =>
     ({ children, ...props }: any) => {
-      const headingText = getTextContent(children);
-      const headingId = resolveHeadingId(headingText);
+      const idx = headingIndexRef.current;
+      headingIndexRef.current += 1;
+      const headingId = tocHeadings[idx]?.id ?? `heading-${idx}`;
       const className = typeof props.className === 'string' ? props.className : '';
       const Tag = `h${level}` as HeadingTag;
       return (
         <Tag
           id={headingId}
+          data-toc-index={idx}
           {...props}
           className={`scroll-mt-24 font-semibold ${headingClassMap[level]} ${className}`.trim()}
         >
@@ -475,21 +556,24 @@ export default function Post() {
               </span>
             </div>
 
-            <div className="prose prose-base md:prose-lg prose-slate dark:prose-invert max-w-none prose-h2:!text-[1.18rem] prose-h3:!text-[1.02rem] prose-h4:!text-[0.95rem] prose-h2:!leading-7 prose-h3:!leading-6 prose-h4:!leading-6">
+            <div ref={articleRef} className="prose prose-base md:prose-lg prose-slate dark:prose-invert max-w-none prose-h2:!text-[1.18rem] prose-h3:!text-[1.02rem] prose-h4:!text-[0.95rem] prose-h2:!leading-7 prose-h3:!leading-6 prose-h4:!leading-6 prose-pre:!p-0 prose-pre:!m-0 prose-pre:!bg-transparent prose-pre:!border-0 prose-pre:!rounded-none">
               <ReactMarkdown
                 remarkPlugins={[remarkMath]}
-                rehypePlugins={[rehypeKatex]}
+                rehypePlugins={[rehypeRaw, rehypeKatex]}
                 components={{
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   code(props: any) {
                     const { inline, className, children } = props;
                     const match = /language-(\w+)/.exec(className || '');
-                    return !inline && match ? (
-                      <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div" {...props}>
-                        {String(children).replace(/\n$/, '')}
-                      </SyntaxHighlighter>
-                    ) : (
-                      <code className={className} {...props}>
+                    const codeString = String(children).replace(/\n$/, '');
+
+                    if (!inline && match) {
+                      const lang = match[1];
+                      return <CodeBlock language={lang} code={codeString} />;
+                    }
+
+                    return (
+                      <code className={`${className ?? ''} px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-sm text-pink-600 dark:text-pink-400 font-mono`} {...props}>
                         {children}
                       </code>
                     );
@@ -500,9 +584,31 @@ export default function Post() {
                   h4: renderHeading(4),
                   h5: renderHeading(5),
                   h6: renderHeading(6),
+                  video(props: any) {
+                    return (
+                      <video
+                        controls
+                        preload="metadata"
+                        className="w-full rounded-lg my-4"
+                        {...props}
+                      />
+                    );
+                  },
+                  iframe(props: any) {
+                    return (
+                      <div className="relative w-full aspect-video my-4 rounded-lg overflow-hidden">
+                        <iframe
+                          className="absolute inset-0 w-full h-full"
+                          allowFullScreen
+                          loading="lazy"
+                          {...props}
+                        />
+                      </div>
+                    );
+                  },
                 }}
               >
-                {post.content}
+                {autoEmbedVideos(post.content)}
               </ReactMarkdown>
             </div>
 
@@ -579,7 +685,7 @@ export default function Post() {
 
                 {tocHeadings.length > 0 ? (
                   <ul className="space-y-2 text-sm max-h-[70vh] overflow-y-auto">
-                    {tocHeadings.map((heading) => (
+                    {tocHeadings.map((heading, index) => (
                       <li key={heading.id}>
                         <a
                           href={`#${heading.id}`}
@@ -598,7 +704,7 @@ export default function Post() {
                           }`}
                           onClick={(event) => {
                             event.preventDefault();
-                            jumpToHeading(heading.id);
+                            jumpToHeading(index);
                           }}
                         >
                           {heading.text}
