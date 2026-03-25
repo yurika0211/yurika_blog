@@ -152,7 +152,7 @@ export default function Editor() {
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
       {/* Top meta area with status/error */}
-      <div className="bg-white/60 dark:bg-gray-900/60 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 space-y-4">
+      <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <PenLine className="w-5 h-5 text-blue-500" />
@@ -234,7 +234,7 @@ export default function Editor() {
       {/* Editor + Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-200">
         {/* Left: editor */}
-        <div className="flex flex-col bg-white/60 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 overflow-hidden">
+        <div className="flex flex-col bg-white/30 dark:bg-gray-900/30 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 overflow-hidden">
           <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 font-medium text-sm text-gray-500">
             Markdown 源码
           </div>
@@ -249,7 +249,7 @@ export default function Editor() {
         </div>
 
         {/* Right: preview */}
-        <div className="flex flex-col bg-white/60 dark:bg-gray-900/60 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 overflow-hidden">
+        <div className="flex flex-col bg-white/30 dark:bg-gray-900/30 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 overflow-hidden">
           <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 font-medium text-sm text-gray-500 flex items-center gap-2">
             <Eye className="w-4 h-4" /> 实时预览
           </div>

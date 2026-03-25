@@ -73,7 +73,7 @@ export default function Login() {
 
   return (
     <section className="mx-auto w-full max-w-2xl animate-fade-in">
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white/80 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/70">
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white/30 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/30">
         <div className="border-b border-gray-200/80 px-6 py-5 dark:border-gray-800">
           <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
             <LogIn className="h-6 w-6 text-blue-600 dark:text-blue-400" />

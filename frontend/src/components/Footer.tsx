@@ -4,12 +4,12 @@ export default function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="py-8 mt-12 border-t border-gray-200 dark:border-gray-800/50 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm transition-colors duration-300">
+    <footer className="py-8 mt-12 border-t border-gray-200 dark:border-gray-800/50 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm transition-colors duration-300">
       <div className="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
         
         {/* 左侧：版权信息 */}
         <div className="text-gray-500 dark:text-gray-400 text-sm text-center md:text-left">
-          <p>© {currentYear} My DevBlog. Built with React & Tailwind.</p>
+          <p>Copyright © {currentYear} My DevBlog. All rights reserved.</p>
         </div>
 
         {/* 右侧：社交图标 */}

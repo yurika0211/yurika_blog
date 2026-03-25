@@ -11,7 +11,7 @@ interface PostCardProps {
     export default function PostCard({ post }: PostCardProps) {
       return (
         // 增加 dark:bg-gray-900, dark:border-gray-800
-        <article className="bg-white/50 dark:bg-gray-900/50 p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md transition-all">
+        <article className="bg-white/30 dark:bg-gray-900/30 p-6 rounded-lg shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-md transition-all">
           <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 mb-3">
             <Calendar className="w-4 h-4" />
             <time dateTime={post.date}>{formatDate(post.date)}</time>

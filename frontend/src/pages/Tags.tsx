@@ -90,7 +90,7 @@ export default function Tags() {
           <Link
             key={name}
             to={`/tag/${encodeURIComponent(name)}`}
-            className="group relative overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
+            className="group relative overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
           >
             {/* 渐变顶栏 */}
             <div className={`h-2 bg-gradient-to-r ${getTagColor(name)}`} />

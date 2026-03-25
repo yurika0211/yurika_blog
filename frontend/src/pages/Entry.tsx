@@ -230,7 +230,7 @@ export default function Entry() {
       </section>
 
       <section id="entry-content" className="mx-auto w-full max-w-6xl space-y-14 px-4 pb-20 pt-8 md:pt-14">
-        <div className="rounded-2xl border border-gray-200/80 bg-white/75 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700/70 dark:bg-gray-900/70 md:p-5">
+        <div className="rounded-2xl border border-gray-200/80 bg-white/30 p-4 shadow-sm backdrop-blur-sm dark:border-gray-700/70 dark:bg-gray-900/30 md:p-5">
           <div className="flex flex-wrap items-center gap-3 text-sm text-gray-700 dark:text-gray-200">
             <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
               <Sparkles className="h-4 w-4" />
@@ -275,7 +275,7 @@ export default function Entry() {
                 <Link
                   key={post.id}
                   to={`/post/${post.id}`}
-                  className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white/85 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-gray-700/80 dark:bg-gray-900/75"
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white/30 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-lg dark:border-gray-700/80 dark:bg-gray-900/30"
                 >
                   <div className="aspect-video overflow-hidden">
                     {post.cover ? (
@@ -338,7 +338,7 @@ export default function Entry() {
                 <Link
                   key={`${item.id}-update`}
                   to={`/post/${item.id}`}
-                  className="group rounded-2xl border border-gray-200/80 bg-white/85 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700/80 dark:bg-gray-900/75"
+                  className="group rounded-2xl border border-gray-200/80 bg-white/30 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700/80 dark:bg-gray-900/30"
                 >
                   <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                     <Newspaper className="h-3.5 w-3.5" />
@@ -373,7 +373,7 @@ export default function Entry() {
             {featuredProjects.map((project) => (
               <article
                 key={project.title}
-                className="rounded-2xl border border-gray-200/80 bg-white/85 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700/80 dark:bg-gray-900/75"
+                className="rounded-2xl border border-gray-200/80 bg-white/30 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700/80 dark:bg-gray-900/30"
               >
                 <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
                   <Workflow className="h-3.5 w-3.5" />
