@@ -229,7 +229,7 @@ export const blog = {
       return response.data;
     }),
 
-  // 分页获取文章（兼容新旧后端）
+  // 分页获取文章
   getPostsPaginated: (params: {
     page?: number;
     per_page?: number;
@@ -238,32 +238,8 @@ export const blog = {
   }) => {
     const cacheKey = `blog:paginated:${JSON.stringify(params)}`;
     return cachedFetch<PaginatedResponse>(cacheKey, async () => {
-      const response = await apiClient.get("/posts/", { params });
-      const payload = response.data;
-
-      if (payload && !Array.isArray(payload) && Array.isArray(payload.data)) {
-        return payload as PaginatedResponse;
-      }
-
-      const all: BlogPost[] = Array.isArray(payload) ? payload : [];
-      const page = params.page ?? 1;
-      const perPage = params.per_page ?? 5;
-      const tag = params.tag;
-      const search = params.search?.toLowerCase();
-
-      const filtered = all.filter((p) => {
-        if (tag && !p.tags.includes(tag)) return false;
-        if (search && !p.title.toLowerCase().includes(search) && !p.summary.toLowerCase().includes(search)) return false;
-        return true;
-      });
-
-      const start = (page - 1) * perPage;
-      return {
-        data: filtered.slice(start, start + perPage),
-        total: filtered.length,
-        page,
-        per_page: perPage,
-      } as PaginatedResponse;
+      const response = await apiClient.get<PaginatedResponse>("/posts/", { params });
+      return response.data;
     });
   },
 
