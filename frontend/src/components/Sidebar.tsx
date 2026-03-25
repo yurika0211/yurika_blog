@@ -25,7 +25,7 @@ export default function Sidebar() {
     <aside className="lg:col-span-30 space-y-8 lg:pl-10">
       {/* 模块 1: 个人简介卡片 */}
       <SearchWidget />
-      <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 transition-colors">
+      <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 transition-colors">
         <div className="flex flex-col items-center text-center">
           {/* 头像 - 这里暂时用个占位图，你可以换成自己的照片 */}
           <img
@@ -84,7 +84,7 @@ export default function Sidebar() {
       </div>
 
       {/* 模块 2: 标签云 */}
-      <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 transition-colors">
+      <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 transition-colors">
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <Tag className="w-5 h-5 text-blue-500" />
           Booming Tags
@@ -112,7 +112,7 @@ export default function Sidebar() {
       </div>
 
       {/* 模块 3: 最新文章 */}
-      <div className="bg-white/40 dark:bg-gray-900/40 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 transition-colors">
+      <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 transition-colors">
         <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
           <LinkIcon className="w-5 h-5 text-green-500" />
           New Articles

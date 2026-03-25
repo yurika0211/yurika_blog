@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation, matchPath, Navigate } from '
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
+import ArchiveWidget from './components/ArchiveWidget';
 import { useAuth } from './hooks/useAuth';
 import { useScrollRestore } from './hooks/useScrollRestore';
 
@@ -34,11 +35,12 @@ function AppLayout() {
   const isLanding = location.pathname === '/';
   const isPostPage = Boolean(matchPath('/post/:id', location.pathname));
   const useFullBleedShell = isLanding || isPostPage;
-  const hideSidebar = Boolean(
-    location.pathname === '/' ||
-      matchPath('/post/:id', location.pathname) ||
-      matchPath('/editor', location.pathname) ||
-      matchPath('/editor/:id', location.pathname),
+  const showSidebar = Boolean(
+    location.pathname === '/about',
+  );
+  const showArchive = Boolean(
+    location.pathname === '/posts' ||
+      matchPath('/tag/:tag', location.pathname),
   );
   const routes = (
     <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-500">加载中...</div>}>
@@ -111,17 +113,27 @@ function AppLayout() {
       {useFullBleedShell ? (
         <main className="grow w-full">{routes}</main>
       ) : (
-        <div className="grow w-full max-w-7xl mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <main className={hideSidebar ? 'lg:col-span-12' : 'lg:col-span-8'}>{routes}</main>
+        <div className="grow flex">
+          {showArchive && (
+            <aside className="hidden lg:block w-72 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm overflow-y-auto sticky top-16 h-[calc(100vh-4rem)]">
+              <div className="pt-6 px-5 pb-6">
+                <ArchiveWidget />
+              </div>
+            </aside>
+          )}
 
-            {!hideSidebar && (
-              <aside className="lg:col-span-4 space-y-8">
-                <div className="sticky top-24">
-                  <Sidebar />
-                </div>
-              </aside>
-            )}
+          <div className="grow w-full max-w-7xl mx-auto px-4 py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <main className={showSidebar ? 'lg:col-span-8' : 'lg:col-span-12'}>{routes}</main>
+
+              {showSidebar && (
+                <aside className="lg:col-span-4 space-y-8">
+                  <div className="sticky top-24">
+                    <Sidebar />
+                  </div>
+                </aside>
+              )}
+            </div>
           </div>
         </div>
       )}
