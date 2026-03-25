@@ -6,6 +6,7 @@ export interface BlogPost {
   content: string; // 暂时存 Markdown 文本
   date: string;
   tags: string[];
+  is_pinned?: boolean;
 }
 
 export interface BlogComment {

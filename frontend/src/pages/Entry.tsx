@@ -6,12 +6,17 @@ import {
   ArrowRight,
   BookOpen,
   Clock3,
+  ExternalLink,
+  Github,
   Loader,
   Newspaper,
+  Pin,
   Sparkles,
+  Star,
   Workflow,
 } from 'lucide-react';
 import { blog } from '../services/api';
+import { API_BASE_URL } from '../services/apiConfig';
 import type { BlogPost } from '../types';
 import { formatDate } from '../utils/date';
 
@@ -78,6 +83,7 @@ export default function Entry() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [ghRepos, setGhRepos] = useState<{ name: string; description: string | null; language: string | null; html_url: string; stargazers_count: number; fork: boolean }[]>([]);
   const particleRef = useRef<HTMLDivElement>(null);
   const { displayed: typedTitle, done: typingDone } = useTyping('ユリカのブログ', 150, 400);
 
@@ -94,7 +100,7 @@ export default function Entry() {
       p.style.left = `${Math.random() * 100}%`;
       p.style.bottom = '0';
       p.style.animation = `float-particle ${6 + Math.random() * 6}s linear forwards`;
-      p.style.background = `hsl(${220 + Math.random() * 60}, 80%, ${70 + Math.random() * 20}%)`;
+      p.style.background = `hsl(${170 + Math.random() * 30}, 70%, ${70 + Math.random() * 20}%)`;
       container.appendChild(p);
       p.addEventListener('animationend', () => p.remove());
     };
@@ -120,6 +126,32 @@ export default function Entry() {
     void fetchPosts();
   }, []);
 
+  // 拉取 GitHub 仓库（localStorage 缓存 30 分钟）
+  useEffect(() => {
+    const CACHE_KEY = 'gh_repos';
+    const CACHE_TTL = 30 * 60 * 1000;
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { data, ts } = JSON.parse(cached);
+        if (Date.now() - ts < CACHE_TTL && Array.isArray(data)) {
+          setGhRepos(data);
+          return;
+        }
+      }
+    } catch {}
+    fetch(`${API_BASE_URL}/github/repos`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          const repos = data.filter((r: any) => !r.fork);
+          setGhRepos(repos);
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: repos, ts: Date.now() }));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const sortedPosts = useMemo(
     () =>
       [...posts].sort(
@@ -138,45 +170,25 @@ export default function Entry() {
     [sortedPosts],
   );
 
-  const recentPosts = useMemo(() => postCards.slice(0, 6), [postCards]);
+  const recentPosts = useMemo(() => postCards.filter((p) => p.is_pinned), [postCards]);
   const recentUpdates = useMemo(() => postCards.slice(0, 4), [postCards]);
   const latestPostDate = postCards.length > 0 ? formatDate(postCards[0].date) : '--';
-
-  const featuredProjects = [
-    {
-      title: 'Blog API',
-      summary: '基于 Rust + Axum 的博客后端，负责文章与评论接口。',
-      stack: ['Rust', 'Axum', 'SeaORM'],
-    },
-    {
-      title: 'Markdown Editor',
-      summary: '可视化写作与实时预览，支持公式与代码高亮。',
-      stack: ['React', 'TypeScript', 'Tailwind'],
-    },
-    {
-      title: 'Landing UI',
-      summary: '博客首页视觉改版，聚焦首屏表达和内容分区。',
-      stack: ['Vite', 'React Router', 'CSS'],
-    },
-  ];
 
   return (
     <div className="animate-fade-in">
       <section className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
-        <img src="/bg.webp" alt="landing background" className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-slate-950/42 dark:bg-slate-950/52" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-slate-900/10 to-slate-100/88 dark:to-slate-950/90" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cyan-950/30 via-teal-900/15 to-slate-100/88 dark:from-cyan-950/45 dark:via-teal-900/25 dark:to-slate-950/90" />
 
         {/* 浮动粒子层 */}
         <div ref={particleRef} className="absolute inset-0 pointer-events-none z-10 overflow-hidden" />
 
         <div className="relative z-20 mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center px-4 py-16 md:py-20">
-          <div className="glow-border w-full rounded-2xl bg-slate-900/30 p-6 text-white shadow-lg backdrop-blur-sm md:p-10">
+          <div className="glow-border w-full rounded-2xl bg-cyan-950/25 p-6 text-white shadow-lg backdrop-blur-sm md:p-10">
             <div className="flex flex-col gap-8 md:flex-row md:items-center">
               <img
                 src="/profile.webp"
                 alt="avatar"
-                className="stagger-1 avatar-glow h-24 w-24 rounded-full border-4 border-white/60 object-cover md:h-32 md:w-32"
+                className="stagger-1 avatar-glow h-24 w-24 rounded-full border-4 border-cyan-200/60 object-cover md:h-32 md:w-32"
               />
 
               <div className="max-w-3xl">
@@ -245,7 +257,7 @@ export default function Entry() {
 
         <section className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recent Blogs</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Pinned Articles</h2>
             <Link
               to="/posts"
               className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
@@ -267,7 +279,7 @@ export default function Entry() {
             </div>
           ) : recentPosts.length === 0 ? (
             <div className="rounded-xl border border-dashed border-gray-300 px-6 py-10 text-center text-gray-500 dark:border-gray-700 dark:text-gray-400">
-              No Article
+              No Pinned Article
             </div>
           ) : (
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -289,7 +301,8 @@ export default function Entry() {
                     )}
                   </div>
                   <div className="flex flex-1 flex-col p-5">
-                    <h3 className="truncate text-xl font-bold text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
+                    <h3 className="truncate text-xl font-bold text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400 flex items-center gap-2">
+                      <Pin className="h-4 w-4 shrink-0 text-cyan-500" />
                       {post.title}
                     </h3>
                     <p className="mt-2 truncate text-sm text-gray-600 dark:text-gray-300">{post.summary}</p>
@@ -360,40 +373,55 @@ export default function Entry() {
         <section className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Recent Program</h2>
-            <Link
-              to="/about"
+            <a
+              href="https://github.com/yurika0211"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-sm font-medium text-blue-600 transition-colors hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
             >
-              more
-              <ArrowRight className="h-4 w-4" />
-            </Link>
+              <Github className="h-4 w-4" />
+              GitHub
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {featuredProjects.map((project) => (
-              <article
-                key={project.title}
-                className="rounded-2xl border border-gray-200/80 bg-white/30 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700/80 dark:bg-gray-900/30"
-              >
-                <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
-                  <Workflow className="h-3.5 w-3.5" />
-                  Project
-                </div>
-                <h3 className="mt-3 text-lg font-bold text-gray-900 dark:text-white">{project.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-gray-300">{project.summary}</p>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {project.stack.map((tech) => (
-                    <span
-                      key={tech}
-                      className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                    >
-                      {tech}
-                    </span>
-                  ))}
-                </div>
-              </article>
-            ))}
-          </div>
+          {ghRepos.length === 0 ? (
+            <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+              <Loader className="h-4 w-4 animate-spin" />
+              loading repos...
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {ghRepos.slice(0, 6).map((repo) => (
+                <a
+                  key={repo.name}
+                  href={repo.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group rounded-2xl border border-gray-200/80 bg-white/30 p-5 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md dark:border-gray-700/80 dark:bg-gray-900/30"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-purple-50 px-3 py-1 text-xs text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                      <Workflow className="h-3.5 w-3.5" />
+                      {repo.language || 'Repository'}
+                    </div>
+                    {repo.stargazers_count > 0 && (
+                      <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                        <Star className="h-3.5 w-3.5" />
+                        {repo.stargazers_count}
+                      </span>
+                    )}
+                  </div>
+                  <h3 className="mt-3 truncate text-lg font-bold text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
+                    {repo.name}
+                  </h3>
+                  <p className="mt-2 line-clamp-2 text-sm leading-6 text-gray-600 dark:text-gray-300">
+                    {repo.description || 'No description'}
+                  </p>
+                </a>
+              ))}
+            </div>
+          )}
         </section>
       </section>
     </div>

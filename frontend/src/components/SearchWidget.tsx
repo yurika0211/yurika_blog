@@ -46,7 +46,7 @@ export default function SearchWidget() {
   };
 
   return (
-    <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30">
+    <div className="bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30">
       <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2">
         <Search className="w-4 h-4 text-purple-500" />
         搜索文章

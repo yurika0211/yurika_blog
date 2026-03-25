@@ -107,7 +107,7 @@ function AppLayout() {
   }, [location.pathname, location.search]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50/50 dark:bg-gray-950/50 backdrop-blur-4px transition-colors duration-300">
+    <div className="min-h-screen flex flex-col dark:bg-gray-950/50 transition-colors duration-300">
       <Header />
 
       {useFullBleedShell ? (
@@ -115,7 +115,7 @@ function AppLayout() {
       ) : (
         <div className="grow flex">
           {showArchive && (
-            <aside className="hidden lg:block w-72 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm overflow-y-auto sticky top-16 h-[calc(100vh-4rem)]">
+            <aside className="hidden lg:block w-72 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-sm overflow-y-auto sticky top-16 h-[calc(100vh-4rem)]">
               <div className="pt-6 px-5 pb-6">
                 <ArchiveWidget />
               </div>

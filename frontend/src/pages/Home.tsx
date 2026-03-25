@@ -218,7 +218,7 @@ export default function Home() {
       </div>
 
       {postCards.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white/30 dark:bg-gray-900/30 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 backdrop-blur-sm">
+        <div className="flex flex-col items-center justify-center py-20 bg-slate-100/50 dark:bg-gray-900/30 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 backdrop-blur-sm">
           <SearchX className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
           <h3 className="text-xl font-medium text-gray-600 dark:text-gray-300">
             没有找到相关文章
@@ -239,7 +239,7 @@ export default function Home() {
             <Link
               key={post.id}
               to={`/post/${post.id}`}
-              className="group flex flex-col sm:flex-row overflow-hidden rounded-2xl bg-white/30 dark:bg-gray-900/30 shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 backdrop-blur-sm sm:h-48"
+              className="group flex flex-col sm:flex-row overflow-hidden rounded-2xl bg-slate-100/50 dark:bg-gray-900/30 shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 backdrop-blur-sm sm:h-48"
             >
               {/* 封面图 */}
               <div className="sm:w-64 sm:min-w-64 h-48 sm:h-full overflow-hidden shrink-0">

@@ -32,8 +32,8 @@ export default function Header() {
     <header
       className={`sticky top-0 z-50 border-b transition-colors duration-300 ${
         useLandingTexture
-          ? 'border-white/10 bg-black/45 backdrop-blur-md'
-          : 'border-gray-200 bg-white/30 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/30'
+          ? 'border-white/15 bg-cyan-950/35 backdrop-blur-md'
+          : 'border-gray-200 bg-slate-100/50 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/30'
       }`}
     >
       <div className="max-w-10xl mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
@@ -134,7 +134,7 @@ export default function Header() {
         <nav
           className={`md:hidden border-t px-4 py-3 flex flex-col gap-3 font-medium ${
             useLandingTexture
-              ? 'border-white/10 bg-black/50 backdrop-blur-md text-gray-200'
+              ? 'border-white/15 bg-cyan-950/40 backdrop-blur-md text-gray-200'
               : 'border-gray-200 bg-white/80 backdrop-blur-md text-gray-600 dark:border-gray-800 dark:bg-gray-900/80 dark:text-gray-300'
           }`}
         >
