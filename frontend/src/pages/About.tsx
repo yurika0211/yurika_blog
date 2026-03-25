@@ -218,8 +218,8 @@ export default function ChatProfile() {
   };
 
   return (
-    <div className="my-8 mx-auto flex h-[600px] w-full max-w-xl flex-col overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 shadow-2xl dark:border-gray-800 dark:bg-gray-900 animate-fade-in">
-      <div className="z-10 flex items-center justify-between border-b border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+    <div className="my-4 mx-auto flex h-[calc(100vh-7rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-white/20 shadow-2xl backdrop-blur-md dark:border-gray-700/30 dark:bg-gray-900/20 animate-fade-in">
+      <div className="z-10 flex items-center justify-between border-b border-white/20 bg-white/30 backdrop-blur-sm p-4 dark:border-gray-700/30 dark:bg-gray-800/30">
         <div className="flex items-center gap-3">
           <div className="relative">
             <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-green-500 dark:border-gray-800"></div>
@@ -246,7 +246,7 @@ export default function ChatProfile() {
 
       <div
         ref={scrollRef}
-        className="flex-1 space-y-6 overflow-y-auto bg-gray-50 p-4 dark:bg-gray-950/50"
+        className="flex-1 space-y-6 overflow-y-auto bg-transparent p-4"
       >
         {historyLoading && (
           <div className="text-center text-xs text-gray-400 dark:text-gray-500">
@@ -280,8 +280,8 @@ export default function ChatProfile() {
             <div
               className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
                 msg.role === "user"
-                  ? "rounded-br-none bg-blue-600 text-white"
-                  : "rounded-bl-none border border-gray-100 bg-white text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200"
+                  ? "rounded-br-none bg-blue-600/80 text-white backdrop-blur-sm"
+                  : "rounded-bl-none border border-white/30 bg-white/50 text-gray-700 backdrop-blur-sm dark:border-gray-700/30 dark:bg-gray-800/50 dark:text-gray-200"
               }`}
             >
               <div className="whitespace-pre-wrap">{msg.content}</div>
@@ -305,7 +305,7 @@ export default function ChatProfile() {
 
       <form
         onSubmit={handleSend}
-        className="border-t border-gray-200 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
+        className="border-t border-white/20 bg-white/30 backdrop-blur-sm p-4 dark:border-gray-700/30 dark:bg-gray-800/30"
       >
         <div className="flex items-center gap-2">
           <input
