@@ -12,8 +12,11 @@ target/
 .env.*.local
 config.json
 
-# Docker images (tar archives)
-images/*.tar
+# Docker images and screenshots
+images/
+
+# Documentation (local reference only)
+docs/
 
 # Database dumps (large files)
 docker-compose-db-dump.sql
