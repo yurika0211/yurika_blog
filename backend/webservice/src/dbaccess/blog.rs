@@ -24,17 +24,29 @@ pub async fn get_notes_paginated_db(
     let per_page = params.per_page.unwrap_or(5).clamp(1, 100);
     let offset = (page - 1) * per_page;
 
-    let (where_clause, has_tag, has_search) = match (&params.tag, &params.search) {
-        (Some(_), Some(_)) => ("WHERE $3 = ANY(tags) AND (LOWER(title) LIKE $4 OR LOWER(summary) LIKE $4)", true, true),
-        (Some(_), None) => ("WHERE $3 = ANY(tags)", true, false),
-        (None, Some(_)) => ("WHERE LOWER(title) LIKE $3 OR LOWER(summary) LIKE $3", false, true),
-        (None, None) => ("", false, false),
+    let has_tag = params.tag.is_some();
+    let has_search = params.search.is_some();
+
+    // count 查询的占位符从 $1 开始
+    let count_where = match (has_tag, has_search) {
+        (true, true) => "WHERE $1 = ANY(tags) AND (LOWER(title) LIKE $2 OR LOWER(summary) LIKE $2)",
+        (true, false) => "WHERE $1 = ANY(tags)",
+        (false, true) => "WHERE LOWER(title) LIKE $1 OR LOWER(summary) LIKE $1",
+        (false, false) => "",
     };
 
-    let count_sql = format!("SELECT COUNT(*) as count FROM articles {}", where_clause);
+    // data 查询的 $1=limit, $2=offset，过滤占位符从 $3 开始
+    let data_where = match (has_tag, has_search) {
+        (true, true) => "WHERE $3 = ANY(tags) AND (LOWER(title) LIKE $4 OR LOWER(summary) LIKE $4)",
+        (true, false) => "WHERE $3 = ANY(tags)",
+        (false, true) => "WHERE LOWER(title) LIKE $3 OR LOWER(summary) LIKE $3",
+        (false, false) => "",
+    };
+
+    let count_sql = format!("SELECT COUNT(*) as count FROM articles {}", count_where);
     let data_sql = format!(
         "SELECT * FROM articles {} ORDER BY date DESC NULLS LAST LIMIT $1 OFFSET $2",
-        where_clause
+        data_where
     );
 
     let search_pattern = params.search.as_ref().map(|s| format!("%{}%", s.to_lowercase()));
