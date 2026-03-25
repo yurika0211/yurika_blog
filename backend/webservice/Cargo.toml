@@ -18,6 +18,7 @@ tracing = "0.1"
 # 负责把日志格式化并输出到终端或文件
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 argon2 = { version = "0.5", features = ["std"] }
+reqwest = { version = "0.12", features = ["json"] }
 
 [dev-dependencies]
 actix-web = "4.3.2"

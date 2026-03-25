@@ -8,7 +8,8 @@ CREATE TABLE articles (
     summary TEXT,
     content TEXT NOT NULL,
     tags TEXT[],                        -- Array of text
-    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_pinned BOOLEAN DEFAULT FALSE
 );
 
 -- 3. Insert data (Corrected column name and Array formatting)

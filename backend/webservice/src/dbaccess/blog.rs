@@ -45,7 +45,7 @@ pub async fn get_notes_paginated_db(
 
     let count_sql = format!("SELECT COUNT(*) as count FROM articles {}", count_where);
     let data_sql = format!(
-        "SELECT * FROM articles {} ORDER BY date DESC NULLS LAST LIMIT $1 OFFSET $2",
+        "SELECT * FROM articles {} ORDER BY is_pinned DESC NULLS LAST, date DESC NULLS LAST LIMIT $1 OFFSET $2",
         data_where
     );
 
@@ -171,13 +171,20 @@ pub async fn update_article_by_id_db(
         current_article_row.tags.unwrap_or_default()
     };
 
+    let is_pinned: bool = if let Some(is_pinned) = update_article.is_pinned {
+        is_pinned
+    } else {
+        current_article_row.is_pinned.unwrap_or(false)
+    };
+
     let updated_article_row = sqlx::query_as::<_, Article>(
-        r#"UPDATE articles SET title = $1, content = $2, summary = $3, tags = $4 WHERE id = $5 RETURNING *"#,
+        r#"UPDATE articles SET title = $1, content = $2, summary = $3, tags = $4, is_pinned = $5 WHERE id = $6 RETURNING *"#,
     )
     .bind(title)
     .bind(content)
     .bind(summary)
     .bind(tags)
+    .bind(is_pinned)
     .bind(article_id)
     .fetch_one(pool)
     .await?;
@@ -201,14 +208,16 @@ pub async fn create_article_db(
     create_article: CreateArticle,
 ) -> Result<Article, MyError> {
     let now = Utc::now().naive_utc();
+    let is_pinned = create_article.is_pinned.unwrap_or(false);
     let new_article_row = sqlx::query_as::<_, Article>(
-        r#"INSERT INTO articles (title, content, summary, tags, date) VALUES ($1, $2, $3, $4, $5) RETURNING *"#,
+        r#"INSERT INTO articles (title, content, summary, tags, date, is_pinned) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *"#,
     )
     .bind(create_article.title)
     .bind(create_article.content)
     .bind(create_article.summary)
     .bind(create_article.tags)
     .bind(now)
+    .bind(is_pinned)
     .fetch_one(pool)
     .await?;
 

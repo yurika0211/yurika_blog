@@ -8,6 +8,7 @@ use actix_web::web;
 // 健康检查的路由配置
 pub fn general_routes(cfg: &mut web::ServiceConfig) {
     cfg.route("/health", web::get().to(health_check_handler));
+    cfg.route("/github/repos", web::get().to(github_repos_handler));
 }
 
 // blog的路由配置
