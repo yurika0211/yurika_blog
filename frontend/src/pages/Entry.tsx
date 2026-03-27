@@ -55,35 +55,61 @@ const getPostTimestamp = (dateInput: string): number => {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 };
 
+type GitHubRepo = {
+  name: string;
+  description: string | null;
+  language: string | null;
+  html_url: string;
+  stargazers_count: number;
+  fork: boolean;
+};
+
+const isGitHubRepo = (value: unknown): value is GitHubRepo => {
+  if (typeof value !== 'object' || value === null) return false;
+  const repo = value as Partial<GitHubRepo>;
+  return (
+    typeof repo.name === 'string'
+    && (typeof repo.description === 'string' || repo.description === null || repo.description === undefined)
+    && (typeof repo.language === 'string' || repo.language === null || repo.language === undefined)
+    && typeof repo.html_url === 'string'
+    && typeof repo.stargazers_count === 'number'
+    && typeof repo.fork === 'boolean'
+  );
+};
+
 // 打字机 hook
 function useTyping(text: string, speed = 120, startDelay = 600) {
   const [displayed, setDisplayed] = useState('');
-  const [done, setDone] = useState(false);
+
   useEffect(() => {
     let i = 0;
-    setDisplayed('');
-    setDone(false);
-    const timer = setTimeout(() => {
-      const interval = setInterval(() => {
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    const timerId = setTimeout(() => {
+      setDisplayed('');
+      intervalId = setInterval(() => {
         i += 1;
         setDisplayed(text.slice(0, i));
-        if (i >= text.length) {
-          clearInterval(interval);
-          setDone(true);
+        if (i >= text.length && intervalId) {
+          clearInterval(intervalId);
         }
       }, speed);
-      return () => clearInterval(interval);
     }, startDelay);
-    return () => clearTimeout(timer);
+
+    return () => {
+      clearTimeout(timerId);
+      if (intervalId) clearInterval(intervalId);
+    };
   }, [text, speed, startDelay]);
-  return { displayed, done };
+
+  return { displayed, done: displayed.length >= text.length };
 }
 
 export default function Entry() {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [ghRepos, setGhRepos] = useState<{ name: string; description: string | null; language: string | null; html_url: string; stargazers_count: number; fork: boolean }[]>([]);
+  const [ghRepos, setGhRepos] = useState<GitHubRepo[]>([]);
   const particleRef = useRef<HTMLDivElement>(null);
   const { displayed: typedTitle, done: typingDone } = useTyping('ユリカのブログ', 150, 400);
 
@@ -139,12 +165,14 @@ export default function Entry() {
           return;
         }
       }
-    } catch {}
+    } catch {
+      // ignore malformed local cache
+    }
     fetch(`${API_BASE_URL}/github/repos`)
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) {
-          const repos = data.filter((r: any) => !r.fork);
+          const repos = data.filter(isGitHubRepo).filter((r) => !r.fork);
           setGhRepos(repos);
           localStorage.setItem(CACHE_KEY, JSON.stringify({ data: repos, ts: Date.now() }));
         }

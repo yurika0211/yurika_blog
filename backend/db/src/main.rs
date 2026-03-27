@@ -1,10 +1,11 @@
 use chrono::NaiveDateTime;
 use dotenv::dotenv;
 use sqlx::postgres::PgPoolOptions;
+use sqlx::FromRow;
 use std::env;
 use std::io;
 
-#[derive(Debug)]
+#[derive(Debug, FromRow)]
 pub struct Course {
     pub id: i32,
     pub teacher_id: i32,
@@ -23,23 +24,15 @@ async fn main() -> io::Result<()> {
         .connect(&database_url)
         .await
         .unwrap();
-    let articles_rows = sqlx::query!(
-        r#"SELECT id, teacher_id, name, time FROM course where id = $1"#,
-        1
+
+    let courses_list = sqlx::query_as::<_, Course>(
+        r#"SELECT id, teacher_id, name, time FROM course WHERE id = $1"#,
     )
+    .bind(1)
     .fetch_all(&db_pool)
     .await
     .unwrap();
 
-    let mut courses_list = vec![];
-    for row in articles_rows {
-        courses_list.push(Course {
-            id: row.id,
-            teacher_id: row.teacher_id,
-            name: row.name,
-            time: Some(chrono::NaiveDateTime::from(row.time.unwrap())),
-        });
-    }
     println!("{:?}", courses_list);
     Ok(())
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type HTMLAttributes, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -10,28 +10,45 @@ import 'katex/dist/katex.min.css';
 import { blog, type CreatePostPayload, type UpdatePostPayload } from '../services/api';
 import type { BlogPost } from '../types';
 
+type ApiLikeError = {
+  message?: string;
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
+
+type MarkdownCodeProps = HTMLAttributes<HTMLElement> & {
+  inline?: boolean;
+  children?: ReactNode;
+};
+
+const getErrorMessage = (err: unknown, fallback: string): string => {
+  if (typeof err === 'object' && err !== null) {
+    const e = err as ApiLikeError;
+    return e.response?.data?.message || e.message || fallback;
+  }
+  return fallback;
+};
+
 export default function Editor() {
   const navigate = useNavigate();
   const { id } = useParams<{ id?: string }>();
 
-  // form state
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [tags, setTags] = useState('');
   const [content, setContent] = useState('# Hello World');
   const [isPinned, setIsPinned] = useState(false);
 
-  // meta state
   const [originalDate, setOriginalDate] = useState<string | undefined>(undefined);
 
-  // ui state
-  const [loading, setLoading] = useState(false); // loading post
-  const [saving, setSaving] = useState(false); // saving post
-  const [statusMsg, setStatusMsg] = useState<string | null>(null); // friendly status
-  const [error, setError]
- = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  // parse tags input into array
   const parseTags = (raw: string) =>
     raw
       ? raw
@@ -40,7 +57,6 @@ export default function Editor() {
           .filter(Boolean)
       : ['Uncategorized'];
 
-  // Fetch post for editing if id present
   useEffect(() => {
     let mounted = true;
     async function fetchPost() {
@@ -58,7 +74,6 @@ export default function Editor() {
           return;
         }
 
-        // populate form with server data
         setTitle(post.title || '');
         setSummary(post.summary || '');
         setTags(post.tags.join(', '));
@@ -66,16 +81,16 @@ export default function Editor() {
         setOriginalDate(post.date);
         setIsPinned(post.is_pinned ?? false);
         setStatusMsg(null);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Fetch post failed:', err);
-        setError(err?.response?.data?.message || err?.message || '获取文章时发生错误。');
+        setError(getErrorMessage(err, '获取文章时发生错误。'));
         setStatusMsg(null);
       } finally {
         if (mounted) setLoading(false);
       }
     }
 
-    fetchPost();
+    void fetchPost();
     return () => {
       mounted = false;
     };
@@ -85,7 +100,7 @@ export default function Editor() {
     setError(null);
     setStatusMsg(null);
 
-    if (!title?.trim() || !content?.trim()) {
+    if (!title.trim() || !content.trim()) {
       setError('标题和内容不能为空！');
       return;
     }
@@ -94,11 +109,12 @@ export default function Editor() {
 
     const payload: CreatePostPayload = {
       title: title.trim(),
-      summary: summary?.trim() || `${content.slice(0, 50)}...`,
+      summary: summary.trim() || `${content.slice(0, 50)}...`,
       tags: tagsArray,
       content,
       is_pinned: isPinned,
     };
+
     if (originalDate) {
       payload.date = originalDate;
     }
@@ -110,18 +126,13 @@ export default function Editor() {
       if (id) {
         const updatePayload: UpdatePostPayload = { ...payload };
         const updated = await blog.updatePost(id, updatePayload);
-        // use any server-returned date to keep sync
         if (updated?.date) setOriginalDate(updated.date);
         setStatusMsg('修改成功，正在返回文章列表…');
-        // short delay to allow user to see message
         setTimeout(() => navigate('/posts'), 600);
       } else {
-        // Create new post
         const created = await blog.createPost(payload);
 
-        // If server returned an object, sync state and navigate to new editor route
         if (created && typeof created === 'object') {
-          // Update local fields with authoritative server response where applicable
           if ((created as BlogPost).date) setOriginalDate((created as BlogPost).date);
           if ((created as BlogPost).title) setTitle((created as BlogPost).title);
           if ((created as BlogPost).summary) setSummary((created as BlogPost).summary);
@@ -131,21 +142,17 @@ export default function Editor() {
           const newId = (created as BlogPost).id;
           if (newId) {
             setStatusMsg('发布成功！正在打开新文章编辑页…');
-            // Navigate to the editor route for the newly created post so the user can continue editing
-            // use setTimeout to let user see status briefly
             setTimeout(() => navigate(`/editor/${newId}`), 300);
             return;
           }
         }
 
-        // Fallback behavior if server didn't return id
         setStatusMsg('发布成功！正在返回文章列表…');
         setTimeout(() => navigate('/posts'), 600);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Save failed:', err);
-      const message = err?.response?.data?.message || err?.message || '保存文章时发生错误。';
-      setError(String(message));
+      setError(getErrorMessage(err, '保存文章时发生错误。'));
       setStatusMsg(null);
     } finally {
       setSaving(false);
@@ -154,7 +161,6 @@ export default function Editor() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
-      {/* Top meta area with status/error */}
       <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -164,12 +170,8 @@ export default function Editor() {
 
           <div className="flex items-center gap-3">
             {loading && <div className="text-sm text-gray-500">正在加载文章…</div>}
-            {statusMsg && (
-              <div className="text-sm text-gray-700 dark:text-gray-300">{statusMsg}</div>
-            )}
-            {error && (
-              <div className="text-sm text-red-600 dark:text-red-400">{error}</div>
-            )}
+            {statusMsg && <div className="text-sm text-gray-700 dark:text-gray-300">{statusMsg}</div>}
+            {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
             <button
               onClick={handleSave}
               disabled={loading || saving}
@@ -186,7 +188,6 @@ export default function Editor() {
           </div>
         </div>
 
-        {/* Title */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             文章标题
@@ -202,7 +203,6 @@ export default function Editor() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Summary */}
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
               <FileText className="w-3 h-3" /> 摘要
@@ -217,7 +217,6 @@ export default function Editor() {
             />
           </div>
 
-          {/* Tags */}
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
               <Tag className="w-3 h-3" /> 标签 (用逗号分隔)
@@ -250,9 +249,7 @@ export default function Editor() {
         </div>
       </div>
 
-      {/* Editor + Preview */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-200">
-        {/* Left: editor */}
         <div className="flex flex-col bg-white/30 dark:bg-gray-900/30 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 overflow-hidden">
           <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 font-medium text-sm text-gray-500">
             Markdown 源码
@@ -267,7 +264,6 @@ export default function Editor() {
           />
         </div>
 
-        {/* Right: preview */}
         <div className="flex flex-col bg-white/30 dark:bg-gray-900/30 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 overflow-hidden">
           <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 font-medium text-sm text-gray-500 flex items-center gap-2">
             <Eye className="w-4 h-4" /> 实时预览
@@ -278,16 +274,14 @@ export default function Editor() {
               remarkPlugins={[remarkMath]}
               rehypePlugins={[rehypeKatex]}
               components={{
-                code({ node, inline, className, children, ...props }: any) {
+                code({ inline, className, children }: MarkdownCodeProps) {
                   const match = /language-(\w+)/.exec(className || '');
                   return !inline && match ? (
-                    <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div" {...props}>
+                    <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div">
                       {String(children).replace(/\n$/, '')}
                     </SyntaxHighlighter>
                   ) : (
-                    <code className={className} {...props}>
-                      {children}
-                    </code>
+                    <code className={className}>{children}</code>
                   );
                 },
               }}

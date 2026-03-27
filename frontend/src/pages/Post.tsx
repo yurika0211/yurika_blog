@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useMemo, useRef, isValidElement, type ReactNode } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, type HTMLAttributes, type VideoHTMLAttributes, type IframeHTMLAttributes, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -23,6 +23,18 @@ type TocHeading = {
 
 const APP_NAME = "Yurikas's Blog";
 type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+
+type MarkdownHeadingProps = HTMLAttributes<HTMLHeadingElement> & {
+  children?: ReactNode;
+};
+
+type MarkdownCodeProps = HTMLAttributes<HTMLElement> & {
+  inline?: boolean;
+  children?: ReactNode;
+};
+
+type MarkdownVideoProps = VideoHTMLAttributes<HTMLVideoElement>;
+type MarkdownIframeProps = IframeHTMLAttributes<HTMLIFrameElement>;
 
 /** 将独占一行的视频链接自动转换为嵌入标签 */
 const autoEmbedVideos = (markdown: string): string =>
@@ -171,22 +183,6 @@ function CodeBlock({ language, code }: { language: string; code: string }) {
   );
 }
 
-const getTextContent = (children: ReactNode): string => {
-  if (typeof children === 'string' || typeof children === 'number') {
-    return String(children);
-  }
-
-  if (Array.isArray(children)) {
-    return children.map((child) => getTextContent(child)).join('');
-  }
-
-  if (isValidElement<{ children?: ReactNode }>(children)) {
-    return getTextContent(children.props.children as ReactNode);
-  }
-
-  return '';
-};
-
 export default function Post() {
   const navigate = useNavigate();
   const { isLoggedIn } = useAuth();
@@ -277,7 +273,7 @@ export default function Post() {
 
   const articleRef = useRef<HTMLDivElement>(null);
 
-  const jumpToHeading = (tocIndex: number, smooth = true) => {
+  const jumpToHeading = useCallback((tocIndex: number, smooth = true) => {
     if (!articleRef.current) return;
     const headings = articleRef.current.querySelectorAll('h1, h2, h3, h4, h5, h6');
     const target = headings[tocIndex];
@@ -290,7 +286,7 @@ export default function Post() {
     if (headingId) {
       window.history.replaceState(null, '', `#${encodeURIComponent(headingId)}`);
     }
-  };
+  }, [tocHeadings]);
 
   useEffect(() => {
     if (!post || tocHeadings.length === 0) {
@@ -315,7 +311,7 @@ export default function Post() {
         jumpToHeading(idx, false);
       });
     }
-  }, [post, tocHeadings.length]);
+  }, [post, tocHeadings, jumpToHeading]);
 
   if (loading) {
     return (
@@ -458,7 +454,7 @@ export default function Post() {
 
   const renderHeading =
     (level: 1 | 2 | 3 | 4 | 5 | 6) =>
-    ({ children, ...props }: any) => {
+    ({ children, ...props }: MarkdownHeadingProps) => {
       const idx = headingIndexRef.current;
       headingIndexRef.current += 1;
       const headingId = tocHeadings[idx]?.id ?? `heading-${idx}`;
@@ -561,9 +557,7 @@ export default function Post() {
                 remarkPlugins={[remarkMath]}
                 rehypePlugins={[rehypeRaw, rehypeKatex]}
                 components={{
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  code(props: any) {
-                    const { inline, className, children } = props;
+                  code({ inline, className, children, ...props }: MarkdownCodeProps) {
                     const match = /language-(\w+)/.exec(className || '');
                     const codeString = String(children).replace(/\n$/, '');
 
@@ -584,7 +578,7 @@ export default function Post() {
                   h4: renderHeading(4),
                   h5: renderHeading(5),
                   h6: renderHeading(6),
-                  video(props: any) {
+                  video(props: MarkdownVideoProps) {
                     return (
                       <video
                         controls
@@ -594,7 +588,7 @@ export default function Post() {
                       />
                     );
                   },
-                  iframe(props: any) {
+                  iframe(props: MarkdownIframeProps) {
                     return (
                       <div className="relative w-full aspect-video my-4 rounded-lg overflow-hidden">
                         <iframe

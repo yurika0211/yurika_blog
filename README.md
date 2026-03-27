@@ -7,8 +7,8 @@
 ```text
 blog/
 ├── docker-compose.yml
-├── my-blog/               # 前端
-├── my-blog-backend/       # Rust 后端
+├── frontend/              # 前端
+├── backend/               # Rust 后端
 ├── chat-ai/               # AI 微服务
 ├── DB/                    # 数据库 SQL 文件
 ├── images/                # 导出的镜像 tar
@@ -18,7 +18,7 @@ blog/
 ## 本次已完成操作（按顺序）
 
 1. 识别项目服务并统一编排  
-   - 识别出 `my-blog`（前端）、`my-blog-backend`（后端）、`db`（Postgres）、`chat-ai`（微服务）。  
+   - 识别出 `frontend`（前端）、`backend`（后端）、`db`（Postgres）、`chat-ai`（微服务）。  
    - 在根目录创建并完善 [`docker-compose.yml`](./docker-compose.yml)。
 
 2. 接入 `chat-ai` 到统一编排  
@@ -26,20 +26,20 @@ blog/
    - 在 `chat-ai` 中把数据库连接改为优先读取 `DATABASE_URL`，便于容器内连 `db`。
 
 3. 修复前端 TypeScript 构建错误  
-   - 修复 [`my-blog/src/components/Editor.tsx`](./my-blog/src/components/Editor.tsx)  
-   - 修复 [`my-blog/src/pages/Post.tsx`](./my-blog/src/pages/Post.tsx)
+   - 修复 [`frontend/src/components/Editor.tsx`](./frontend/src/components/Editor.tsx)  
+   - 修复 [`frontend/src/pages/Post.tsx`](./frontend/src/pages/Post.tsx)
 
 4. 修复前端容器 Node 版本不兼容  
-   - `my-blog/Dockerfile` 的基础镜像从 `node:20.11.1-alpine` 升级到 `node:20.19.0-alpine`。
+   - `frontend/Dockerfile` 的基础镜像从 `node:20.11.1-alpine` 升级到 `node:20.19.0-alpine`。
 
 5. 修复后端 Rust 版本不兼容  
-   - `my-blog-backend/Dockerfile` 的基础镜像从 `rust:1.85-bookworm` 升级到 `rust:1.88-bookworm`。
+   - `backend/Dockerfile` 的基础镜像从 `rust:1.85-bookworm` 升级到 `rust:1.88-bookworm`。
 
 6. 修复后端 SQLx 编译期依赖数据库问题  
    - 将 `sqlx::query! / query_as!` 改为运行时 `query / query_as + bind`：  
-     - [`my-blog-backend/webservice/src/dbaccess/blog.rs`](./my-blog-backend/webservice/src/dbaccess/blog.rs)  
-     - [`my-blog-backend/webservice/src/dbaccess/comment.rs`](./my-blog-backend/webservice/src/dbaccess/comment.rs)  
-     - [`my-blog-backend/webservice/src/dbaccess/user.rs`](./my-blog-backend/webservice/src/dbaccess/user.rs)
+     - [`backend/webservice/src/dbaccess/blog.rs`](./backend/webservice/src/dbaccess/blog.rs)  
+     - [`backend/webservice/src/dbaccess/comment.rs`](./backend/webservice/src/dbaccess/comment.rs)  
+     - [`backend/webservice/src/dbaccess/user.rs`](./backend/webservice/src/dbaccess/user.rs)
 
 7. 解决宿主机数据库端口冲突  
    - 发现宿主机 `5432` 被其他容器占用。  
@@ -58,9 +58,9 @@ blog/
 
 10. 修复前端图片资源路径导致的显示失败  
    - 将 `./public/profile.png` 统一改成 `/profile.png`：  
-     - [`my-blog/src/pages/Entry.tsx`](./my-blog/src/pages/Entry.tsx)  
-     - [`my-blog/src/components/Sidebar.tsx`](./my-blog/src/components/Sidebar.tsx)  
-     - [`my-blog/src/pages/About.tsx`](./my-blog/src/pages/About.tsx)
+     - [`frontend/src/pages/Entry.tsx`](./frontend/src/pages/Entry.tsx)  
+     - [`frontend/src/components/Sidebar.tsx`](./frontend/src/components/Sidebar.tsx)  
+     - [`frontend/src/pages/About.tsx`](./frontend/src/pages/About.tsx)
 
 11. 修复 `chat-ai` 前端调用失败（CORS 预检 404）  
    - 在 [`chat-ai/cmd/chat/main.go`](./chat-ai/cmd/chat/main.go) 增加 CORS/OPTIONS 中间件。  
@@ -76,7 +76,7 @@ blog/
 ### 启动/停止
 
 ```bash
-cd /media/shiokou/DevRepo2/DevHub/Projects/2026-myapp/typescript/blog
+cd /media/shiokou/DevRepo24/DevHub/Projects/2026-myapp/typescript/blog
 
 # 首次或代码改动后
 docker compose up -d --build

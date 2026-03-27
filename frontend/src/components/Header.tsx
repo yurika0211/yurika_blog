@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, matchPath } from 'react-router-dom';
-import { BookOpen, Moon, Sun, Menu, X } from 'lucide-react';
+import { BookOpen, Moon, Sun, Menu, X, PenLine, LogIn, LogOut } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
-import { PenLine, LogIn, LogOut } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-
 
 export default function Header() {
   const { theme, toggleTheme } = useTheme();
@@ -14,46 +12,55 @@ export default function Header() {
   const isPostPage = Boolean(matchPath('/post/:id', location.pathname));
   const useLandingTexture = isLanding || isPostPage;
   const editorLink = isLoggedIn ? '/editor' : '/login?redirect=%2Feditor';
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  // 路由变化时关闭菜单
-  useEffect(() => {
-    setMenuOpen(false);
-  }, [location.pathname]);
+  const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
+  const menuOpen = menuOpenPath === location.pathname;
 
   const navLinkClass = useLandingTexture
     ? 'hover:text-white'
     : 'hover:text-blue-600 dark:hover:text-blue-400';
 
   const btnClass = (base: string) =>
-    `flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${base}`;
+    'flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ' + base;
+
+  const headerClass =
+    'sticky top-0 z-50 border-b transition-colors duration-300 ' +
+    (useLandingTexture
+      ? 'border-white/15 bg-cyan-950/35 backdrop-blur-md'
+      : 'border-gray-200 bg-slate-100/50 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/30');
+
+  const logoClass =
+    'flex items-center gap-1.5 sm:gap-2 text-base sm:text-xl font-bold shrink-0 ' +
+    (useLandingTexture ? 'text-white' : 'text-gray-800 dark:text-gray-100');
+
+  const navClass =
+    'hidden md:flex items-center gap-6 font-medium ' +
+    (useLandingTexture ? 'text-gray-200' : 'text-gray-600 dark:text-gray-300');
+
+  const toggleBtnClass =
+    'rounded-lg p-2 transition-colors ' +
+    (useLandingTexture ? 'hover:bg-white/20' : 'hover:bg-gray-100 dark:hover:bg-gray-800');
+
+  const mobileBtnClass =
+    'rounded-lg p-2 transition-colors ' +
+    (useLandingTexture
+      ? 'hover:bg-white/20 text-gray-200'
+      : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300');
+
+  const mobileMenuClass =
+    'md:hidden border-t px-4 py-3 flex flex-col gap-3 font-medium ' +
+    (useLandingTexture
+      ? 'border-white/15 bg-cyan-950/40 backdrop-blur-md text-gray-200'
+      : 'border-gray-200 bg-white/80 backdrop-blur-md text-gray-600 dark:border-gray-800 dark:bg-gray-900/80 dark:text-gray-300');
 
   return (
-    <header
-      className={`sticky top-0 z-50 border-b transition-colors duration-300 ${
-        useLandingTexture
-          ? 'border-white/15 bg-cyan-950/35 backdrop-blur-md'
-          : 'border-gray-200 bg-slate-100/50 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/30'
-      }`}
-    >
+    <header className={headerClass}>
       <div className="max-w-10xl mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          to="/"
-          className={`flex items-center gap-1.5 sm:gap-2 text-base sm:text-xl font-bold shrink-0 ${
-            useLandingTexture ? 'text-white' : 'text-gray-800 dark:text-gray-100'
-          }`}
-        >
-          <BookOpen className={`h-5 w-5 sm:h-6 sm:w-6 ${useLandingTexture ? 'text-blue-300' : 'text-blue-600'}`} />
+        <Link to="/" className={logoClass}>
+          <BookOpen className={useLandingTexture ? 'h-5 w-5 sm:h-6 sm:w-6 text-blue-300' : 'h-5 w-5 sm:h-6 sm:w-6 text-blue-600'} />
           <span>ユリカのブログ</span>
         </Link>
 
-        {/* 桌面端导航 */}
-        <nav
-          className={`hidden md:flex items-center gap-6 font-medium ${
-            useLandingTexture ? 'text-gray-200' : 'text-gray-600 dark:text-gray-300'
-          }`}
-        >
+        <nav className={navClass}>
           <Link to="/" className={navLinkClass}>Home</Link>
           <Link to="/posts" className={navLinkClass}>Posts</Link>
           <Link to="/tags" className={navLinkClass}>Tags</Link>
@@ -95,33 +102,18 @@ export default function Header() {
               Log in
             </Link>
           )}
-          <button
-            onClick={toggleTheme}
-            className={`rounded-lg p-2 transition-colors ${
-              useLandingTexture ? 'hover:bg-white/20' : 'hover:bg-gray-100 dark:hover:bg-gray-800'
-            }`}
-            title="switch theme"
-          >
+          <button onClick={toggleTheme} className={toggleBtnClass} title="switch theme">
             {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </button>
         </nav>
 
-        {/* 移动端按钮区 */}
         <div className="flex md:hidden items-center gap-2">
-          <button
-            onClick={toggleTheme}
-            className={`rounded-lg p-2 transition-colors ${
-              useLandingTexture ? 'hover:bg-white/20 text-gray-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300'
-            }`}
-            title="switch theme"
-          >
+          <button onClick={toggleTheme} className={mobileBtnClass} title="switch theme">
             {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </button>
           <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className={`rounded-lg p-2 transition-colors ${
-              useLandingTexture ? 'hover:bg-white/20 text-gray-200' : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300'
-            }`}
+            onClick={() => setMenuOpenPath(menuOpen ? null : location.pathname)}
+            className={mobileBtnClass}
             title="menu"
           >
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -129,19 +121,12 @@ export default function Header() {
         </div>
       </div>
 
-      {/* 移动端下拉菜单 */}
       {menuOpen && (
-        <nav
-          className={`md:hidden border-t px-4 py-3 flex flex-col gap-3 font-medium ${
-            useLandingTexture
-              ? 'border-white/15 bg-cyan-950/40 backdrop-blur-md text-gray-200'
-              : 'border-gray-200 bg-white/80 backdrop-blur-md text-gray-600 dark:border-gray-800 dark:bg-gray-900/80 dark:text-gray-300'
-          }`}
-        >
-          <Link to="/" className={`py-1 ${navLinkClass}`}>Home</Link>
-          <Link to="/posts" className={`py-1 ${navLinkClass}`}>Posts</Link>
-          <Link to="/tags" className={`py-1 ${navLinkClass}`}>Tags</Link>
-          <Link to="/about" className={`py-1 ${navLinkClass}`}>About</Link>
+        <nav className={mobileMenuClass}>
+          <Link to="/" className={'py-1 ' + navLinkClass}>Home</Link>
+          <Link to="/posts" className={'py-1 ' + navLinkClass}>Posts</Link>
+          <Link to="/tags" className={'py-1 ' + navLinkClass}>Tags</Link>
+          <Link to="/about" className={'py-1 ' + navLinkClass}>About</Link>
           <Link
             to={editorLink}
             className={btnClass(
@@ -156,7 +141,10 @@ export default function Header() {
           {isLoggedIn ? (
             <button
               type="button"
-              onClick={() => { logout(); setMenuOpen(false); }}
+              onClick={() => {
+                logout();
+                setMenuOpenPath(null);
+              }}
               className={btnClass(
                 useLandingTexture
                   ? 'bg-red-500/25 text-white hover:bg-red-500/35 w-fit'
