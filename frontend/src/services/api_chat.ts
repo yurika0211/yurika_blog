@@ -1,4 +1,5 @@
 import axios, { AxiosError, type AxiosInstance } from "axios";
+import { isAuthenticated } from "../utils/auth";
 
 export interface SendMessageRequest {
   content: string;
@@ -42,7 +43,7 @@ const CHAT_BASE_URL_CANDIDATES = collectBaseUrlCandidates();
 const createApiClient = (baseURL: string): AxiosInstance => {
   const client = axios.create({
     baseURL,
-    timeout: 10000,
+    timeout: 60000,
     headers: {
       "Content-Type": "application/json",
     },
@@ -261,8 +262,15 @@ const toReadableError = (error: unknown): Error => {
   );
 };
 
+const ensureChatAuth = () => {
+  if (!isAuthenticated()) {
+    throw new Error("请先登录后再进行对话。");
+  }
+};
+
 export const ai_chat = {
   sendMessage: async (content: string): Promise<SendMessageResponse> => {
+    ensureChatAuth();
     const payload: SendMessageRequest = { content };
     try {
       return await requestWithFallback(async (client, endpoint) => {
@@ -276,6 +284,7 @@ export const ai_chat = {
   },
 
   getHistory: async (): Promise<ChatMessage[]> => {
+    ensureChatAuth();
     try {
       return await requestWithFallback(async (client, endpoint) => {
         const response = await client.get(endpoint);

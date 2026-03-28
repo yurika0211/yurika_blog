@@ -50,7 +50,14 @@ function AppLayout() {
         <Route path="/post/:id" element={<Post />} />
         <Route path="/tag/:tag" element={<Home />} />
         <Route path="/tags" element={<Tags />} />
-        <Route path="/about" element={<About />} />
+        <Route
+          path="/about"
+          element={(
+            <RequireAuth>
+              <About />
+            </RequireAuth>
+          )}
+        />
         <Route path="/login" element={<Login />} />
         <Route
           path="/editor"

@@ -14,7 +14,6 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /app
 COPY --from=builder /app/chat-service ./chat-service
-COPY config.json ./config.json
 
 EXPOSE 8080
 

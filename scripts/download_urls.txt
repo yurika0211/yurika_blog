@@ -1,0 +1,3 @@
+# URL [optional_output_filename]
+https://example.com/robots.txt example-robots.txt
+https://example.com/

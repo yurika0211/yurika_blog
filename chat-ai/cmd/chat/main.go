@@ -1,38 +1,44 @@
 package main
 
 import (
+	"log/slog"
+	"os"
+
 	"chat-ai/dbaccess"
 	"chat-ai/internal/client"
-	"chat-ai/internal/models"
 	"chat-ai/routes"
-	"encoding/json"
-	"fmt"
+
 	"github.com/gin-gonic/gin"
-	"os"
 )
 
+func mustEnv(key string) string {
+	v := os.Getenv(key)
+	if v == "" {
+		slog.Error("Missing required env", "key", key)
+		os.Exit(1)
+	}
+	return v
+}
+
+func getEnv(key, def string) string {
+	v := os.Getenv(key)
+	if v == "" {
+		return def
+	}
+	return v
+}
+
 func main() {
-	file, err := os.Open("./config.json")
-	if err != nil {
-		fmt.Println("无法打开配置文件:", err)
-		return
-	}
-	defer file.Close()
+	apiKey := mustEnv("OPENAI_API_KEY")
+	apiURL := mustEnv("OPENAI_API_URL")
+	model := getEnv("OPENAI_MODEL", "deepseek-chat")
+	port := getEnv("CHAT_PORT", "8080")
+	systemContent := mustEnv("SYSTEM_CONTENT")
 
-	var cfg models.Config
-	if err := json.NewDecoder(file).Decode(&cfg); err != nil {
-		fmt.Println("解析配置文件失败:", err)
-		return
-	}
+	client.InitClient(apiKey, apiURL, model)
+	client.SetSystemPrompt(systemContent)
 
-	if cfg.APIKey == "" || cfg.APIURL == "" || cfg.Model == "" {
-		fmt.Println("配置文件中 api_key, api_url, model 都不能为空")
-		return
-	}
-
-	client.InitClient(cfg.APIKey, cfg.APIURL, cfg.Model)
-
-	//初始化一个gin引擎，并绑定端口号
+	// 初始化一个gin引擎，并绑定端口号
 	r := gin.Default()
 	r.Use(func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -46,7 +52,7 @@ func main() {
 		c.Next()
 	})
 	dbaccess.InitDB()
-	//初始化路由
+	// 初始化路由
 	r = routes.InitRouter(r)
-	r.Run(":8080")
+	r.Run(":" + port)
 }

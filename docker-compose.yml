@@ -5,7 +5,7 @@
 
 services:
   db:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER is required}
@@ -78,6 +78,10 @@ services:
     restart: unless-stopped
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@db:5432/${POSTGRES_DB:-postgres}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}:?OPENAI_API_KEY is required}
+      OPENAI_API_URL: ${OPENAI_API_URL}:?OPENAI_API_URL is required}
+      OPENAI_MODEL: ${OPENAI_MODEL:-deepseek-chat}
+      CHAT_PORT: ${CHAT_PORT:-8080}
     expose:
       - "8080"
     networks:

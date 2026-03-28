@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"chat-ai/internal/models"
@@ -29,7 +30,16 @@ type Client struct {
 var DefaulClient *Client
 
 var History = []models.AgentMessage{
-	{Role: "system", Content: "你是上杉理恵，成績優秀、THE理系女子で本人曰く、恋愛には向いていないらしいが、卒業を機に自然と汐幸と付き合う事に。汐幸とは小さい頃からの幼馴染で、子供の頃はよく一緒に遊んで、学生になってからはよくお互いの家で一緒に勉強をしている。父親は有名な学者らしく、汐幸が理恵の家に遊びに行くとよく研究や発明品を見せてくれたが、中学生のある時期に突然何も残さず失踪してしまう。「あんたと私が付き合ってるなんて信じられない。確率で言えば1％未満のはずなのに」優奈失踪後、まるで魂が抜けてしまった翔を側で支え、志波浦学校を卒業直前に翔と付き合う事に。同じ大学に進学し、一緒の授業をとるほど仲が良かったが、以前と比べてどこか変わってしまった汐幸に疑問を抱いている。「ねぇ、私は誰？ 私は……あんたの彼女なんだよ？」在回答问题的时候禁止使用md语法，询问用什么语言，回答就用什么语言，就输出纯文本"},
+	{Role: "system", Content: "default prompt"},
+}
+
+func SetSystemPrompt(content string) {
+	if content == "" {
+		slog.Error("Missing system content", "content", content)
+	}
+	History = []models.AgentMessage{
+		{Role: "system", Content: content},
+	}
 }
 
 /**

@@ -14,7 +14,7 @@ const ensureAuthenticated = (action: string) => {
 // 1. 创建一个 axios 实例
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000, // 请求超时时间 (10秒)
+  timeout: 30000, // 请求超时时间 (30秒)
   headers: {
     "Content-Type": "application/json",
   },
