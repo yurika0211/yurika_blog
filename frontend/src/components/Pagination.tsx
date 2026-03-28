@@ -60,16 +60,17 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
   };
 
   return (
-    <nav className="mt-12 animate-fade-in">
-      <div className="mx-auto flex w-fit max-w-full items-center gap-1.5 overflow-x-auto px-1">
+      <nav className="mt-12 animate-fade-in">
+      <div className="mx-auto w-fit max-w-full rounded-2xl border border-white/55 bg-slate-100/78 px-3 py-2 shadow-md backdrop-blur-md dark:border-gray-700/70 dark:bg-gray-900/72">
+        <div className="flex items-center gap-2 overflow-x-auto px-1">
         {/* 上一页按钮 */}
         <button
           onClick={() => handlePageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 sm:h-10 sm:w-10"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300/80 bg-white/70 text-gray-700 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 dark:border-gray-600/80 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:bg-gray-800 sm:h-11 sm:w-11"
           aria-label="Previous page"
         >
-          <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+          <ChevronLeft className="h-5 w-5 sm:h-5 sm:w-5" />
         </button>
 
         {/* 页码数字 */}
@@ -78,7 +79,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
             token === "ellipsis" ? (
               <span
                 key={`ellipsis-${index}`}
-                className="inline-flex h-9 w-6 shrink-0 items-center justify-center text-sm text-gray-400 dark:text-gray-500 sm:h-10 sm:w-8"
+                className="inline-flex h-10 w-7 shrink-0 items-center justify-center text-base text-gray-600 dark:text-gray-300 sm:h-11 sm:w-9"
                 aria-hidden="true"
               >
                 ...
@@ -88,10 +89,10 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
                 key={token}
                 onClick={() => handlePageChange(token)}
                 className={`
-                  h-9 min-w-9 shrink-0 rounded-lg px-2 text-sm font-medium transition-all sm:h-10 sm:min-w-10
+                  h-10 min-w-10 shrink-0 rounded-lg px-2 text-base font-medium transition-all sm:h-11 sm:min-w-11
                   ${currentPage === token
                     ? 'scale-105 bg-blue-600 text-white shadow-md'
-                    : 'text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800'
+                    : 'border border-gray-300/70 bg-white/70 text-gray-700 hover:bg-white dark:border-gray-600/70 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:bg-gray-800'
                   }
                 `}
                 aria-current={currentPage === token ? "page" : undefined}
@@ -106,11 +107,12 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
         <button
           onClick={() => handlePageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-gray-200 text-gray-600 transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800 sm:h-10 sm:w-10"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-gray-300/80 bg-white/70 text-gray-700 transition-colors hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 dark:border-gray-600/80 dark:bg-gray-800/70 dark:text-gray-300 dark:hover:bg-gray-800 sm:h-11 sm:w-11"
           aria-label="Next page"
         >
-          <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+          <ChevronRight className="h-5 w-5 sm:h-5 sm:w-5" />
         </button>
+        </div>
       </div>
     </nav>
   );

@@ -70,12 +70,12 @@ export default function ArchiveWidget() {
 
   return (
     <nav>
-      <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900 dark:text-white mb-3">
-        <Archive className="w-4 h-4 text-orange-500" />
+      <h3 className="flex items-center gap-2 text-base font-bold text-gray-900 dark:text-white mb-4">
+        <Archive className="w-5 h-5 text-orange-500" />
         Archive
       </h3>
 
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         {archive.map(({ year, months, total }) => {
           const isYearCollapsed = collapsedYears.has(year);
           return (
@@ -83,21 +83,21 @@ export default function ArchiveWidget() {
               <button
                 type="button"
                 onClick={() => toggleYear(year)}
-                className="w-full flex items-center gap-1.5 py-1 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors whitespace-nowrap"
+                className="w-full flex items-center gap-1.5 py-1.5 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 transition-colors whitespace-nowrap"
               >
                 {isYearCollapsed ? (
-                  <ChevronRight className="w-3 h-3 shrink-0" />
+                  <ChevronRight className="w-4 h-4 shrink-0" />
                 ) : (
-                  <ChevronDown className="w-3 h-3 shrink-0" />
+                  <ChevronDown className="w-4 h-4 shrink-0" />
                 )}
                 <span>{year}</span>
-                <span className="ml-auto text-[10px] text-gray-400 font-normal">
+                <span className="ml-auto text-xs text-gray-400 font-normal">
                   {total}
                 </span>
               </button>
 
               {!isYearCollapsed && (
-                <div className="ml-4 space-y-px">
+                <div className="ml-5 space-y-1">
                   {months.map(({ month, count }) => {
                     const key = `${year}-${String(month).padStart(2, '0')}`;
                     const isActive = currentArchive === key;
@@ -105,14 +105,14 @@ export default function ArchiveWidget() {
                       <Link
                         key={key}
                         to={`/posts?archive=${key}`}
-                        className={`flex items-center justify-between px-2 py-1 rounded text-xs whitespace-nowrap transition-colors ${
+                        className={`flex items-center justify-between px-2.5 py-1.5 rounded text-sm whitespace-nowrap transition-colors ${
                           isActive
                             ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300 font-medium'
                             : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200'
                         }`}
                       >
                         <span>{MONTH_NAMES[month - 1]}</span>
-                        <span className="text-[10px] text-gray-400">{count}</span>
+                        <span className="text-xs text-gray-400">{count}</span>
                       </Link>
                     );
                   })}

@@ -1,8 +1,23 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, useLocation, matchPath } from 'react-router-dom';
 import { BookOpen, Moon, Sun, Menu, X, PenLine, LogIn, LogOut } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../hooks/useAuth';
+
+const HEADER_SHARDS = [
+  { x: 8, y: 34, tx: -36, ty: -20, rot: -28, delay: 0, w: 8, h: 4 },
+  { x: 16, y: 56, tx: -48, ty: -10, rot: -16, delay: 12, w: 9, h: 5 },
+  { x: 24, y: 30, tx: -34, ty: -24, rot: -22, delay: 24, w: 7, h: 4 },
+  { x: 33, y: 50, tx: -22, ty: -14, rot: -14, delay: 42, w: 10, h: 5 },
+  { x: 43, y: 36, tx: -12, ty: -22, rot: -10, delay: 60, w: 8, h: 4 },
+  { x: 52, y: 54, tx: 10, ty: -18, rot: 12, delay: 80, w: 9, h: 5 },
+  { x: 60, y: 34, tx: 16, ty: -24, rot: 18, delay: 96, w: 8, h: 4 },
+  { x: 68, y: 52, tx: 22, ty: -14, rot: 22, delay: 112, w: 10, h: 5 },
+  { x: 75, y: 30, tx: 30, ty: -24, rot: 26, delay: 128, w: 8, h: 4 },
+  { x: 82, y: 50, tx: 36, ty: -16, rot: 20, delay: 148, w: 9, h: 5 },
+  { x: 88, y: 36, tx: 42, ty: -22, rot: 26, delay: 168, w: 8, h: 4 },
+  { x: 93, y: 58, tx: 52, ty: -12, rot: 18, delay: 184, w: 9, h: 5 },
+];
 
 export default function Header() {
   const { theme, toggleTheme } = useTheme();
@@ -14,6 +29,80 @@ export default function Header() {
   const editorLink = isLoggedIn ? '/editor' : '/login?redirect=%2Feditor';
   const [menuOpenPath, setMenuOpenPath] = useState<string | null>(null);
   const menuOpen = menuOpenPath === location.pathname;
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const [isShattering, setIsShattering] = useState(false);
+  const lastScrollYRef = useRef(0);
+  const shatterTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const triggerShatter = () => {
+    if (shatterTimerRef.current) {
+      clearTimeout(shatterTimerRef.current);
+    }
+    setIsShattering(true);
+    shatterTimerRef.current = setTimeout(() => {
+      setIsShattering(false);
+      shatterTimerRef.current = null;
+    }, 560);
+  };
+
+  useEffect(() => {
+    lastScrollYRef.current = window.scrollY;
+    setIsHeaderVisible(true);
+    setIsShattering(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      const delta = currentY - lastScrollYRef.current;
+      const threshold = 6;
+
+      if (currentY <= 8) {
+        setIsHeaderVisible(true);
+        lastScrollYRef.current = currentY;
+        return;
+      }
+
+      if (Math.abs(delta) < threshold) {
+        return;
+      }
+
+      if (delta > 0 && !menuOpen) {
+        if (isHeaderVisible) {
+          triggerShatter();
+        }
+        setIsHeaderVisible(false);
+      } else {
+        setIsHeaderVisible(true);
+      }
+
+      lastScrollYRef.current = currentY;
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [menuOpen, isHeaderVisible]);
+
+  useEffect(() => {
+    if (menuOpen) {
+      setIsHeaderVisible(true);
+      setIsShattering(false);
+    }
+  }, [menuOpen]);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty('--header-offset', isHeaderVisible ? '3.5rem' : '0px');
+  }, [isHeaderVisible]);
+
+  useEffect(
+    () => () => {
+      if (shatterTimerRef.current) {
+        clearTimeout(shatterTimerRef.current);
+      }
+      document.documentElement.style.setProperty('--header-offset', '3.5rem');
+    },
+    [],
+  );
 
   const navLinkClass = useLandingTexture
     ? 'hover:text-white'
@@ -23,10 +112,13 @@ export default function Header() {
     'flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ' + base;
 
   const headerClass =
-    'sticky top-0 z-50 border-b transition-colors duration-300 ' +
+    `sticky top-0 z-50 border-b transition-[transform,opacity,background-color,border-color] duration-300 will-change-transform ${
+      isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
+    } ` +
     (useLandingTexture
       ? 'border-white/15 bg-cyan-950/35 backdrop-blur-md'
       : 'border-gray-200 bg-slate-100/50 backdrop-blur-md dark:border-gray-800 dark:bg-gray-900/30');
+  const shatterSurfaceClass = useLandingTexture ? 'header-shatter-surface-dark' : 'header-shatter-surface-light';
 
   const logoClass =
     'flex items-center gap-1.5 sm:gap-2 text-base sm:text-xl font-bold shrink-0 ' +
@@ -54,13 +146,33 @@ export default function Header() {
 
   return (
     <header className={headerClass}>
-      <div className="max-w-10xl mx-auto px-4 h-14 sm:h-16 flex items-center justify-between">
-        <Link to="/" className={logoClass}>
+      <div className={`relative w-full px-2 sm:px-3 md:px-4 h-12 sm:h-14 flex items-center justify-between ${shatterSurfaceClass} ${isShattering ? 'header-shatter-burst' : ''}`}>
+        <div className={`header-shatter-layer ${isShattering ? 'header-shatter-burst' : ''}`} aria-hidden="true">
+          {HEADER_SHARDS.map((shard, index) => (
+            <span
+              key={`${shard.x}-${shard.y}-${index}`}
+              className="header-shatter-shard"
+              style={
+                {
+                  left: `${shard.x}%`,
+                  top: `${shard.y}%`,
+                  width: `${shard.w}px`,
+                  height: `${shard.h}px`,
+                  ['--tx' as any]: `${shard.tx}px`,
+                  ['--ty' as any]: `${shard.ty}px`,
+                  ['--rot' as any]: `${shard.rot}deg`,
+                  animationDelay: `${shard.delay}ms`,
+                } as CSSProperties
+              }
+            />
+          ))}
+        </div>
+        <Link to="/" className={`relative z-10 ${logoClass}`}>
           <BookOpen className={useLandingTexture ? 'h-5 w-5 sm:h-6 sm:w-6 text-blue-300' : 'h-5 w-5 sm:h-6 sm:w-6 text-blue-600'} />
           <span>ユリカのブログ</span>
         </Link>
 
-        <nav className={navClass}>
+        <nav className={`relative z-10 ${navClass}`}>
           <Link to="/" className={navLinkClass}>Home</Link>
           <Link to="/posts" className={navLinkClass}>Posts</Link>
           <Link to="/tags" className={navLinkClass}>Tags</Link>
@@ -107,7 +219,7 @@ export default function Header() {
           </button>
         </nav>
 
-        <div className="flex md:hidden items-center gap-2">
+        <div className="relative z-10 flex md:hidden items-center gap-2">
           <button onClick={toggleTheme} className={mobileBtnClass} title="switch theme">
             {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
           </button>

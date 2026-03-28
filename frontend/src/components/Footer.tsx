@@ -1,10 +1,16 @@
 import { Github, Twitter, Mail } from 'lucide-react';
+import { matchPath, useLocation } from 'react-router-dom';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const location = useLocation();
+  const isPostPage = Boolean(matchPath('/post/:id', location.pathname));
+  const footerClass = isPostPage
+    ? 'post-paper-wall py-8 mt-0 border-t border-[#b0aea5]/60 dark:border-[#a1a0a0]/70 transition-colors duration-300'
+    : 'py-8 mt-12 border-t border-gray-200 dark:border-gray-800/50 bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-sm transition-colors duration-300';
 
   return (
-    <footer className="py-8 mt-12 border-t border-gray-200 dark:border-gray-800/50 bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-sm transition-colors duration-300">
+    <footer className={footerClass}>
       <div className="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
         
         {/* 左侧：版权信息 */}

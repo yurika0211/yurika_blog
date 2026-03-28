@@ -42,6 +42,9 @@ function AppLayout() {
     location.pathname === '/posts' ||
       matchPath('/tag/:tag', location.pathname),
   );
+  const contentShellClass = showArchive
+    ? 'grow w-full max-w-[92rem] mx-auto px-5 lg:px-6 py-10 lg:py-12'
+    : 'grow w-full max-w-7xl mx-auto px-4 py-8';
   const routes = (
     <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-500">加载中...</div>}>
       <Routes>
@@ -122,14 +125,17 @@ function AppLayout() {
       ) : (
         <div className="grow flex">
           {showArchive && (
-            <aside className="hidden lg:block w-72 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-sm overflow-y-auto sticky top-16 h-[calc(100vh-4rem)]">
-              <div className="pt-6 px-5 pb-6">
+            <aside
+              className="hidden lg:block w-80 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-sm overflow-y-auto sticky"
+              style={{ top: 'var(--header-offset, 3.5rem)', height: 'calc(100vh - var(--header-offset, 3.5rem))' }}
+            >
+              <div className="pt-4 px-6 pb-8">
                 <ArchiveWidget />
               </div>
             </aside>
           )}
 
-          <div className="grow w-full max-w-7xl mx-auto px-4 py-8">
+          <div className={contentShellClass}>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               <main className={showSidebar ? 'lg:col-span-8' : 'lg:col-span-12'}>{routes}</main>
 
