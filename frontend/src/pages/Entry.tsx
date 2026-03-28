@@ -155,18 +155,15 @@ export default function Entry() {
   const stackKeywords = ['Rust', 'React', 'TypeScript', 'Golang', 'Galgame'];
 
   return (
-    <div className="relative animate-fade-in">
-      <div className="homepage-mist-layer" />
+    <div className="animate-fade-in">
       <section className="relative min-h-[calc(100vh-3.5rem)] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-cyan-950/30 via-teal-900/15 to-slate-100/74 dark:from-cyan-950/45 dark:via-teal-900/25 dark:to-slate-950/84" />
         <div className="hero-grid absolute inset-0 opacity-50 dark:opacity-25" />
-        <div className="absolute left-1/2 top-[-14rem] h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-cyan-300/35 blur-3xl dark:bg-cyan-500/20" />
-        <div className="absolute -left-28 bottom-0 h-72 w-72 rounded-full bg-sky-300/25 blur-3xl dark:bg-sky-500/20" />
-        <div className="absolute -right-24 top-16 h-64 w-64 rounded-full bg-teal-300/25 blur-3xl dark:bg-teal-500/20" />
-        <div className="hero-fog-plume hero-fog-plume-a" />
-        <div className="hero-fog-plume hero-fog-plume-b" />
-        <div className="hero-fog-plume hero-fog-plume-c" />
-        <div className="hero-fog-seam" />
+        <div className="absolute inset-0 pointer-events-none opacity-20">
+          <div className="absolute inset-0 bg-gradient-to-b from-cyan-950/30 via-teal-900/15 to-slate-100/74 dark:from-cyan-950/45 dark:via-teal-900/25 dark:to-slate-950/84" />
+          <div className="absolute left-1/2 top-[-14rem] h-[30rem] w-[30rem] -translate-x-1/2 rounded-full bg-cyan-300/35 blur-3xl dark:bg-cyan-500/20" />
+          <div className="absolute -left-28 bottom-0 h-72 w-72 rounded-full bg-sky-300/25 blur-3xl dark:bg-sky-500/20" />
+          <div className="absolute -right-24 top-16 h-64 w-64 rounded-full bg-teal-300/25 blur-3xl dark:bg-teal-500/20" />
+        </div>
 
         <div className="relative z-20 mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-7xl items-center px-4 py-6 md:py-8">
           <div className="w-full -translate-y-3 md:-translate-y-5">
@@ -337,8 +334,7 @@ export default function Entry() {
         </div>
       </section>
 
-      <section id="entry-content" className="relative z-30 -mt-14 md:-mt-18 mx-auto w-full max-w-7xl space-y-16 px-4 pb-20 pt-20 md:pt-24">
-        <div className="hero-fog-bridge" />
+      <section id="entry-content" className="mx-auto w-full max-w-7xl space-y-16 px-4 pb-20 pt-8 md:pt-16">
         <div className="rounded-2xl border border-gray-200/80 bg-white/30 p-5 shadow-sm backdrop-blur-sm dark:border-gray-700/70 dark:bg-gray-900/30 md:p-6">
           <div className="flex flex-wrap items-center gap-3 text-base text-gray-700 dark:text-gray-200">
             <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
