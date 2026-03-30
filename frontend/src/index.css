@@ -41,10 +41,10 @@ html {
 }
 
 html.dark .post-paper-wall {
-    background-color: #e8e6dc;
+    background-color: #000000;
     background-image:
-        linear-gradient(to right, rgba(161, 160, 160, 0.34) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(161, 160, 160, 0.34) 1px, transparent 1px);
+        linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
 }
 
 /* 半透明卡片可读性增强 */

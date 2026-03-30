@@ -179,7 +179,6 @@ export default function Entry() {
             </h1>
             <p className="mx-auto mt-4 max-w-4xl text-base leading-8 text-cyan-900/80 dark:text-cyan-100/85 md:text-lg">
               以 Rust、React、TypeScript、Golang 为核心，把开发记录、学习沉淀和项目更新放进同一个发布空间。
-              首页保持你的原有配色体系，只升级 Hero 的结构和节奏。
             </p>
 
             <div className="hero-rise-delay-1 mt-6 flex flex-wrap justify-center gap-3">

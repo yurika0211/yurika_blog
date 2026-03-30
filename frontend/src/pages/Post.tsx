@@ -610,21 +610,21 @@ export default function Post() {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white">评论 ({comments.length})</h2>
 
               {isLoggedIn ? (
-                <div className="mt-4 rounded-xl border border-[#b0aea5]/70 dark:border-[#a1a0a0]/80 bg-[#f0eee6]/85 dark:bg-[#e8e6dc]/85 p-4">
+                <div className="mt-4 rounded-xl border border-[#b0aea5]/70 dark:border-gray-700/80 bg-[#f0eee6]/85 dark:bg-gray-900/85 p-4">
                   <div className="grid gap-3">
                     <input
                       type="text"
                       value={author}
                       onChange={(event) => setAuthor(event.target.value)}
                       placeholder="你的昵称（可选）"
-                      className="w-full rounded-md border border-[#b0aea5]/70 dark:border-[#a1a0a0]/80 bg-[#f7f5ee]/90 dark:bg-[#f0eee6]/90 px-3 py-2 text-sm text-[#141413] dark:text-[#141413] outline-none transition focus:border-[#6396d6]"
+                      className="w-full rounded-md border border-[#b0aea5]/70 dark:border-gray-700/80 bg-[#f7f5ee]/90 dark:bg-gray-950/85 px-3 py-2 text-sm text-[#141413] dark:text-gray-100 outline-none transition focus:border-[#6396d6] dark:placeholder:text-gray-500"
                     />
                     <textarea
                       value={content}
                       onChange={(event) => setContent(event.target.value)}
                       placeholder="写下你的评论..."
                       rows={3}
-                      className="w-full resize-none rounded-md border border-[#b0aea5]/70 dark:border-[#a1a0a0]/80 bg-[#f7f5ee]/90 dark:bg-[#f0eee6]/90 px-3 py-2 text-sm text-[#141413] dark:text-[#141413] outline-none transition focus:border-[#6396d6]"
+                      className="w-full resize-none rounded-md border border-[#b0aea5]/70 dark:border-gray-700/80 bg-[#f7f5ee]/90 dark:bg-gray-950/85 px-3 py-2 text-sm text-[#141413] dark:text-gray-100 outline-none transition focus:border-[#6396d6] dark:placeholder:text-gray-500"
                     />
                     <div className="flex justify-end">
                       <button
@@ -639,7 +639,7 @@ export default function Post() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-4 rounded-xl border border-dashed border-[#b0aea5]/80 bg-[#f0eee6]/85 px-4 py-3 text-sm text-[#30302e] dark:border-[#a1a0a0]/80 dark:bg-[#e8e6dc]/85 dark:text-[#30302e]">
+                <div className="mt-4 rounded-xl border border-dashed border-[#b0aea5]/80 bg-[#f0eee6]/85 px-4 py-3 text-sm text-[#30302e] dark:border-gray-700/80 dark:bg-gray-900/80 dark:text-gray-300">
                   当前为只读模式，登录后可新增或删除评论。
                   <Link to={`/login?redirect=${encodeURIComponent(`/post/${post.id}`)}`} className="ml-2 text-blue-600 hover:underline dark:text-blue-400">
                     去登录
@@ -671,7 +671,7 @@ export default function Post() {
             </div>
 
             <aside className="hidden xl:block w-64 shrink-0">
-              <div className="sticky top-[12%] rounded-lg border border-[#b0aea5]/70 dark:border-[#a1a0a0]/80 bg-[#f0eee6]/90 dark:bg-[#e8e6dc]/90 p-4 transition-colors">
+              <div className="sticky top-[12%] rounded-lg border border-[#b0aea5]/70 dark:border-gray-700/80 bg-[#f0eee6]/90 dark:bg-gray-900/90 p-4 transition-colors">
                 <h3 className="text-lg font-medium text-gray-700 dark:text-gray-100 flex items-center gap-2 mb-4">
                   <List className="w-5 h-5 text-blue-500" />
                   目录
