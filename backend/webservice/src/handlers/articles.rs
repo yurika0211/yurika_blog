@@ -1,9 +1,9 @@
 use crate::db_access::blog::*;
 use crate::errors::MyError;
-use crate::models::articles::{Article, CreateArticle, PaginationParams, UpdateArticle};
+use crate::models::articles::{CreateArticle, PaginationParams, UpdateArticle};
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
-use chrono::Utc;
+
 
 /**
  * get all of the notes from the database

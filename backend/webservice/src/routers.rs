@@ -2,7 +2,6 @@ use crate::handlers::articles::*;
 use crate::handlers::comments::*;
 use crate::handlers::general::*;
 use crate::handlers::users::*;
-use tracing::{debug, error, info, warn}; // 引入日志宏
 
 use actix_web::web;
 // 健康检查的路由配置

@@ -1,11 +1,8 @@
 use crate::db_access::comment::*;
 use crate::errors::MyError;
-use crate::models::articles::{Article, CreateArticle, UpdateArticle};
-use crate::models::comments::{Comment, CreateComment};
+use crate::models::comments::{CreateComment};
 use crate::state::AppState;
-use actix_web::mime::MESSAGE;
 use actix_web::{HttpResponse, web};
-use chrono::Utc;
 
 pub async fn get_comment_by_id(
     app_state: web::Data<AppState>,
@@ -14,7 +11,7 @@ pub async fn get_comment_by_id(
     let article_id = i32::try_from(params.0).unwrap();
     get_comment_by_id_db(&app_state.db, article_id)
         .await
-        .map(|article| HttpResponse::Ok().json(article))
+        .map(|comments| HttpResponse::Ok().json(comments))
 }
 
 pub async fn delete_comment_by_id(

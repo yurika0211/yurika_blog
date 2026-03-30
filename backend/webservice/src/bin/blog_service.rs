@@ -1,11 +1,11 @@
 use actix_cors::Cors;
-use actix_web::{App, HttpServer, http, web};
+use actix_web::{App, HttpServer, web};
 use dotenv::dotenv;
 use sqlx::postgres::PgPool;
 use std::env;
 use std::io;
 use std::sync::Mutex;
-use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{util::SubscriberInitExt};
 #[path = "../dbaccess/mod.rs"]
 mod db_access;
 #[path = "../errors.rs"]

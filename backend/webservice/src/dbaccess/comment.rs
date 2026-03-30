@@ -3,10 +3,10 @@ use crate::models::comments::{Comment, CreateComment};
 use chrono::Utc;
 use sqlx::postgres::PgPool;
 
-pub async fn get_comment_by_id_db(pool: &PgPool, article_id: i32) -> Result<Comment, MyError> {
+pub async fn get_comment_by_id_db(pool: &PgPool, article_id: i32) -> Result<Vec<Comment>, MyError> {
     let row = sqlx::query_as::<_, Comment>(r#"select * from comments where article_id = $1"#)
         .bind(article_id)
-        .fetch_one(pool)
+        .fetch_all(pool)
         .await?;
     Ok(row)
 }
