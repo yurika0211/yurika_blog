@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Tag, Github, Twitter, Link as LinkIcon, LogIn, LogOut, PenLine } from 'lucide-react';
-import { getPosts } from '../data/posts'; // 改这里
+import { blog } from '../services/api';
+import type { BlogPost } from '../types';
 import SearchWidget from './SearchWidget';
 import { formatDate } from '../utils/date';
 import { useAuth } from '../hooks/useAuth';
@@ -8,7 +10,28 @@ import { useAuth } from '../hooks/useAuth';
 
 export default function Sidebar() {
   const { isLoggedIn, logout } = useAuth();
-  const posts = getPosts(); // 获取数据
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const fetchPosts = async () => {
+      try {
+        const latestPosts = await blog.getPosts();
+        if (mounted) {
+          setPosts(latestPosts);
+        }
+      } catch (error) {
+        console.error('Failed to load sidebar posts:', error);
+      }
+    };
+
+    void fetchPosts();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
   // 1. 提取所有标签并统计数量
   const tagCounts = posts.reduce<Record<string, number>>((acc, post) => {
     for (const t of post.tags) {
@@ -17,6 +40,7 @@ export default function Sidebar() {
     return acc;
   }, {});
   const allTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+  const visibleTags = allTags.slice(0, 5);
 
   // 2. 获取最新 3 篇文章
   const recentPosts = posts.slice(0, 3);
@@ -90,7 +114,7 @@ export default function Sidebar() {
           Booming Tags
         </h3>
         <div className="flex flex-wrap gap-2">
-          {allTags.map(([tag, count]) => (
+          {visibleTags.map(([tag, count]) => (
             <Link
               key={tag}
               to={`/tag/${tag}`}
