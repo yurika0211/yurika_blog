@@ -39,11 +39,11 @@ interface PostCardProps {
               ))}
             </div>
             {/* ... 阅读更多链接保持默认颜色即可，或者改为 blue-400 */}
-             <Link 
+            <Link 
               to={`/post/${post.id}`}
               className="inline-flex items-center text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
             >
-              阅读全文 <ArrowRight className="w-4 h-4 ml-1" />
+              Read more <ArrowRight className="w-4 h-4 ml-1" />
             </Link>
           </div>
         </article>

@@ -7,6 +7,7 @@ export interface BlogPost {
   date: string;
   tags: string[];
   is_pinned?: boolean;
+  is_login_required?: boolean;
 }
 
 export interface BlogComment {
@@ -15,6 +16,43 @@ export interface BlogComment {
   author: string;
   content: string;
   date: string;
+}
+
+export interface BlogMoment {
+  id: number;
+  author: string;
+  content: string;
+  images: string[];
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface CreateMomentPayload {
+  author?: string;
+  content?: string;
+  images?: string[];
+}
+
+export type FriendLinkStatus = "pending" | "approved" | "rejected";
+
+export interface FriendLinkApplication {
+  id: number;
+  site_name: string;
+  site_url: string;
+  description: string;
+  avatar_url: string;
+  status: FriendLinkStatus;
+  review_note?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  reviewed_at?: string | null;
+}
+
+export interface FriendLinkApplicationPayload {
+  site_name: string;
+  site_url: string;
+  description: string;
+  avatar_url: string;
 }
 
 export interface BlogChat {

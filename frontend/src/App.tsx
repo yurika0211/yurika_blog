@@ -10,6 +10,8 @@ import { useScrollRestore } from './hooks/useScrollRestore';
 const Home = lazy(() => import('./pages/Home'));
 const Post = lazy(() => import('./pages/Post'));
 const About = lazy(() => import('./pages/About'));
+const Friends = lazy(() => import('./pages/Friends'));
+const Moments = lazy(() => import('./pages/Moments'));
 const Editor = lazy(() => import('./components/Editor'));
 const Entry = lazy(() => import('./pages/Entry'));
 const Login = lazy(() => import('./pages/Login'));
@@ -46,21 +48,16 @@ function AppLayout() {
     ? 'grow w-full max-w-[92rem] mx-auto px-5 lg:px-6 py-10 lg:py-12'
     : 'grow w-full max-w-7xl mx-auto px-4 py-8';
   const routes = (
-    <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-500">加载中...</div>}>
+    <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-500">Loading...</div>}>
       <Routes>
         <Route path="/" element={<Entry />} />
         <Route path="/posts" element={<Home />} />
         <Route path="/post/:id" element={<Post />} />
         <Route path="/tag/:tag" element={<Home />} />
         <Route path="/tags" element={<Tags />} />
-        <Route
-          path="/about"
-          element={(
-            <RequireAuth>
-              <About />
-            </RequireAuth>
-          )}
-        />
+        <Route path="/friends" element={<Friends />} />
+        <Route path="/moments" element={<Moments />} />
+        <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
         <Route
           path="/editor"
@@ -91,26 +88,30 @@ function AppLayout() {
     let pageTitle = APP_NAME;
 
     if (location.pathname === '/') {
-      pageTitle = `首页 | ${APP_NAME}`;
+      pageTitle = `Home | ${APP_NAME}`;
     } else if (location.pathname === '/posts') {
       pageTitle = searchValue
-        ? `搜索：${searchValue} | ${APP_NAME}`
-        : `文章列表 | ${APP_NAME}`;
+        ? `Search: ${searchValue} | ${APP_NAME}`
+        : `Articles | ${APP_NAME}`;
     } else if (tagMatch?.params.tag) {
       const tag = decodeURIComponent(tagMatch.params.tag);
-      pageTitle = `标签：${tag} | ${APP_NAME}`;
+      pageTitle = `Tag: ${tag} | ${APP_NAME}`;
     } else if (isPost) {
-      pageTitle = `文章详情 | ${APP_NAME}`;
+      pageTitle = `Post | ${APP_NAME}`;
     } else if (location.pathname === '/tags') {
-      pageTitle = `标签 | ${APP_NAME}`;
+      pageTitle = `Tags | ${APP_NAME}`;
+    } else if (location.pathname === '/friends') {
+      pageTitle = `Friends | ${APP_NAME}`;
+    } else if (location.pathname === '/moments') {
+      pageTitle = `Moments | ${APP_NAME}`;
     } else if (location.pathname === '/about') {
-      pageTitle = `关于 | ${APP_NAME}`;
+      pageTitle = `About | ${APP_NAME}`;
     } else if (location.pathname === '/login') {
-      pageTitle = `登录 | ${APP_NAME}`;
+      pageTitle = `Login | ${APP_NAME}`;
     } else if (location.pathname === '/editor') {
-      pageTitle = `写作 | ${APP_NAME}`;
+      pageTitle = `Write | ${APP_NAME}`;
     } else if (isEditorEdit) {
-      pageTitle = `编辑文章 | ${APP_NAME}`;
+      pageTitle = `Edit Article | ${APP_NAME}`;
     }
 
     document.title = pageTitle;

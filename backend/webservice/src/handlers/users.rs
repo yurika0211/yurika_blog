@@ -1,5 +1,5 @@
-use crate::{db_access::user::get_user_by_username, errors::MyError, state::*};
-use actix_web::{error::ErrorUnauthorized, web};
+use crate::{auth::JWT_SECRET, db_access::user::get_user_by_username, errors::MyError, state::*};
+use actix_web::web;
 use argon2::{
     Argon2,
     password_hash::{PasswordHash, PasswordVerifier},
@@ -39,7 +39,7 @@ pub async fn login_handler(
     let is_valid = verify_password(&payload.password, &user.password_hash);
 
     if !is_valid {
-        return Err(ErrorUnauthorized("invalid username or password").into());
+        return Err(MyError::Unauthorized("用户名或密码错误".into()));
     }
 
     let expiration = chrono::Utc::now()
@@ -52,11 +52,10 @@ pub async fn login_handler(
         exp: expiration,
     };
 
-    let secret = "shiokou";
     let token = encode(
         &Header::default(),
         &claims,
-        &EncodingKey::from_secret(secret.as_ref()),
+        &EncodingKey::from_secret(JWT_SECRET.as_ref()),
     )
     .map_err(|err| MyError::ActixError(format!("Token generation failed: {err}")))?;
 

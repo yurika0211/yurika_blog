@@ -173,7 +173,9 @@ export default function Header() {
         </Link>
 
         <nav className={`relative z-10 ${navClass}`}>
+          <Link to="/friends" className={navLinkClass}>Friends</Link>
           <Link to="/" className={navLinkClass}>Home</Link>
+          <Link to="/moments" className={navLinkClass}>Moments</Link>
           <Link to="/posts" className={navLinkClass}>Posts</Link>
           <Link to="/tags" className={navLinkClass}>Tags</Link>
           <Link to="/about" className={navLinkClass}>About</Link>
@@ -235,7 +237,9 @@ export default function Header() {
 
       {menuOpen && (
         <nav className={mobileMenuClass}>
+          <Link to="/friends" className={'py-1 ' + navLinkClass}>Friends</Link>
           <Link to="/" className={'py-1 ' + navLinkClass}>Home</Link>
+          <Link to="/moments" className={'py-1 ' + navLinkClass}>Moments</Link>
           <Link to="/posts" className={'py-1 ' + navLinkClass}>Posts</Link>
           <Link to="/tags" className={'py-1 ' + navLinkClass}>Tags</Link>
           <Link to="/about" className={'py-1 ' + navLinkClass}>About</Link>

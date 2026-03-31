@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
-import { Send, User, Bot, MoreVertical, Phone } from "lucide-react";
+import { Send, MoreVertical, Phone } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { APP_AVATAR_SRC } from "../constants/avatar";
+import { useAuth } from "../hooks/useAuth";
 import { ai_chat, type ChatMessage } from "../services/api_chat";
 
 type UiMessage = {
@@ -7,9 +10,6 @@ type UiMessage = {
   role: "user" | "assistant";
   content: string;
 };
-
-const AVATAR_URL =
-  "/profile.webp";
 
 const initialMessages: UiMessage[] = [
   {
@@ -59,6 +59,28 @@ const assistantCount = (messages: UiMessage[]) =>
 
 const HISTORY_POLL_INTERVAL_MS = 900;
 const HISTORY_POLL_MAX_TIMES = 8;
+const ABOUT_CHAT_DRAFT_KEY = "about.chat.draft";
+
+const getPendingDraft = () => {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  return window.sessionStorage.getItem(ABOUT_CHAT_DRAFT_KEY) ?? "";
+};
+
+const setPendingDraft = (draft: string) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.sessionStorage.setItem(ABOUT_CHAT_DRAFT_KEY, draft);
+};
+
+const clearPendingDraft = () => {
+  if (typeof window === "undefined") {
+    return;
+  }
+  window.sessionStorage.removeItem(ABOUT_CHAT_DRAFT_KEY);
+};
 
 const toUiMessages = (history: ChatMessage[]): UiMessage[] =>
   history
@@ -75,7 +97,9 @@ const toUiMessages = (history: ChatMessage[]): UiMessage[] =>
     }));
 
 export default function ChatProfile() {
-  const [input, setInput] = useState("");
+  const navigate = useNavigate();
+  const { isLoggedIn } = useAuth();
+  const [input, setInput] = useState(() => getPendingDraft());
   const [isTyping, setIsTyping] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [messages, setMessages] = useState<UiMessage[]>(initialMessages);
@@ -92,7 +116,15 @@ export default function ChatProfile() {
     let isMounted = true;
 
     const loadHistory = async () => {
+      if (!isLoggedIn) {
+        if (isMounted) {
+          setHistoryLoading(false);
+        }
+        return;
+      }
+
       try {
+        setHistoryLoading(true);
         const history = await ai_chat.getHistory();
         if (!isMounted) {
           return;
@@ -121,7 +153,7 @@ export default function ChatProfile() {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isLoggedIn]);
 
   const handleSend = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -131,7 +163,14 @@ export default function ChatProfile() {
       return;
     }
 
+    if (!isLoggedIn) {
+      setPendingDraft(input);
+      navigate(`/login?redirect=${encodeURIComponent("/about")}`);
+      return;
+    }
+
     hasUserInteractedRef.current = true;
+    clearPendingDraft();
 
     const userMsg: UiMessage = {
       id: createMessageId(),
@@ -197,19 +236,19 @@ export default function ChatProfile() {
         const botMsg: UiMessage = {
           id: createMessageId(),
           role: "assistant",
-          content: "我收到了你的消息，但暂时没有可用回复。",
+          content: "I received your message, but no reply is available right now.",
         };
         setMessages((prev) => [...prev, botMsg]);
       }
     } catch (error) {
       const errorMessage =
-        error instanceof Error ? error.message : "发送失败，请稍后再试。";
+        error instanceof Error ? error.message : "Failed to send the message. Please try again later.";
       setMessages((prev) => [
         ...prev,
         {
           id: createMessageId(),
           role: "assistant",
-          content: `消息发送失败：${errorMessage}`,
+          content: `Message failed to send: ${errorMessage}`,
         },
       ]);
     } finally {
@@ -224,7 +263,7 @@ export default function ChatProfile() {
           <div className="relative">
             <div className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full border-2 border-white bg-green-500 dark:border-gray-800"></div>
             <img
-              src={AVATAR_URL}
+              src={APP_AVATAR_SRC}
               alt="Avatar"
               className="h-10 w-10 rounded-full object-cover"
             />
@@ -250,7 +289,7 @@ export default function ChatProfile() {
       >
         {historyLoading && (
           <div className="text-center text-xs text-gray-400 dark:text-gray-500">
-            正在同步历史消息...
+            Syncing chat history...
           </div>
         )}
 
@@ -259,23 +298,11 @@ export default function ChatProfile() {
             key={msg.id}
             className={`flex items-end gap-2 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"}`}
           >
-            <div
-              className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full ${
-                msg.role === "user"
-                  ? "bg-blue-100 text-blue-600"
-                  : "bg-transparent"
-              }`}
-            >
-              {msg.role === "user" ? (
-                <User size={16} />
-              ) : (
-                <img
-                  src={AVATAR_URL}
-                  alt="Assistant Avatar"
-                  className="h-8 w-8 rounded-full"
-                />
-              )}
-            </div>
+            <img
+              src={APP_AVATAR_SRC}
+              alt={msg.role === "user" ? "User Avatar" : "Assistant Avatar"}
+              className="h-8 w-8 flex-shrink-0 rounded-full object-cover"
+            />
 
             <div
               className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm ${
@@ -291,9 +318,11 @@ export default function ChatProfile() {
 
         {isTyping && (
           <div className="flex items-center gap-2">
-            <div className="ml-0 flex h-8 w-8 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800">
-              <Bot size={16} className="text-gray-500" />
-            </div>
+            <img
+              src={APP_AVATAR_SRC}
+              alt="Assistant Avatar"
+              className="ml-0 h-8 w-8 rounded-full object-cover"
+            />
             <div className="flex gap-1 rounded-2xl rounded-bl-none border border-gray-100 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
               <span className="h-2 w-2 animate-bounce rounded-full bg-gray-400"></span>
               <span className="h-2 w-2 animate-bounce rounded-full bg-gray-400 delay-75"></span>
@@ -312,7 +341,7 @@ export default function ChatProfile() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="输入消息..."
+            placeholder="Type a message..."
             className="flex-1 rounded-full bg-gray-100 px-5 py-3 text-sm text-gray-900 transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-900 dark:text-white"
           />
           <button

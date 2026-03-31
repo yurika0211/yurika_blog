@@ -4,6 +4,7 @@ const AUTH_CHANGED_EVENT = "blog-auth-changed";
 export interface AuthSession {
   username: string;
   loginAt: string;
+  token: string;
 }
 
 const canUseWindow = () => typeof window !== "undefined";
@@ -17,10 +18,11 @@ const parseSession = (raw: string | null): AuthSession | null => {
     const parsed = JSON.parse(raw) as Partial<AuthSession>;
     const username = typeof parsed.username === "string" ? parsed.username.trim() : "";
     const loginAt = typeof parsed.loginAt === "string" ? parsed.loginAt : "";
-    if (!username || !loginAt) {
+    const token = typeof parsed.token === "string" ? parsed.token.trim() : "";
+    if (!username || !loginAt || !token) {
       return null;
     }
-    return { username, loginAt };
+    return { username, loginAt, token };
   } catch {
     return null;
   }
@@ -43,15 +45,25 @@ export const getAuthSession = (): AuthSession | null => {
 
 export const isAuthenticated = () => Boolean(getAuthSession());
 
-export const setAuthSession = (username: string) => {
+export const getAuthToken = (): string | null => {
+  const session = getAuthSession();
+  return session?.token || null;
+};
+
+export const setAuthSession = (username: string, token: string) => {
   if (!canUseWindow()) {
     return;
   }
 
   const safeUsername = username.trim() || "user";
+  const safeToken = token.trim();
+  if (!safeToken) {
+    return;
+  }
   const session: AuthSession = {
     username: safeUsername,
     loginAt: new Date().toISOString(),
+    token: safeToken,
   };
 
   window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));

@@ -15,6 +15,7 @@ import {
   Star,
   Workflow,
 } from 'lucide-react';
+import { APP_AVATAR_SRC } from '../constants/avatar';
 import { blog } from '../services/api';
 import { API_BASE_URL } from '../services/apiConfig';
 import type { BlogPost } from '../types';
@@ -91,7 +92,7 @@ export default function Entry() {
         const data = await blog.getPosts();
         setPosts(Array.isArray(data) ? data : []);
       } catch (err) {
-        const message = err instanceof Error ? err.message : '加载文章失败';
+        const message = err instanceof Error ? err.message : 'Failed to load posts';
         setError(message);
       } finally {
         setLoading(false);
@@ -178,7 +179,7 @@ export default function Entry() {
               <span className="block text-[#0a6a89] dark:text-[#9fd7ea]">ship your stories.</span>
             </h1>
             <p className="mx-auto mt-4 max-w-4xl text-base leading-8 text-cyan-900/80 dark:text-cyan-100/85 md:text-lg">
-              以 Rust、React、TypeScript、Golang 为核心，把开发记录、学习沉淀和项目更新放进同一个发布空间。
+              Built around Rust, React, TypeScript, and Golang, this is one place for development logs, learning notes, and project updates.
             </p>
 
             <div className="hero-rise-delay-1 mt-6 flex flex-wrap justify-center gap-3">
@@ -248,7 +249,7 @@ export default function Entry() {
                     </h2>
                   </div>
                   <img
-                    src="/profile.webp"
+                    src={APP_AVATAR_SRC}
                     alt="avatar"
                     className="h-11 w-11 rounded-full border-2 border-cyan-200 object-cover dark:border-cyan-700"
                   />
@@ -342,7 +343,7 @@ export default function Entry() {
             </span>
             <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 dark:bg-gray-800">
               <Clock3 className="h-4 w-4" />
-              last update：{latestPostDate}
+              Last update: {latestPostDate}
             </span>
           </div>
         </div>
@@ -405,7 +406,7 @@ export default function Entry() {
                       </span>
                       <span className="inline-flex items-center gap-1 truncate">
                         <BookOpen className="h-3.5 w-3.5 shrink-0" />
-                        {post.tags.slice(0, 2).join(' / ') || '未分类'}
+                        {post.tags.slice(0, 2).join(' / ') || 'Uncategorized'}
                       </span>
                     </div>
                   </div>
@@ -447,7 +448,7 @@ export default function Entry() {
                 >
                   <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                     <Newspaper className="h-3.5 w-3.5" />
-                    动态
+                    Updates
                   </div>
                   <h3 className="mt-3 truncate text-xl font-bold text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
                     {item.title}

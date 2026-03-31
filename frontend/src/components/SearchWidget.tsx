@@ -49,7 +49,7 @@ export default function SearchWidget() {
     <div className="bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-md p-7 rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30">
       <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2.5">
         <Search className="w-5 h-5 text-purple-500" />
-        搜索文章
+        Search Posts
       </h3>
       
       <div className="relative group">
@@ -57,7 +57,7 @@ export default function SearchWidget() {
           type="text"
           value={query}
           onChange={handleSearch}
-          placeholder="搜索标题或内容..."
+          placeholder="Search titles or content..."
           className="w-full pl-12 pr-12 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-700 dark:text-gray-200 placeholder-gray-400"
         />
         {/* 左侧搜索图标 */}

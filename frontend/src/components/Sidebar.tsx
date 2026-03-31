@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Tag, Github, Twitter, Link as LinkIcon, LogIn, LogOut, PenLine } from 'lucide-react';
-import { blog } from '../services/api';
-import type { BlogPost } from '../types';
 import SearchWidget from './SearchWidget';
 import { formatDate } from '../utils/date';
 import { useAuth } from '../hooks/useAuth';
+import { APP_AVATAR_SRC } from '../constants/avatar';
+import { blog } from '../services/api';
+import type { BlogPost } from '../types';
 
 
 export default function Sidebar() {
@@ -32,6 +33,7 @@ export default function Sidebar() {
       mounted = false;
     };
   }, []);
+
   // 1. 提取所有标签并统计数量
   const tagCounts = posts.reduce<Record<string, number>>((acc, post) => {
     for (const t of post.tags) {
@@ -53,7 +55,7 @@ export default function Sidebar() {
         <div className="flex flex-col items-center text-center">
           {/* 头像 - 这里暂时用个占位图，你可以换成自己的照片 */}
           <img
-            src="/profile.webp"
+            src={APP_AVATAR_SRC}
             alt="Profile"
             className="w-24 h-24 rounded-full border-4 border-white dark:border-gray-800 shadow-md mb-4 bg-gray-100"
           />
@@ -84,7 +86,7 @@ export default function Sidebar() {
                 className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
               >
                 <PenLine className="h-4 w-4" />
-                写作
+                Write
               </Link>
               <button
                 type="button"
@@ -92,7 +94,7 @@ export default function Sidebar() {
                 className="inline-flex items-center gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-100 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
               >
                 <LogOut className="h-4 w-4" />
-                退出
+                Sign out
               </button>
             </div>
           ) : (
@@ -101,7 +103,7 @@ export default function Sidebar() {
               className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
             >
               <LogIn className="h-4 w-4" />
-              登录后管理文章
+              Log in to manage posts
             </Link>
           )}
         </div>
@@ -131,7 +133,7 @@ export default function Sidebar() {
           to="/tags"
           className="mt-3 inline-block text-xs text-blue-600 dark:text-blue-400 hover:underline"
         >
-          查看全部标签 →
+          View all tags →
         </Link>
       </div>
 

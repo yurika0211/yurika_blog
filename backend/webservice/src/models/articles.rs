@@ -14,6 +14,7 @@ pub struct Article {
     pub tags: Option<Vec<String>>,
     pub content: Option<String>,
     pub is_pinned: Option<bool>,
+    pub is_login_required: Option<bool>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -40,6 +41,7 @@ pub struct CreateArticle {
     pub tags: Option<Vec<String>>,
     pub content: Option<String>,
     pub is_pinned: Option<bool>,
+    pub is_login_required: Option<bool>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -50,6 +52,7 @@ pub struct UpdateArticle {
     pub tags: Option<Vec<String>>,
     pub content: Option<String>,
     pub is_pinned: Option<bool>,
+    pub is_login_required: Option<bool>,
 }
 
 impl From<web::Json<Article>> for Article {
@@ -62,6 +65,7 @@ impl From<web::Json<Article>> for Article {
             tags: article.tags.clone(),
             content: article.content.clone(),
             is_pinned: article.is_pinned,
+            is_login_required: article.is_login_required,
         }
     }
 }
@@ -76,6 +80,7 @@ impl TryFrom<web::Json<CreateArticle>> for CreateArticle {
             tags: article.tags.clone(),
             content: article.content.clone(),
             is_pinned: article.is_pinned,
+            is_login_required: article.is_login_required,
         })
     }
 }
@@ -89,6 +94,7 @@ impl From<web::Json<UpdateArticle>> for UpdateArticle {
             tags: article.tags.clone(),
             content: article.content.clone(),
             is_pinned: article.is_pinned,
+            is_login_required: article.is_login_required,
         }
     }
 }
