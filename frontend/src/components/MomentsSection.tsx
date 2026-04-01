@@ -131,6 +131,7 @@ export default function MomentsSection() {
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [submissionState, setSubmissionState] = useState<SubmissionState>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
   const hasDraft = content.trim().length > 0 || pendingImages.length > 0;
   const showComposer = isLoggedIn && isComposerOpen;
 
@@ -164,6 +165,21 @@ export default function MomentsSection() {
       composerTextareaRef.current?.focus();
     }
   }, [showComposer]);
+
+  useEffect(() => {
+    if (!previewImage) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPreviewImage(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [previewImage]);
 
   const handlePickImages = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
@@ -374,7 +390,8 @@ export default function MomentsSection() {
                           <img
                             src={image}
                             alt={`Selected moment image ${index + 1}`}
-                            className="max-h-72 w-full object-contain bg-gray-50 dark:bg-gray-950/60"
+                            onClick={() => setPreviewImage(image)}
+                            className="max-h-72 w-full cursor-zoom-in object-contain bg-gray-50 dark:bg-gray-950/60"
                           />
                           <button
                             type="button"
@@ -523,17 +540,19 @@ export default function MomentsSection() {
                   {moment.images.length > 0 && (
                     <div className={`grid gap-3 ${getImageGridClass(moment.images.length)}`}>
                       {moment.images.map((image, index) => (
-                        <div
+                        <button
                           key={`${moment.id}-${index}`}
-                          className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-950/60"
+                          type="button"
+                          onClick={() => setPreviewImage(image)}
+                          className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 text-left transition-transform hover:scale-[1.01] dark:border-gray-700 dark:bg-gray-950/60"
                         >
                           <img
                             src={image}
                             alt={`Moment ${moment.id} image ${index + 1}`}
                             loading="lazy"
-                            className="max-h-[32rem] w-full object-contain bg-gray-50 dark:bg-gray-950/60"
+                            className="max-h-[32rem] w-full cursor-zoom-in object-contain bg-gray-50 dark:bg-gray-950/60"
                           />
-                        </div>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -543,6 +562,36 @@ export default function MomentsSection() {
           )}
         </div>
       </div>
+
+      {previewImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 py-6 backdrop-blur-sm"
+          onClick={() => setPreviewImage(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Moment image preview"
+        >
+          <div
+            className="relative flex max-h-full w-full max-w-6xl items-center justify-center"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => setPreviewImage(null)}
+              className="absolute right-2 top-2 z-10 inline-flex h-11 w-11 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/70"
+              aria-label="Close image preview"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <img
+              src={previewImage}
+              alt="Moment preview"
+              className="max-h-[88vh] w-auto max-w-full rounded-[1.75rem] object-contain shadow-2xl"
+            />
+          </div>
+        </div>
+      )}
     </section>
   );
 }
