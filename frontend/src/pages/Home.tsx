@@ -81,21 +81,16 @@ export default function Home() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const [currentPage, setCurrentPage] = useState(pageFromUrl);
+  const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
 
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [totalPosts, setTotalPosts] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const searchQuery = searchParams.get("search") || "";
   const archiveParam = searchParams.get("archive") || "";
-
-  // URL 中 page 参数变化时同步到 state
-  useEffect(() => {
-    setCurrentPage(pageFromUrl);
-  }, [pageFromUrl]);
 
   // 筛选条件变化时重置到第 1 页（跳过首次挂载）
   const isFirstMount = useRef(true);
@@ -116,12 +111,14 @@ export default function Home() {
   }, [tag, searchQuery, archiveParam]);
 
   useEffect(() => {
+    let isCurrentRequest = true;
+
     const fetchPosts = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        if (archiveParam) {
+        if (archiveParam && !searchQuery) {
           // 归档模式：获取全部文章，前端按年月过滤+分页
           const allPosts = await blog.getPosts();
           const [yearStr, monthStr] = archiveParam.split("-");
@@ -133,6 +130,9 @@ export default function Home() {
             return d.getFullYear() === year && d.getMonth() + 1 === month;
           });
           const start = (currentPage - 1) * POSTS_PER_PAGE;
+          if (!isCurrentRequest) {
+            return;
+          }
           setPosts(filtered.slice(start, start + POSTS_PER_PAGE));
           setTotalPosts(filtered.length);
         } else {
@@ -142,20 +142,33 @@ export default function Home() {
             tag: tag || undefined,
             search: searchQuery || undefined,
           });
+          if (!isCurrentRequest) {
+            return;
+          }
           setPosts(result.data);
           setTotalPosts(result.total);
         }
+        setHasLoadedOnce(true);
       } catch (err) {
+        if (!isCurrentRequest) {
+          return;
+        }
         const errorMessage =
           err instanceof Error ? err.message : "Failed to load posts";
         setError(errorMessage);
         console.error("Error fetching posts:", err);
       } finally {
-        setLoading(false);
+        if (isCurrentRequest) {
+          setLoading(false);
+        }
       }
     };
 
     void fetchPosts();
+
+    return () => {
+      isCurrentRequest = false;
+    };
   }, [currentPage, tag, searchQuery, archiveParam]);
 
   const postCards = useMemo(
@@ -181,7 +194,7 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (loading) {
+  if (loading && !hasLoadedOnce) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader className="w-12 h-12 text-blue-500 animate-spin mb-4" />
@@ -190,7 +203,7 @@ export default function Home() {
     );
   }
 
-  if (error) {
+  if (error && !hasLoadedOnce) {
     return (
       <div className="flex flex-col items-center justify-center py-20 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
@@ -240,10 +253,21 @@ export default function Home() {
             "All Articles"
           )}
         </h2>
-        <span className="text-base text-gray-500 dark:text-gray-400">
-          {totalPosts} posts
-        </span>
+        <div className="flex items-center gap-2 text-base text-gray-500 dark:text-gray-400">
+          {loading ? <Loader className="w-4 h-4 animate-spin" /> : null}
+          <span>{totalPosts} posts</span>
+        </div>
       </div>
+
+      {error ? (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800 dark:border-amber-900/80 dark:bg-amber-950/40 dark:text-amber-200">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+          <div>
+            <p className="font-medium">Search refresh failed</p>
+            <p className="text-sm opacity-90">{error}</p>
+          </div>
+        </div>
+      ) : null}
 
       {postCards.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 bg-slate-100/50 dark:bg-gray-900/30 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 backdrop-blur-sm">

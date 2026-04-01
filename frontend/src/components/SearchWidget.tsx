@@ -1,48 +1,90 @@
+import { startTransition, useEffect, useState, type ChangeEvent, type CompositionEvent } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Search, X } from 'lucide-react';
+
+const SEARCH_SYNC_DELAY = 250;
+
+const buildSearchParams = (prev: URLSearchParams, value: string) => {
+  const next = new URLSearchParams(prev);
+
+  next.delete('page');
+  next.delete('archive');
+
+  if (value) {
+    next.set('search', value);
+  } else {
+    next.delete('search');
+  }
+
+  return next;
+};
 
 export default function SearchWidget() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   const query = searchParams.get('search') || '';
+  const [inputValue, setInputValue] = useState(query);
+  const [isComposing, setIsComposing] = useState(false);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+  useEffect(() => {
+    setInputValue(query);
+  }, [query]);
 
-    // 如果用户不在文章列表，输入时自动跳转到文章列表
-    if (location.pathname !== '/posts') {
-      if (value) {
-        navigate(`/posts?search=${encodeURIComponent(value)}`);
-      }
+  useEffect(() => {
+    if (isComposing || inputValue === query) {
       return;
     }
 
-    // 在文章列表：实时更新 URL 参数
-    if (value) {
-      setSearchParams(prev => {
-        prev.set('search', value);
-        return prev;
-      }, { replace: true });
-    } else {
-      // 如果清空了输入，就删除 search 参数
-      setSearchParams(prev => {
-        prev.delete('search');
-        return prev;
-      }, { replace: true });
-    }
+    const timer = window.setTimeout(() => {
+      if (location.pathname !== '/posts') {
+        if (!inputValue) {
+          return;
+        }
+
+        startTransition(() => {
+          navigate(`/posts?search=${encodeURIComponent(inputValue)}`);
+        });
+        return;
+      }
+
+      startTransition(() => {
+        setSearchParams((prev) => buildSearchParams(prev, inputValue), { replace: true });
+      });
+    }, SEARCH_SYNC_DELAY);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [inputValue, isComposing, location.pathname, navigate, query, setSearchParams]);
+
+  const handleSearch = (e: ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleCompositionStart = () => {
+    setIsComposing(true);
+  };
+
+  const handleCompositionEnd = (e: CompositionEvent<HTMLInputElement>) => {
+    setIsComposing(false);
+    setInputValue(e.currentTarget.value);
   };
 
   const clearSearch = () => {
+    setIsComposing(false);
+    setInputValue('');
+
     if (location.pathname !== '/posts') {
-      navigate('/posts');
+      startTransition(() => {
+        navigate('/posts');
+      });
       return;
     }
 
-    setSearchParams(prev => {
-      prev.delete('search');
-      return prev;
-    }, { replace: true });
+    startTransition(() => {
+      setSearchParams((prev) => buildSearchParams(prev, ''), { replace: true });
+    });
   };
 
   return (
@@ -55,8 +97,10 @@ export default function SearchWidget() {
       <div className="relative group">
         <input
           type="text"
-          value={query}
+          value={inputValue}
           onChange={handleSearch}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
           placeholder="Search titles or content..."
           className="w-full pl-12 pr-12 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-700 dark:text-gray-200 placeholder-gray-400"
         />
@@ -64,7 +108,7 @@ export default function SearchWidget() {
         <Search className="absolute left-4 top-4 w-5 h-5 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
         
         {/* 右侧清除按钮 (只有输入内容时才显示) */}
-        {query && (
+        {inputValue && (
           <button 
             onClick={clearSearch}
             className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
