@@ -255,7 +255,7 @@ export default function Entry() {
 
         <div className="relative z-20 mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-7xl items-center px-4 py-8 md:py-10">
           <div className="grid w-full items-center gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(22rem,0.98fr)] lg:gap-12">
-            <div className="max-w-2xl">
+            <div className="max-w-2xl lg:-translate-y-4">
               <div className="hero-rise">
                 <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/70 bg-white/65 px-4.5 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-200">
                   <Sparkles className="h-3.5 w-3.5" />
@@ -263,10 +263,10 @@ export default function Entry() {
                 </span>
 
                 <h1 className="mt-5 text-5xl font-black leading-[1.04] text-[#0f2f43] dark:text-[#f0eee6] [text-shadow:0_2px_16px_rgba(240,238,230,0.85)] dark:[text-shadow:0_2px_16px_rgba(20,20,19,0.55)] sm:text-6xl md:text-[3.8rem]">
-                  Design your ideas,
-                  <span className="block text-[#0a6a89] dark:text-[#9fd7ea]">ship your stories.</span>
+                  時よ止まれ―――
+                  <span className="block text-[#0a6a89] dark:text-[#9fd7ea]">おまえは美しい</span>
                 </h1>
-                <p className="mt-4 max-w-xl text-base leading-8 text-cyan-900/80 dark:text-cyan-100/85 md:text-lg">
+                <p className="mt-4 max-w-xl text-base leading-8 font-medium text-cyan-950 [text-shadow:0_1px_10px_rgba(255,255,255,0.58)] dark:text-cyan-50 dark:[text-shadow:0_1px_12px_rgba(2,8,23,0.48)] md:text-lg">
                   Built around Rust, React, TypeScript, and Golang, this is one place for development logs, learning notes, and project updates.
                 </p>
               </div>
@@ -329,8 +329,8 @@ export default function Entry() {
             </div>
 
             <div className="hero-rise-delay-3 lg:justify-self-end">
-              <div className="hero-rotator-shell mx-auto w-full max-w-[40rem]">
-                <div className="hero-rotator-stage min-h-[30rem] sm:min-h-[32rem] lg:min-h-[34rem]">
+              <div className="hero-rotator-shell mx-auto w-full max-w-[42rem] lg:max-w-[44rem]">
+                <div className="hero-rotator-stage min-h-[33rem] sm:min-h-[35rem] lg:min-h-[39rem]">
                   {HERO_CARD_META.map((card, index) => {
                     const state = getHeroCardState(index, activeHeroCard, HERO_CARD_META.length);
                     const isActive = state === 'active';
