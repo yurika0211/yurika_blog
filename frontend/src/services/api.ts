@@ -3,12 +3,19 @@ import type {
   BlogPost,
   BlogComment,
   BlogMoment,
+  CreateGuestbookMessagePayload,
   CreateMomentPayload,
+  CreateMomentCommentPayload,
   FriendLinkApplication,
   FriendLinkApplicationPayload,
   FriendLinkStatus,
+  GuestbookMessage,
+  MomentComment,
+  MomentLikeState,
 } from "../types";
 import { getAuthToken, isAuthenticated } from "../utils/auth";
+import { normalizeDisplayName } from "../utils/displayName";
+import { getOrCreateDeviceId } from "../utils/device";
 import { API_BASE_URL } from "./apiConfig";
 import { cachedFetch, invalidateCache } from "../utils/cache";
 
@@ -32,7 +39,14 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use((config) => {
   const token = getAuthToken();
-  if (token) {
+  const existingAuthorization =
+    typeof config.headers?.Authorization === "string"
+      ? config.headers.Authorization
+      : typeof config.headers?.authorization === "string"
+        ? config.headers.authorization
+        : "";
+
+  if (token && !existingAuthorization) {
     config.headers = config.headers ?? {};
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -114,10 +128,10 @@ export const comment = {
       return null;
     }
 
-    const author =
-      typeof item.author === "string" && item.author.trim()
-        ? item.author.trim()
-        : "Anonymous user";
+    const author = normalizeDisplayName(
+      typeof item.author === "string" ? item.author : "",
+      "Anonymous user",
+    );
 
     const rawDate = item.date ?? item.created_at ?? item.createdAt;
     const date =
@@ -274,14 +288,28 @@ const normalizeMomentItem = (raw: unknown): BlogMoment | null => {
 
   const item = raw as Record<string, unknown>;
   const id = typeof item.id === "number" ? item.id : Number(item.id);
-  const author =
-    typeof item.author === "string" && item.author.trim()
-      ? item.author.trim()
-      : "Yurika";
+  const author = normalizeDisplayName(
+    typeof item.author === "string" ? item.author : "",
+    "Yurika",
+  );
   const content = typeof item.content === "string" ? item.content : "";
   const images = Array.isArray(item.images)
     ? item.images.filter((image): image is string => typeof image === "string" && image.trim().length > 0)
     : [];
+  const likesCount =
+    typeof item.likes_count === "number"
+      ? item.likes_count
+      : Number(item.likes_count ?? 0);
+  const comments = Array.isArray(item.comments)
+    ? item.comments
+        .map((entry) => normalizeMomentCommentItem(entry))
+        .filter((entry): entry is MomentComment => Boolean(entry))
+    : [];
+  const commentsCount =
+    typeof item.comments_count === "number"
+      ? item.comments_count
+      : Number(item.comments_count ?? comments.length);
+  const likedByDevice = Boolean(item.liked_by_device);
 
   if (!Number.isFinite(id)) {
     return null;
@@ -300,7 +328,113 @@ const normalizeMomentItem = (raw: unknown): BlogMoment | null => {
       typeof item.updated_at === "string" && item.updated_at.trim()
         ? item.updated_at
         : null,
+    likes_count: Number.isFinite(likesCount) ? likesCount : 0,
+    comments_count: Number.isFinite(commentsCount) ? commentsCount : comments.length,
+    liked_by_device: likedByDevice,
+    comments,
   };
+};
+
+const normalizeMomentCommentItem = (raw: unknown): MomentComment | null => {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+
+  const item = raw as Record<string, unknown>;
+  const id = typeof item.id === "number" ? item.id : Number(item.id);
+  const momentId =
+    typeof item.moment_id === "number" ? item.moment_id : Number(item.moment_id);
+  const author = normalizeDisplayName(
+    typeof item.author === "string" ? item.author : "",
+    "Anonymous user",
+  );
+  const content = typeof item.content === "string" ? item.content.trim() : "";
+
+  if (!Number.isFinite(id) || !Number.isFinite(momentId) || !content) {
+    return null;
+  }
+
+  return {
+    id,
+    moment_id: momentId,
+    author,
+    content,
+    created_at:
+      typeof item.created_at === "string" && item.created_at.trim()
+        ? item.created_at
+        : null,
+  };
+};
+
+const normalizeMomentLikeState = (raw: unknown): MomentLikeState | null => {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+
+  const item = raw as Record<string, unknown>;
+  const momentId =
+    typeof item.moment_id === "number" ? item.moment_id : Number(item.moment_id);
+  const likesCount =
+    typeof item.likes_count === "number"
+      ? item.likes_count
+      : Number(item.likes_count ?? 0);
+
+  if (!Number.isFinite(momentId) || !Number.isFinite(likesCount)) {
+    return null;
+  }
+
+  return {
+    moment_id: momentId,
+    likes_count: likesCount,
+    liked_by_device: Boolean(item.liked_by_device),
+  };
+};
+
+const normalizeGuestbookMessageItem = (raw: unknown): GuestbookMessage | null => {
+  if (!raw || typeof raw !== "object") {
+    return null;
+  }
+
+  const item = raw as Record<string, unknown>;
+  const id = typeof item.id === "number" ? item.id : Number(item.id);
+  const author = normalizeDisplayName(
+    typeof item.author === "string" ? item.author : "",
+    "GitHub user",
+  );
+  const content = typeof item.content === "string" ? item.content.trim() : "";
+
+  if (!Number.isFinite(id) || !content) {
+    return null;
+  }
+
+  return {
+    id,
+    author,
+    author_avatar_url:
+      typeof item.author_avatar_url === "string" && item.author_avatar_url.trim()
+        ? item.author_avatar_url.trim()
+        : null,
+    author_profile_url:
+      typeof item.author_profile_url === "string" && item.author_profile_url.trim()
+        ? item.author_profile_url.trim()
+        : null,
+    content,
+    created_at:
+      typeof item.created_at === "string" && item.created_at.trim()
+        ? item.created_at
+        : null,
+  };
+};
+
+const normalizeGuestbookMessageList = (payload: unknown): GuestbookMessage[] => {
+  if (!Array.isArray(payload)) {
+    const single = normalizeGuestbookMessageItem(payload);
+    return single ? [single] : [];
+  }
+
+  return payload
+    .map((item) => normalizeGuestbookMessageItem(item))
+    .filter((item): item is GuestbookMessage => Boolean(item));
 };
 
 const normalizeMomentList = (payload: unknown): BlogMoment[] => {
@@ -419,10 +553,18 @@ export const friendLink = {
 
 export const moments = {
   getMoments: () =>
-    cachedFetch<BlogMoment[]>("moments:list", async () => {
-      const response = await apiClient.get("/moments");
-      return normalizeMomentList(response.data);
-    }, 30 * 1000),
+    cachedFetch<BlogMoment[]>(
+      `moments:list:${getViewerScope()}:${getOrCreateDeviceId()}`,
+      async () => {
+        const response = await apiClient.get("/moments", {
+          headers: {
+            "X-Device-Id": getOrCreateDeviceId(),
+          },
+        });
+        return normalizeMomentList(response.data);
+      },
+      30 * 1000,
+    ),
 
   createMoment: async (payload: CreateMomentPayload) => {
     ensureAuthenticated("post moments");
@@ -441,11 +583,94 @@ export const moments = {
     return created;
   },
 
+  createComment: async (momentId: number, payload: CreateMomentCommentPayload) => {
+    ensureAuthenticated("comment on moments");
+
+    const response = await apiClient.post(`/moments/${momentId}/comments`, {
+      author: payload.author,
+      content: payload.content,
+    });
+
+    invalidateCache("moments:");
+    const created = normalizeMomentCommentItem(response.data);
+    if (!created) {
+      throw new Error("The comment was created, but the response format was invalid.");
+    }
+    return created;
+  },
+
+  deleteComment: async (momentId: number, commentId: number) => {
+    ensureAuthenticated("delete moment comments");
+    const response = await apiClient.delete(`/moments/${momentId}/comments/${commentId}`);
+    invalidateCache("moments:");
+    return response.data;
+  },
+
+  likeMoment: async (momentId: number) => {
+    const response = await apiClient.post(
+      `/moments/${momentId}/like`,
+      undefined,
+      {
+        headers: {
+          "X-Device-Id": getOrCreateDeviceId(),
+        },
+      },
+    );
+
+    invalidateCache("moments:");
+    const state = normalizeMomentLikeState(response.data);
+    if (!state) {
+      throw new Error("The like succeeded, but the response format was invalid.");
+    }
+    return state;
+  },
+
+  unlikeMoment: async (momentId: number) => {
+    const response = await apiClient.delete(`/moments/${momentId}/like`, {
+      headers: {
+        "X-Device-Id": getOrCreateDeviceId(),
+      },
+    });
+
+    invalidateCache("moments:");
+    const state = normalizeMomentLikeState(response.data);
+    if (!state) {
+      throw new Error("The unlike succeeded, but the response format was invalid.");
+    }
+    return state;
+  },
+
   deleteMoment: async (id: number) => {
     ensureAuthenticated("delete moments");
     const response = await apiClient.delete(`/moments/${id}`);
     invalidateCache("moments:");
     return response.data;
+  },
+};
+
+export const guestbook = {
+  getMessages: () =>
+    cachedFetch<GuestbookMessage[]>(
+      "guestbook:messages",
+      async () => {
+        const response = await apiClient.get("/guestbook/messages");
+        return normalizeGuestbookMessageList(response.data);
+      },
+      30 * 1000,
+    ),
+  createMessage: async (payload: CreateGuestbookMessagePayload) => {
+    const response = await apiClient.post("/guestbook/messages", {
+      author: payload.author,
+      content: payload.content,
+    });
+
+    invalidateCache("guestbook:");
+    const created = normalizeGuestbookMessageItem(response.data);
+    if (!created) {
+      throw new Error("The guestbook message response was invalid.");
+    }
+
+    return created;
   },
 };
 

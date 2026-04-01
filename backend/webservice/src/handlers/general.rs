@@ -21,12 +21,13 @@ pub async fn github_repos_handler() -> HttpResponse {
         Ok(r) => {
             let status = r.status();
             let body = r.text().await.unwrap_or_default();
-            HttpResponse::build(actix_web::http::StatusCode::from_u16(status.as_u16()).unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR))
-                .content_type("application/json")
-                .body(body)
+            HttpResponse::build(
+                actix_web::http::StatusCode::from_u16(status.as_u16())
+                    .unwrap_or(actix_web::http::StatusCode::INTERNAL_SERVER_ERROR),
+            )
+            .content_type("application/json")
+            .body(body)
         }
-        Err(e) => {
-            HttpResponse::BadGateway().json(format!("GitHub API error: {}", e))
-        }
+        Err(e) => HttpResponse::BadGateway().json(format!("GitHub API error: {}", e)),
     }
 }

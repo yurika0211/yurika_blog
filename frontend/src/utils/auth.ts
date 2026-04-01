@@ -1,3 +1,5 @@
+import { normalizeDisplayName } from "./displayName";
+
 export const AUTH_STORAGE_KEY = "blog.auth.session";
 const AUTH_CHANGED_EVENT = "blog-auth-changed";
 
@@ -16,7 +18,10 @@ const parseSession = (raw: string | null): AuthSession | null => {
 
   try {
     const parsed = JSON.parse(raw) as Partial<AuthSession>;
-    const username = typeof parsed.username === "string" ? parsed.username.trim() : "";
+    const username = normalizeDisplayName(
+      typeof parsed.username === "string" ? parsed.username : "",
+      "",
+    );
     const loginAt = typeof parsed.loginAt === "string" ? parsed.loginAt : "";
     const token = typeof parsed.token === "string" ? parsed.token.trim() : "";
     if (!username || !loginAt || !token) {
@@ -55,7 +60,7 @@ export const setAuthSession = (username: string, token: string) => {
     return;
   }
 
-  const safeUsername = username.trim() || "user";
+  const safeUsername = normalizeDisplayName(username, "user");
   const safeToken = token.trim();
   if (!safeToken) {
     return;

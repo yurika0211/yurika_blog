@@ -1,6 +1,6 @@
 use crate::db_access::comment::*;
 use crate::errors::MyError;
-use crate::models::comments::{CreateComment};
+use crate::models::comments::CreateComment;
 use crate::state::AppState;
 use actix_web::{HttpResponse, web};
 

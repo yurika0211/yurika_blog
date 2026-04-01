@@ -5,10 +5,10 @@ use sqlx::postgres::PgPool;
 use std::env;
 use std::io;
 use std::sync::Mutex;
-#[path = "../dbaccess/mod.rs"]
-mod db_access;
 #[path = "../auth.rs"]
 mod auth;
+#[path = "../dbaccess/mod.rs"]
+mod db_access;
 #[path = "../errors.rs"]
 mod errors;
 #[path = "../handlers/mod.rs"]
@@ -37,6 +37,9 @@ async fn main() -> io::Result<()> {
     db_access::moments::ensure_moments_schema_db(&db_pool)
         .await
         .unwrap();
+    db_access::guestbook::ensure_guestbook_schema_db(&db_pool)
+        .await
+        .unwrap();
 
     let shared_data = web::Data::new(AppState {
         health_check_response: "I'm OK.".to_string(),
@@ -62,6 +65,7 @@ async fn main() -> io::Result<()> {
             .configure(comments_routes)
             .configure(friend_links_routes)
             .configure(moments_routes)
+            .configure(guestbook_routes)
             .configure(user_routes)
     })
     .bind("0.0.0.0:3001")?

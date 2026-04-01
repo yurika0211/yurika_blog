@@ -12,6 +12,7 @@ const Post = lazy(() => import('./pages/Post'));
 const About = lazy(() => import('./pages/About'));
 const Friends = lazy(() => import('./pages/Friends'));
 const Moments = lazy(() => import('./pages/Moments'));
+const Guestbook = lazy(() => import('./pages/Guestbook'));
 const Editor = lazy(() => import('./components/Editor'));
 const Entry = lazy(() => import('./pages/Entry'));
 const Login = lazy(() => import('./pages/Login'));
@@ -57,6 +58,7 @@ function AppLayout() {
         <Route path="/tags" element={<Tags />} />
         <Route path="/friends" element={<Friends />} />
         <Route path="/moments" element={<Moments />} />
+        <Route path="/guestbook" element={<Guestbook />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
         <Route
@@ -104,6 +106,8 @@ function AppLayout() {
       pageTitle = `Friends | ${APP_NAME}`;
     } else if (location.pathname === '/moments') {
       pageTitle = `Moments | ${APP_NAME}`;
+    } else if (location.pathname === '/guestbook') {
+      pageTitle = `Guestbook | ${APP_NAME}`;
     } else if (location.pathname === '/about') {
       pageTitle = `About | ${APP_NAME}`;
     } else if (location.pathname === '/login') {

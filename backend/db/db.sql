@@ -57,3 +57,29 @@ CREATE TABLE IF NOT EXISTS moments (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS moment_comments (
+    id SERIAL PRIMARY KEY,
+    moment_id INTEGER NOT NULL REFERENCES moments(id) ON DELETE CASCADE,
+    author VARCHAR(255) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS moment_likes (
+    id SERIAL PRIMARY KEY,
+    moment_id INTEGER NOT NULL REFERENCES moments(id) ON DELETE CASCADE,
+    device_id VARCHAR(128) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(moment_id, device_id)
+);
+
+CREATE TABLE IF NOT EXISTS guestbook_messages (
+    id SERIAL PRIMARY KEY,
+    author VARCHAR(255) NOT NULL,
+    author_avatar_url TEXT,
+    author_profile_url TEXT,
+    content TEXT NOT NULL,
+    ip_address VARCHAR(64),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
