@@ -118,17 +118,21 @@ export default function MomentsSection() {
   const navigate = useNavigate();
   const { isLoggedIn, username } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const composerTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   const [moments, setMoments] = useState<BlogMoment[]>([]);
   const [loading, setLoading] = useState(true);
   const [feedError, setFeedError] = useState<string | null>(null);
 
+  const [isComposerOpen, setIsComposerOpen] = useState(false);
   const [content, setContent] = useState("");
   const [pendingImages, setPendingImages] = useState<string[]>([]);
   const [processingImages, setProcessingImages] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [submissionState, setSubmissionState] = useState<SubmissionState>(null);
+  const hasDraft = content.trim().length > 0 || pendingImages.length > 0;
+  const showComposer = isLoggedIn && isComposerOpen;
 
   const canSubmit = useMemo(
     () =>
@@ -154,6 +158,12 @@ export default function MomentsSection() {
   useEffect(() => {
     void loadMoments();
   }, []);
+
+  useEffect(() => {
+    if (showComposer) {
+      composerTextareaRef.current?.focus();
+    }
+  }, [showComposer]);
 
   const handlePickImages = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
@@ -277,134 +287,179 @@ export default function MomentsSection() {
         </div>
       </div>
 
-      <div className={`grid gap-6 ${isLoggedIn ? "xl:grid-cols-[1.05fr_0.95fr]" : "grid-cols-1"}`}>
-        {isLoggedIn && (
-          <form
-            onSubmit={handleSubmit}
-            className="overflow-hidden rounded-[1.75rem] border border-gray-200/80 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/30"
-          >
-            <div className="border-b border-gray-200/70 px-6 py-5 dark:border-gray-800">
-              <div className="flex items-center gap-3">
+      <div className={`grid gap-6 ${showComposer ? "xl:grid-cols-[1.05fr_0.95fr]" : "grid-cols-1"}`}>
+        {isLoggedIn &&
+          (showComposer ? (
+            <form
+              id="moments-composer"
+              onSubmit={handleSubmit}
+              className="overflow-hidden rounded-[1.75rem] border border-gray-200/80 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/30"
+            >
+              <div className="border-b border-gray-200/70 px-6 py-5 dark:border-gray-800">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={APP_AVATAR_SRC}
+                      alt="Moment author"
+                      className="h-12 w-12 rounded-2xl border border-white/80 object-cover shadow-sm dark:border-gray-800"
+                    />
+                    <div>
+                      <p className="text-base font-semibold text-gray-900 dark:text-white">
+                        {username || "Yurika"}
+                      </p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Post a quick update with photos.
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsComposerOpen(false)}
+                    className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-300 dark:hover:bg-gray-950"
+                  >
+                    <X className="h-4 w-4" />
+                    Hide
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-5 px-6 py-6">
+                <textarea
+                  ref={composerTextareaRef}
+                  value={content}
+                  onChange={(event) => setContent(event.target.value)}
+                  placeholder="What's happening today?"
+                  rows={5}
+                  className="w-full resize-none rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-rose-400 dark:border-gray-700 dark:bg-gray-950/70 dark:text-gray-100"
+                />
+
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      className="hidden"
+                      onChange={handlePickImages}
+                    />
+                    <button
+                      type="button"
+                      disabled={processingImages}
+                      onClick={() => fileInputRef.current?.click()}
+                      className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-200 dark:hover:bg-gray-950"
+                    >
+                      {processingImages ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <ImagePlus className="h-4 w-4" />
+                      )}
+                      {processingImages ? "Processing images..." : "Add Photos"}
+                    </button>
+
+                    <div className="inline-flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                      <Camera className="h-4 w-4" />
+                      Up to {MAX_IMAGES} images per moment
+                    </div>
+                  </div>
+
+                  {pendingImages.length > 0 && (
+                    <div className={`grid gap-3 ${getImageGridClass(pendingImages.length)}`}>
+                      {pendingImages.map((image, index) => (
+                        <div
+                          key={`${image.slice(0, 32)}-${index}`}
+                          className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-950/60"
+                        >
+                          <img
+                            src={image}
+                            alt={`Selected moment image ${index + 1}`}
+                            className="max-h-72 w-full object-contain bg-gray-50 dark:bg-gray-950/60"
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setPendingImages((prev) =>
+                                prev.filter((_, currentIndex) => currentIndex !== index),
+                              )
+                            }
+                            className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/70"
+                            aria-label={`Remove image ${index + 1}`}
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {submissionState && (
+                  <div
+                    className={`rounded-2xl border px-4 py-3 text-sm ${
+                      submissionState.status === "success"
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+                        : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
+                    }`}
+                  >
+                    {submissionState.message}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    The selected photos are compressed in the browser before posting.
+                  </p>
+
+                  <button
+                    type="submit"
+                    disabled={!canSubmit}
+                    className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {submitting ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <SendHorizontal className="h-4 w-4" />
+                    )}
+                    {submitting ? "Posting..." : "Post Moment"}
+                  </button>
+                </div>
+              </div>
+            </form>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsComposerOpen(true)}
+              aria-expanded={false}
+              aria-controls="moments-composer"
+              className="flex w-full items-center justify-between gap-4 rounded-[1.75rem] border border-gray-200/80 bg-white/60 px-6 py-5 text-left shadow-sm backdrop-blur-sm transition-colors hover:bg-white/80 dark:border-gray-800 dark:bg-gray-900/30 dark:hover:bg-gray-900/40"
+            >
+              <div className="flex min-w-0 items-center gap-4">
                 <img
                   src={APP_AVATAR_SRC}
                   alt="Moment author"
                   className="h-12 w-12 rounded-2xl border border-white/80 object-cover shadow-sm dark:border-gray-800"
                 />
-                <div>
+                <div className="min-w-0">
                   <p className="text-base font-semibold text-gray-900 dark:text-white">
                     {username || "Yurika"}
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Post a quick update with photos.
+                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {hasDraft
+                      ? `Resume your draft${pendingImages.length > 0 ? ` with ${pendingImages.length} photo${pendingImages.length > 1 ? "s" : ""}` : ""}.`
+                      : "Open the composer to post a quick update with photos."}
                   </p>
                 </div>
               </div>
-            </div>
 
-            <div className="space-y-5 px-6 py-6">
-              <textarea
-                value={content}
-                onChange={(event) => setContent(event.target.value)}
-                placeholder="What's happening today?"
-                rows={5}
-                className="w-full resize-none rounded-2xl border border-gray-200 bg-white/90 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-rose-400 dark:border-gray-700 dark:bg-gray-950/70 dark:text-gray-100"
-              />
+              <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-rose-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-rose-700">
+                <ImagePlus className="h-4 w-4" />
+                {hasDraft ? "Resume draft" : "Post a moment"}
+              </span>
+            </button>
+          ))}
 
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-3">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    className="hidden"
-                    onChange={handlePickImages}
-                  />
-                  <button
-                    type="button"
-                    disabled={processingImages}
-                    onClick={() => fileInputRef.current?.click()}
-                    className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-200 dark:hover:bg-gray-950"
-                  >
-                    {processingImages ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <ImagePlus className="h-4 w-4" />
-                    )}
-                    {processingImages ? "Processing images..." : "Add Photos"}
-                  </button>
-
-                  <div className="inline-flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                    <Camera className="h-4 w-4" />
-                    Up to {MAX_IMAGES} images per moment
-                  </div>
-                </div>
-
-                {pendingImages.length > 0 && (
-                  <div className={`grid gap-3 ${getImageGridClass(pendingImages.length)}`}>
-                    {pendingImages.map((image, index) => (
-                      <div
-                        key={`${image.slice(0, 32)}-${index}`}
-                        className="group relative overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-950/60"
-                      >
-                        <img
-                          src={image}
-                          alt={`Selected moment image ${index + 1}`}
-                          className="h-40 w-full object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setPendingImages((prev) =>
-                              prev.filter((_, currentIndex) => currentIndex !== index),
-                            )
-                          }
-                          className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/70"
-                          aria-label={`Remove image ${index + 1}`}
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {submissionState && (
-                <div
-                  className={`rounded-2xl border px-4 py-3 text-sm ${
-                    submissionState.status === "success"
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
-                      : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
-                  }`}
-                >
-                  {submissionState.message}
-                </div>
-              )}
-
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  The selected photos are compressed in the browser before posting.
-                </p>
-
-                <button
-                  type="submit"
-                  disabled={!canSubmit}
-                  className="inline-flex items-center gap-2 rounded-full bg-rose-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {submitting ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <SendHorizontal className="h-4 w-4" />
-                  )}
-                  {submitting ? "Posting..." : "Post Moment"}
-                </button>
-              </div>
-            </div>
-          </form>
-        )}
-
-        <div className={`space-y-4 ${isLoggedIn ? "" : "max-w-4xl"}`}>
+        <div className={`space-y-4 ${showComposer ? "" : "max-w-4xl"}`}>
           {loading ? (
             <div className="flex items-center justify-center gap-3 rounded-[1.75rem] border border-gray-200/80 bg-white/60 px-6 py-10 text-gray-600 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/30 dark:text-gray-300">
               <Loader2 className="h-5 w-5 animate-spin" />
@@ -470,13 +525,13 @@ export default function MomentsSection() {
                       {moment.images.map((image, index) => (
                         <div
                           key={`${moment.id}-${index}`}
-                          className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 dark:border-gray-700 dark:bg-gray-950/60"
+                          className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-950/60"
                         >
                           <img
                             src={image}
                             alt={`Moment ${moment.id} image ${index + 1}`}
                             loading="lazy"
-                            className="h-52 w-full object-cover"
+                            className="max-h-[32rem] w-full object-contain bg-gray-50 dark:bg-gray-950/60"
                           />
                         </div>
                       ))}
