@@ -100,12 +100,12 @@ const getStatusBadgeClass = (status: FriendLinkStatus) => {
 
 const getStatusLabel = (status: FriendLinkStatus) => {
   if (status === 'approved') {
-    return 'Approved';
+    return '已通过';
   }
   if (status === 'rejected') {
-    return 'Rejected';
+    return '已拒绝';
   }
-  return 'Pending';
+  return '待审核';
 };
 
 export default function Friends() {
@@ -137,7 +137,7 @@ export default function Friends() {
         }
       } catch (error) {
         if (active) {
-          setApprovedError(getApiErrorMessage(error, 'Failed to load friend links. Please try again later.'));
+          setApprovedError(getApiErrorMessage(error, '加载友链失败，请稍后再试。'));
         }
       } finally {
         if (active) {
@@ -173,7 +173,7 @@ export default function Friends() {
         }
       } catch (error) {
         if (active) {
-          setApplicationsError(getApiErrorMessage(error, 'Failed to load friend link applications.'));
+          setApplicationsError(getApiErrorMessage(error, '加载友链申请失败。'));
         }
       } finally {
         if (active) {
@@ -196,7 +196,7 @@ export default function Friends() {
       const data = await friendLink.getApproved();
       setApprovedLinks(data);
     } catch (error) {
-      setApprovedError(getApiErrorMessage(error, 'Failed to load friend links. Please try again later.'));
+      setApprovedError(getApiErrorMessage(error, '加载友链失败，请稍后再试。'));
     } finally {
       setApprovedLoading(false);
     }
@@ -213,7 +213,7 @@ export default function Friends() {
       const data = await friendLink.getApplications(reviewFilter);
       setApplications(data);
     } catch (error) {
-      setApplicationsError(getApiErrorMessage(error, 'Failed to load friend link applications.'));
+      setApplicationsError(getApiErrorMessage(error, '加载友链申请失败。'));
     } finally {
       setApplicationsLoading(false);
     }
@@ -239,7 +239,7 @@ export default function Friends() {
       setForm(initialForm);
       setSubmissionState({
         status: 'success',
-        message: 'Your friend link application has been submitted and is waiting for review.',
+        message: '友链申请已提交，等待审核。',
       });
 
       if (isLoggedIn) {
@@ -248,7 +248,7 @@ export default function Friends() {
     } catch (error) {
       setSubmissionState({
         status: 'error',
-        message: getApiErrorMessage(error, 'Submission failed. Please try again later.'),
+        message: getApiErrorMessage(error, '提交失败，请稍后再试。'),
       });
     } finally {
       setSubmitting(false);
@@ -262,7 +262,7 @@ export default function Friends() {
       await friendLink.reviewApplication(applicationId, { status });
       await Promise.all([refreshApplications(), refreshApprovedLinks()]);
     } catch (error) {
-      setApplicationsError(getApiErrorMessage(error, 'Review failed. Please try again later.'));
+      setApplicationsError(getApiErrorMessage(error, '审核操作失败，请稍后再试。'));
     } finally {
       setActingId(null);
     }
@@ -273,15 +273,11 @@ export default function Friends() {
       <section className="space-y-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-              <Sparkles className="h-3.5 w-3.5" />
-              Curated Circle
-            </div>
-            <h2 className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">
-              Friends Wall
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              友情链接墙
             </h2>
             <p className="mt-2 text-sm leading-7 text-gray-600 dark:text-gray-300">
-              Approved sites appear here automatically after review.
+              通过审核的网站会自动展示在这里。
             </p>
           </div>
           <button
@@ -292,20 +288,20 @@ export default function Friends() {
             className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/70 px-4 py-2 text-sm text-gray-600 shadow-sm transition-colors hover:bg-white dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-300 dark:hover:bg-gray-950/50"
           >
             <RefreshCcw className={`h-4 w-4 ${approvedLoading ? 'animate-spin' : ''}`} />
-            Refresh links
+            刷新友链
           </button>
         </div>
 
         {approvedLoading ? (
           <div className="flex items-center justify-center gap-3 rounded-[1.75rem] border border-gray-200/80 bg-slate-100/50 px-6 py-14 text-gray-600 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/30 dark:text-gray-300">
             <Loader2 className="h-5 w-5 animate-spin" />
-            Loading friend links...
+            正在加载友链...
           </div>
         ) : approvedError ? (
           <div className="rounded-[1.75rem] border border-red-200 bg-red-50/80 px-6 py-5 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
             <div className="flex items-center gap-2 font-medium">
               <AlertCircle className="h-4 w-4" />
-              Failed to load friend links
+              加载友链失败
             </div>
             <p className="mt-2">{approvedError}</p>
           </div>
@@ -315,10 +311,10 @@ export default function Friends() {
               <Globe className="h-8 w-8" />
             </div>
             <h3 className="mt-5 text-2xl font-bold text-gray-900 dark:text-white">
-              No approved friend links yet
+              还没有已通过的友链
             </h3>
             <p className="mx-auto mt-3 max-w-2xl text-sm leading-7 text-gray-600 dark:text-gray-300">
-              You can submit an application below. Once it is approved, a new friend link card will appear here automatically.
+              你可以在下方提交申请，审核通过后会自动显示在这里。
             </p>
           </div>
         ) : (
@@ -345,7 +341,7 @@ export default function Friends() {
                       </div>
                       <img
                         src={item.avatar_url}
-                        alt={`${item.site_name} avatar`}
+                        alt={`${item.site_name} 头像`}
                         className="h-12 w-12 shrink-0 rounded-2xl border border-white/80 object-cover shadow-sm dark:border-gray-800"
                       />
                     </div>
@@ -357,8 +353,8 @@ export default function Friends() {
                     <div className="mt-6 flex items-center justify-between gap-4">
                       <span className="text-xs text-gray-400 dark:text-gray-500">
                         {item.reviewed_at
-                          ? `Approved on ${formatDate(item.reviewed_at)}`
-                          : `Submitted on ${formatDate(item.created_at)}`}
+                          ? `审核通过于 ${formatDate(item.reviewed_at)}`
+                          : `提交于 ${formatDate(item.created_at)}`}
                       </span>
                       <a
                         href={item.site_url}
@@ -366,7 +362,7 @@ export default function Friends() {
                         rel="noopener noreferrer"
                         className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors ${tone.button}`}
                       >
-                        Visit site
+                        访问网站
                         <ExternalLink className="h-4 w-4" />
                       </a>
                     </div>
@@ -386,33 +382,33 @@ export default function Friends() {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white/70 px-4 py-2 text-sm font-medium text-sky-700 shadow-sm dark:border-sky-900/60 dark:bg-sky-950/20 dark:text-sky-300">
               <Link2 className="h-4 w-4" />
-              Friend Links
+              友情链接
             </div>
 
             <h1 className="mt-5 text-3xl font-bold text-gray-900 dark:text-white lg:text-5xl">
-              Friend Links
+              友情链接
             </h1>
             <p className="mt-4 max-w-2xl text-base leading-8 text-gray-600 dark:text-gray-300 lg:text-lg">
-              This page shows approved friend links. You can submit a new application at the bottom, and after signing in you can review requests on the same page.
+              这里会展示所有已通过审核的友链。你可以在下方提交新申请；登录后也可以在同页进行审核。
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm dark:border-gray-800 dark:bg-gray-950/30">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Listed sites</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">已收录站点</p>
                 <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
                   {approvedLinks.length}
                 </p>
               </div>
               <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm dark:border-gray-800 dark:bg-gray-950/30">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Required fields</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">必填项</p>
                 <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
                   {friendLinkRules.length}
                 </p>
               </div>
               <div className="rounded-2xl border border-white/70 bg-white/70 p-5 shadow-sm dark:border-gray-800 dark:bg-gray-950/30">
-                <p className="text-sm text-gray-500 dark:text-gray-400">Current mode</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">当前模式</p>
                 <p className="mt-2 text-3xl font-bold text-emerald-600 dark:text-emerald-400">
-                  {isLoggedIn ? 'ADMIN' : 'OPEN'}
+                  {isLoggedIn ? '管理模式' : '公开模式'}
                 </p>
               </div>
             </div>
@@ -423,7 +419,7 @@ export default function Friends() {
       <section className="rounded-[1.75rem] border border-gray-200/80 bg-slate-100/50 p-6 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/30 lg:p-8">
         <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300">
           <FileText className="h-3.5 w-3.5" />
-          Link Exchange
+          交换申请
         </div>
 
         <div className="mt-4 grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
@@ -441,19 +437,19 @@ export default function Friends() {
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Site name
+                  网站名称
                 </label>
                 <input
                   value={form.site_name}
                   onChange={(event) => handleInputChange('site_name', event.target.value)}
                   className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-sky-500 dark:border-gray-700 dark:bg-gray-950/80 dark:text-gray-100"
-                  placeholder="For example: Alice Blog"
+                  placeholder="例如：Alice Blog"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Site URL
+                  网站地址
                 </label>
                 <input
                   value={form.site_url}
@@ -465,20 +461,20 @@ export default function Friends() {
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  One-line description
+                  一句话简介
                 </label>
                 <textarea
                   value={form.description}
                   onChange={(event) => handleInputChange('description', event.target.value)}
                   rows={3}
                   className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-sky-500 dark:border-gray-700 dark:bg-gray-950/80 dark:text-gray-100"
-                  placeholder="Describe your site in one sentence."
+                  placeholder="用一句话介绍你的网站。"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
-                  Avatar URL
+                  头像地址
                 </label>
                 <input
                   value={form.avatar_url}
@@ -497,12 +493,12 @@ export default function Friends() {
                   {submitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Submitting...
+                      提交中...
                     </>
                   ) : (
                     <>
                       <ArrowUpRight className="h-4 w-4" />
-                      Submit application
+                      提交申请
                     </>
                   )}
                 </button>
@@ -535,7 +531,7 @@ export default function Friends() {
           <div className="rounded-[1.5rem] border border-white/80 bg-white/75 p-5 shadow-sm dark:border-gray-800 dark:bg-gray-950/35">
             <div className="inline-flex items-center gap-2 rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
               <Sparkles className="h-3.5 w-3.5" />
-              What to send
+              需要提供的信息
             </div>
             <div className="mt-4 space-y-3">
               {friendLinkRules.map((rule, index) => (
@@ -549,7 +545,7 @@ export default function Friends() {
             </div>
 
             <p className="mt-5 text-sm leading-7 text-gray-500 dark:text-gray-400">
-              Public visitors can submit applications directly. After signing in, you will see the review panel below and can approve or reject requests immediately.
+              未登录访客也可以直接提交申请。登录后会显示下方审核面板，可立即通过或拒绝申请。
             </p>
           </div>
         </div>
@@ -561,22 +557,22 @@ export default function Friends() {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                Admin Review
+                管理审核
               </div>
               <h2 className="mt-3 text-2xl font-bold text-gray-900 dark:text-white">
-                Friend Link Review Panel
+                友链审核面板
               </h2>
               <p className="mt-2 text-sm leading-7 text-gray-600 dark:text-gray-300">
-                Signed in as {username}. You can review friend link applications here.
+                当前登录：{username}。你可以在这里审核友链申请。
               </p>
             </div>
 
             <div className="flex flex-wrap gap-2">
               {([
-                ['pending', 'Pending'],
-                ['approved', 'Approved'],
-                ['rejected', 'Rejected'],
-                ['all', 'All'],
+                ['pending', '待审核'],
+                ['approved', '已通过'],
+                ['rejected', '已拒绝'],
+                ['all', '全部'],
               ] as Array<[ReviewFilter, string]>).map(([value, label]) => (
                 <button
                   key={value}
@@ -600,7 +596,7 @@ export default function Friends() {
                 className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white/70 px-4 py-2 text-sm text-gray-600 transition-colors hover:bg-white dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-300 dark:hover:bg-gray-950/50"
               >
                 <RefreshCcw className={`h-4 w-4 ${applicationsLoading ? 'animate-spin' : ''}`} />
-                Refresh
+                刷新
               </button>
             </div>
           </div>
@@ -609,19 +605,19 @@ export default function Friends() {
             {applicationsLoading ? (
               <div className="flex items-center justify-center gap-3 rounded-2xl border border-gray-200/80 bg-white/60 px-6 py-10 text-gray-600 dark:border-gray-800 dark:bg-gray-950/20 dark:text-gray-300">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                Loading review list...
+                正在加载审核列表...
               </div>
             ) : applicationsError ? (
               <div className="rounded-2xl border border-red-200 bg-red-50/80 px-4 py-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
                 <div className="flex items-center gap-2 font-medium">
                   <AlertCircle className="h-4 w-4" />
-                  Failed to load the review list
+                  加载审核列表失败
                 </div>
                 <p className="mt-2">{applicationsError}</p>
               </div>
             ) : applications.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-gray-300 bg-white/60 px-6 py-10 text-center text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-950/20 dark:text-gray-400">
-                No friend link applications match the current filter.
+                当前筛选条件下没有匹配的友链申请。
               </div>
             ) : (
               <div className="grid gap-4">
@@ -635,7 +631,7 @@ export default function Friends() {
                         <div className="flex items-start gap-4">
                           <img
                             src={item.avatar_url}
-                            alt={`${item.site_name} avatar`}
+                            alt={`${item.site_name} 头像`}
                             className="h-14 w-14 shrink-0 rounded-2xl border border-white/80 object-cover shadow-sm dark:border-gray-800"
                           />
                           <div className="min-w-0">
@@ -660,13 +656,13 @@ export default function Friends() {
                               {item.description}
                             </p>
                             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-gray-400 dark:text-gray-500">
-                              <span>Submitted: {formatDate(item.created_at)}</span>
-                              <span>Updated: {formatDate(item.updated_at)}</span>
-                              {item.reviewed_at && <span>Reviewed: {formatDate(item.reviewed_at)}</span>}
+                              <span>提交：{formatDate(item.created_at)}</span>
+                              <span>更新：{formatDate(item.updated_at)}</span>
+                              {item.reviewed_at && <span>审核：{formatDate(item.reviewed_at)}</span>}
                             </div>
                             {item.review_note && (
                               <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                Review note: {item.review_note}
+                                审核备注：{item.review_note}
                               </p>
                             )}
                           </div>
@@ -687,7 +683,7 @@ export default function Friends() {
                           ) : (
                             <CheckCircle2 className="h-4 w-4" />
                           )}
-                          Approve
+                          通过
                         </button>
                         <button
                           type="button"
@@ -702,7 +698,7 @@ export default function Friends() {
                           ) : (
                             <XCircle className="h-4 w-4" />
                           )}
-                          Reject
+                          拒绝
                         </button>
                       </div>
                     </div>

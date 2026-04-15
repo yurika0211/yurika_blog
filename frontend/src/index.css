@@ -255,19 +255,19 @@ html.dark .homepage-mist-layer {
 }
 
 .hero-rise {
-    animation: hero-rise 0.7s ease-out both;
+    animation: none;
 }
 
 .hero-rise-delay-1 {
-    animation: hero-rise 0.75s ease-out 0.12s both;
+    animation: none;
 }
 
 .hero-rise-delay-2 {
-    animation: hero-rise 0.75s ease-out 0.22s both;
+    animation: none;
 }
 
 .hero-rise-delay-3 {
-    animation: hero-rise 0.8s ease-out 0.32s both;
+    animation: none;
 }
 
 @keyframes hero-grid-pan {
@@ -280,7 +280,6 @@ html.dark .homepage-mist-layer {
         linear-gradient(to right, rgba(14, 116, 144, 0.14) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(14, 116, 144, 0.14) 1px, transparent 1px);
     background-size: 44px 44px;
-    animation: hero-grid-pan 18s linear infinite;
 }
 
 html.dark .hero-grid {
@@ -308,69 +307,49 @@ html.dark .hero-grid {
 
 .hero-rotator-shell {
     position: relative;
-    perspective: 1800px;
 }
 
 .hero-rotator-shell::before {
-    content: "";
-    position: absolute;
-    inset: 12% 8% -6%;
-    border-radius: 999px;
-    background:
-        radial-gradient(circle at 50% 40%,
-        rgba(73, 191, 221, 0.24) 0%,
-        rgba(73, 191, 221, 0.12) 32%,
-        rgba(73, 191, 221, 0) 76%);
-    filter: blur(28px);
-    pointer-events: none;
-    z-index: 0;
+    display: none;
 }
 
 .hero-rotator-stage {
     position: relative;
     z-index: 1;
-    transform-style: preserve-3d;
 }
 
 .hero-rotator-card {
     position: absolute;
     inset: 0;
-    transform-origin: center center;
-    transform-style: preserve-3d;
-    transition:
-        transform 760ms cubic-bezier(0.22, 1, 0.36, 1),
-        opacity 520ms ease,
-        filter 520ms ease,
-        box-shadow 520ms ease;
-    will-change: transform, opacity, filter;
+    transition: none;
 }
 
 .hero-rotator-card[data-state="active"] {
-    z-index: 3;
+    z-index: 2;
     opacity: 1;
-    filter: blur(0) saturate(1);
-    transform: translate3d(0, 0, 0) rotateY(-10deg) rotateX(4deg) scale(1);
+    filter: none;
+    transform: none;
 }
 
 .hero-rotator-card[data-state="prev"] {
-    z-index: 2;
-    opacity: 0.58;
-    filter: blur(0.3px) saturate(0.88);
-    transform: translate3d(-34%, 1.6rem, -180px) rotateY(48deg) rotateX(10deg) scale(0.9);
+    z-index: 1;
+    opacity: 0;
+    filter: none;
+    transform: none;
 }
 
 .hero-rotator-card[data-state="next"] {
-    z-index: 2;
-    opacity: 0.58;
-    filter: blur(0.3px) saturate(0.88);
-    transform: translate3d(34%, 1.6rem, -180px) rotateY(-48deg) rotateX(10deg) scale(0.9);
+    z-index: 1;
+    opacity: 0;
+    filter: none;
+    transform: none;
 }
 
 .hero-rotator-card[data-state="hidden"] {
     z-index: 1;
     opacity: 0;
-    filter: blur(1px) saturate(0.8);
-    transform: translate3d(0, 2.6rem, -260px) rotateY(0deg) rotateX(12deg) scale(0.82);
+    filter: none;
+    transform: none;
 }
 
 html.dark .hero-rotator-shell::before {
@@ -573,36 +552,6 @@ html.dark .hero-fog-bridge {
     .hero-rotator-card[data-state="next"],
     .hero-rotator-card[data-state="hidden"] {
         opacity: 0;
-    }
-}
-
-@media (max-width: 1024px) {
-    .hero-rotator-card[data-state="active"] {
-        transform: translate3d(0, 0, 0) rotateY(-8deg) rotateX(3deg) scale(1);
-    }
-
-    .hero-rotator-card[data-state="prev"] {
-        transform: translate3d(-20%, 1.2rem, -140px) rotateY(34deg) rotateX(9deg) scale(0.92);
-    }
-
-    .hero-rotator-card[data-state="next"] {
-        transform: translate3d(20%, 1.2rem, -140px) rotateY(-34deg) rotateX(9deg) scale(0.92);
-    }
-}
-
-@media (max-width: 640px) {
-    .hero-rotator-card[data-state="active"] {
-        transform: translate3d(0, 0, 0) rotateY(-5deg) rotateX(2deg) scale(1);
-    }
-
-    .hero-rotator-card[data-state="prev"] {
-        opacity: 0.38;
-        transform: translate3d(-10%, 0.8rem, -100px) rotateY(18deg) rotateX(7deg) scale(0.95);
-    }
-
-    .hero-rotator-card[data-state="next"] {
-        opacity: 0.38;
-        transform: translate3d(10%, 0.8rem, -100px) rotateY(-18deg) rotateX(7deg) scale(0.95);
     }
 }
 

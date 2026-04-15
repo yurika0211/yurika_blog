@@ -6,7 +6,6 @@ import {
   MessageCircle,
   MoreHorizontal,
   SendHorizontal,
-  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
@@ -429,17 +428,9 @@ export default function MomentsSection() {
     <section className="space-y-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-sky-50 px-3 py-1 text-xs font-medium text-sky-700 dark:bg-sky-950/40 dark:text-sky-300">
-            <Sparkles className="h-3.5 w-3.5" />
-            X-style feed
-          </div>
           <h2 className="mt-3 text-3xl font-bold text-gray-900 dark:text-white">
             Moments
           </h2>
-          <p className="mt-2 max-w-2xl text-sm leading-7 text-gray-600 dark:text-gray-300">
-            A lighter feed for snapshots, progress notes, and photo posts. Post a
-            quick update, reply in the thread, and like once per device.
-          </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           {!isLoggedIn && (

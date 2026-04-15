@@ -31,8 +31,6 @@ const COVER_BACKGROUNDS = [
   'from-indigo-200 to-violet-100 dark:from-indigo-900/70 dark:to-violet-900/60',
 ];
 
-const HERO_ROTATION_INTERVAL = 5200;
-
 const HERO_CARD_META = [
   {
     id: 'workspace',
@@ -66,19 +64,13 @@ const HERO_CARD_META = [
   },
 ] as const;
 
-type HeroCardState = 'active' | 'prev' | 'next' | 'hidden';
+type HeroCardState = 'active' | 'hidden';
 
 const getHeroCardState = (
   cardIndex: number,
   activeIndex: number,
-  totalCards: number,
 ): HeroCardState => {
-  const offset = (cardIndex - activeIndex + totalCards) % totalCards;
-
-  if (offset === 0) return 'active';
-  if (offset === 1) return 'next';
-  if (offset === totalCards - 1) return 'prev';
-  return 'hidden';
+  return cardIndex === activeIndex ? 'active' : 'hidden';
 };
 
 const getFirstCoverImage = (markdown: string): string | null => {
@@ -136,7 +128,6 @@ export default function Entry() {
   const [error, setError] = useState<string | null>(null);
   const [ghRepos, setGhRepos] = useState<GitHubRepo[]>([]);
   const [activeHeroCard, setActiveHeroCard] = useState(0);
-  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -184,30 +175,6 @@ export default function Entry() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const syncPreference = () => setPrefersReducedMotion(mediaQuery.matches);
-
-    syncPreference();
-    mediaQuery.addEventListener('change', syncPreference);
-
-    return () => {
-      mediaQuery.removeEventListener('change', syncPreference);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (prefersReducedMotion) return undefined;
-
-    const timer = window.setInterval(() => {
-      setActiveHeroCard((current) => (current + 1) % HERO_CARD_META.length);
-    }, HERO_ROTATION_INTERVAL);
-
-    return () => {
-      window.clearInterval(timer);
-    };
-  }, [prefersReducedMotion]);
-
   const sortedPosts = useMemo(
     () =>
       [...posts].sort(
@@ -243,7 +210,7 @@ export default function Entry() {
   };
 
   return (
-    <div className="animate-fade-in">
+    <div>
       <section className="relative min-h-[calc(100vh-3.5rem)] overflow-hidden">
         <div className="hero-grid absolute inset-0 opacity-50 dark:opacity-25" />
         <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -256,12 +223,7 @@ export default function Entry() {
         <div className="relative z-20 mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-7xl items-center px-4 py-8 md:py-10">
           <div className="grid w-full items-center gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(22rem,0.98fr)] lg:gap-12">
             <div className="max-w-2xl lg:-translate-y-4">
-              <div className="hero-rise">
-                <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/70 bg-white/65 px-4.5 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-200">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Design + Code + Writing
-                </span>
-
+              <div>
                 <h1 className="mt-5 text-5xl font-black leading-[1.04] text-[#0f2f43] dark:text-[#f0eee6] [text-shadow:0_2px_16px_rgba(240,238,230,0.85)] dark:[text-shadow:0_2px_16px_rgba(20,20,19,0.55)] sm:text-6xl md:text-[3.8rem]">
                   時よ止まれ―――
                   <span className="block text-[#0a6a89] dark:text-[#9fd7ea]">おまえは美しい</span>
@@ -271,7 +233,7 @@ export default function Entry() {
                 </p>
               </div>
 
-              <div className="hero-rise-delay-1 mt-6 flex flex-wrap gap-3">
+              <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   to="/posts"
                   className="inline-flex items-center gap-2 rounded-xl bg-cyan-900 px-6 py-3 text-base font-semibold text-white transition-all hover:bg-cyan-800 hover:-translate-y-0.5 dark:bg-cyan-200 dark:text-cyan-950 dark:hover:bg-cyan-100"
@@ -288,7 +250,7 @@ export default function Entry() {
                 </a>
               </div>
 
-              <div className="hero-rise-delay-2 mt-6 flex flex-wrap gap-2.5 text-sm font-medium">
+              <div className="mt-6 flex flex-wrap gap-2.5 text-sm font-medium">
                 <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3.5 py-1.5 text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-200">
                   Articles {posts.length}
                 </span>
@@ -300,11 +262,11 @@ export default function Entry() {
                 </span>
               </div>
 
-              <div className="hero-rise-delay-3 mt-6 max-w-xl rounded-[1.75rem] border border-cyan-200/70 bg-white/55 p-5 shadow-[0_20px_50px_rgba(12,57,87,0.12)] backdrop-blur-md dark:border-cyan-900/70 dark:bg-slate-950/45">
+              <div className="mt-6 max-w-xl rounded-[1.75rem] border border-cyan-200/70 bg-white/55 p-5 shadow-[0_20px_50px_rgba(12,57,87,0.12)] backdrop-blur-md dark:border-cyan-900/70 dark:bg-slate-950/45">
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
-                      Rotating Hero Deck
+                      Hero Deck
                     </p>
                     <h2 className="mt-2 text-2xl font-black text-cyan-950 dark:text-cyan-50">
                       {activeHeroMeta.title}
@@ -319,7 +281,7 @@ export default function Entry() {
                 </p>
                 <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium text-cyan-900/60 dark:text-cyan-100/60">
                   <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3 py-1 dark:border-cyan-800/70 dark:bg-slate-900/60">
-                    {prefersReducedMotion ? 'Manual rotation' : 'Auto rotation every 5.2s'}
+                    Manual deck switch
                   </span>
                   <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3 py-1 dark:border-cyan-800/70 dark:bg-slate-900/60">
                     Focused on cards, not panels
@@ -328,11 +290,11 @@ export default function Entry() {
               </div>
             </div>
 
-            <div className="hero-rise-delay-3 lg:justify-self-end">
-              <div className="hero-rotator-shell mx-auto w-full max-w-[42rem] lg:max-w-[44rem]">
-                <div className="hero-rotator-stage min-h-[33rem] sm:min-h-[35rem] lg:min-h-[39rem]">
+            <div className="lg:justify-self-end">
+              <div className="hero-rotator-shell mx-auto w-full max-w-[34rem] lg:max-w-[36rem]">
+                <div className="hero-rotator-stage min-h-[37rem] sm:min-h-[40rem] lg:min-h-[45rem]">
                   {HERO_CARD_META.map((card, index) => {
-                    const state = getHeroCardState(index, activeHeroCard, HERO_CARD_META.length);
+                    const state = getHeroCardState(index, activeHeroCard);
                     const isActive = state === 'active';
 
                     return (
