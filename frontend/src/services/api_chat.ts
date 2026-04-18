@@ -52,7 +52,7 @@ const createApiClient = (baseURL: string): AxiosInstance => {
   client.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
-      console.error("❌ API 请求失败:", {
+      console.error("API request failed:", {
         baseURL,
         url: error.config?.url,
         method: error.config?.method,
@@ -232,12 +232,12 @@ const requestWithFallback = async <T>(
 
 const toReadableError = (error: unknown): Error => {
   if (!axios.isAxiosError(error)) {
-    return error instanceof Error ? error : new Error("请求失败");
+    return error instanceof Error ? error : new Error("Request failed");
   }
 
   if (!error.response) {
     return new Error(
-      `无法连接聊天服务（尝试: ${CHAT_BASE_URL_CANDIDATES.join(", ")}）。请检查后端地址或代理配置。`
+      `Unable to connect to the chat service (tried: ${CHAT_BASE_URL_CANDIDATES.join(", ")}). Please check the backend URL or proxy configuration.`
     );
   }
 
@@ -257,14 +257,14 @@ const toReadableError = (error: unknown): Error => {
 
   return new Error(
     serverMessage?.trim() ||
-      `请求失败（HTTP ${error.response.status} ${error.response.statusText || ""}`.trim() +
+      `Request failed (HTTP ${error.response.status} ${error.response.statusText || ""}`.trim() +
         ")"
   );
 };
 
 const ensureChatAuth = () => {
   if (!isAuthenticated()) {
-    throw new Error("请先登录后再进行对话。");
+    throw new Error("Please log in before chatting.");
   }
 };
 

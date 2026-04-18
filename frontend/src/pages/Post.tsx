@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useRef, useCallback, type HTMLAttributes,
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { ArrowLeft, Calendar, AlertCircle, Loader, Edit, Trash2, List, Copy, Check } from 'lucide-react';
+import { ArrowLeft, Calendar, AlertCircle, Loader, Edit, Trash2, List, Copy, Check, Lock } from 'lucide-react';
 import { blog, comment as commentApi } from '../services/api';
 import type { BlogPost, BlogComment } from '../types';
 import Comment from '../components/Comment';
@@ -230,7 +230,7 @@ export default function Post() {
       const latestComments = await commentApi.getComment(articleId);
       setComments(latestComments);
     } catch (err) {
-      const message = err instanceof Error ? err.message : '加载评论失败';
+      const message = err instanceof Error ? err.message : 'Failed to load comments';
       setCommentsError(message);
     } finally {
       setCommentsLoading(false);
@@ -254,17 +254,17 @@ export default function Post() {
 
   useEffect(() => {
     if (loading) {
-      document.title = `加载文章中 | ${APP_NAME}`;
+      document.title = `Loading article | ${APP_NAME}`;
       return;
     }
 
     if (error) {
-      document.title = `文章加载失败 | ${APP_NAME}`;
+      document.title = `Article load failed | ${APP_NAME}`;
       return;
     }
 
     if (!post) {
-      document.title = `文章未找到 | ${APP_NAME}`;
+      document.title = `Article not found | ${APP_NAME}`;
       return;
     }
 
@@ -317,7 +317,7 @@ export default function Post() {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-        <p className="text-gray-600 dark:text-gray-300">加载文章中...</p>
+        <p className="text-gray-600 dark:text-gray-300">Loading article...</p>
       </div>
     );
   }
@@ -326,13 +326,13 @@ export default function Post() {
     return (
       <div className="flex flex-col items-center justify-center py-20 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h3 className="text-xl font-medium text-red-600 dark:text-red-400 mb-2">加载失败</h3>
+        <h3 className="text-xl font-medium text-red-600 dark:text-red-400 mb-2">Load failed</h3>
         <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
         <Link
           to="/posts"
           className="mt-6 px-6 py-2 bg-red-500 text-white rounded-full text-sm font-medium hover:bg-red-600 transition-colors"
         >
-          返回首页
+          Back to articles
         </Link>
       </div>
     );
@@ -341,9 +341,9 @@ export default function Post() {
   if (!post) {
     return (
       <div className="text-center py-20">
-        <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300">文章未找到</h2>
+        <h2 className="text-2xl font-bold text-gray-700 dark:text-gray-300">Article not found</h2>
         <Link to="/posts" className="text-blue-600 dark:text-blue-400 hover:underline mt-4 block">
-          返回首页
+          Back to articles
         </Link>
       </div>
     );
@@ -366,7 +366,7 @@ export default function Post() {
       const now = new Date();
       const newComment: BlogComment = {
         article_id: post.id,
-        author: author.trim() || '匿名用户',
+        author: author.trim() || 'Anonymous user',
         content: newContent,
         date: now.toISOString().slice(0, 10),
       };
@@ -381,7 +381,7 @@ export default function Post() {
         setComments((prev) => [...prev, newComment]);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : '新增评论失败';
+      const message = err instanceof Error ? err.message : 'Failed to add comment';
       setCommentsError(message);
     } finally {
       setIsCreatingComment(false);
@@ -400,7 +400,7 @@ export default function Post() {
       await commentApi.deleteComment(post.id, targetComment);
       setComments((prev) => prev.filter((_, currentIndex) => currentIndex !== index));
     } catch (err) {
-      const message = err instanceof Error ? err.message : '删除评论失败';
+      const message = err instanceof Error ? err.message : 'Failed to delete comment';
       setCommentsError(message);
     } finally {
       setDeletingCommentIndex(null);
@@ -425,7 +425,7 @@ export default function Post() {
       return;
     }
 
-    if (!window.confirm('确定要删除这篇文章吗？删除后无法恢复！')) {
+    if (!window.confirm('Are you sure you want to delete this article? This action cannot be undone.')) {
       return;
     }
 
@@ -434,8 +434,8 @@ export default function Post() {
       await blog.deletePost(post.id);
       navigate('/posts');
     } catch (err) {
-      const message = err instanceof Error ? err.message : '删除文章失败';
-      alert(`删除失败: ${message}`);
+      const message = err instanceof Error ? err.message : 'Failed to delete article';
+      alert(`Delete failed: ${message}`);
     } finally {
       setDeletingPost(false);
     }
@@ -487,17 +487,23 @@ export default function Post() {
             className="inline-flex items-center text-slate-100/90 hover:text-white transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            返回列表
+            Back to list
           </Link>
 
             <h1 className="text-xl sm:text-2xl md:text-[1.7rem] font-bold text-[#e094c5] leading-relaxed break-words">
               {post.title}
             </h1>
+            {post.is_login_required ? (
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-amber-300/70 bg-amber-100/15 px-3 py-1 text-xs text-amber-100">
+                <Lock className="w-3.5 h-3.5" />
+                Login required
+              </div>
+            ) : null}
 
             <div className="mt-2 text-sm md:text-base text-[#e7acb4] space-y-1">
-              <p>创建时间：{formatDate(post.date)}</p>
-              <p>更新时间：{formatDate(post.date)}</p>
-              <p>{readMinutes} 分钟阅读 • {comments.length} 条评论 • 0 人喜欢</p>
+              <p>Created: {formatDate(post.date)}</p>
+              <p>Updated: {formatDate(post.date)}</p>
+              <p>{readMinutes} min read • {comments.length} comments • 0 likes</p>
             </div>
 
             <div className="mt-4 flex flex-wrap justify-center items-center gap-2">
@@ -519,7 +525,7 @@ export default function Post() {
                   className="inline-flex items-center gap-1 rounded-md border border-white/30 bg-white/20 px-3 py-1.5 text-sm font-medium text-white hover:bg-white/30 transition-colors"
                 >
                   <Edit className="w-4 h-4" />
-                  编辑文章
+                  Edit article
                 </button>
                 <button
                   type="button"
@@ -528,12 +534,12 @@ export default function Post() {
                   className="inline-flex items-center gap-1 rounded-md border border-red-200/40 bg-red-500/40 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-500/55 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
-                  {deletingPost ? '删除中...' : '删除文章'}
+                  {deletingPost ? 'Deleting...' : 'Delete article'}
                 </button>
               </div>
             ) : (
               <div className="mt-5 text-sm text-slate-200">
-                登录后可编辑或删除文章
+                Log in to edit or delete this article
               </div>
             )}
           </div>
@@ -607,7 +613,7 @@ export default function Post() {
             </div>
 
             <section className="mt-10 border-t border-gray-200 dark:border-gray-800 pt-8">
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">评论 ({comments.length})</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Comments ({comments.length})</h2>
 
               {isLoggedIn ? (
                 <div className="mt-4 rounded-xl border border-[#b0aea5]/70 dark:border-gray-700/80 bg-[#f0eee6]/85 dark:bg-gray-900/85 p-4">
@@ -616,13 +622,13 @@ export default function Post() {
                       type="text"
                       value={author}
                       onChange={(event) => setAuthor(event.target.value)}
-                      placeholder="你的昵称（可选）"
+                      placeholder="Your name (optional)"
                       className="w-full rounded-md border border-[#b0aea5]/70 dark:border-gray-700/80 bg-[#f7f5ee]/90 dark:bg-gray-950/85 px-3 py-2 text-sm text-[#141413] dark:text-gray-100 outline-none transition focus:border-[#6396d6] dark:placeholder:text-gray-500"
                     />
                     <textarea
                       value={content}
                       onChange={(event) => setContent(event.target.value)}
-                      placeholder="写下你的评论..."
+                      placeholder="Write your comment..."
                       rows={3}
                       className="w-full resize-none rounded-md border border-[#b0aea5]/70 dark:border-gray-700/80 bg-[#f7f5ee]/90 dark:bg-gray-950/85 px-3 py-2 text-sm text-[#141413] dark:text-gray-100 outline-none transition focus:border-[#6396d6] dark:placeholder:text-gray-500"
                     />
@@ -633,16 +639,16 @@ export default function Post() {
                         disabled={!content.trim() || isCreatingComment}
                         className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        {isCreatingComment ? '提交中...' : '增加评论'}
+                        {isCreatingComment ? 'Posting...' : 'Add comment'}
                       </button>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="mt-4 rounded-xl border border-dashed border-[#b0aea5]/80 bg-[#f0eee6]/85 px-4 py-3 text-sm text-[#30302e] dark:border-gray-700/80 dark:bg-gray-900/80 dark:text-gray-300">
-                  当前为只读模式，登录后可新增或删除评论。
+                  Comments are read-only until you sign in. Log in to add or delete comments.
                   <Link to={`/login?redirect=${encodeURIComponent(`/post/${post.id}`)}`} className="ml-2 text-blue-600 hover:underline dark:text-blue-400">
-                    去登录
+                    Log in
                   </Link>
                 </div>
               )}
@@ -651,7 +657,7 @@ export default function Post() {
 
               <div className="mt-4 space-y-4">
                 {commentsLoading ? (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">评论加载中...</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Loading comments...</p>
                 ) : comments.length > 0 ? (
                   comments.map((comment, index) => (
                     <Comment
@@ -663,7 +669,7 @@ export default function Post() {
                     />
                   ))
                 ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">暂无评论</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">No comments yet</p>
                 )}
               </div>
             </section>
@@ -674,7 +680,7 @@ export default function Post() {
               <div className="sticky top-[12%] rounded-lg border border-[#b0aea5]/70 dark:border-gray-700/80 bg-[#f0eee6]/90 dark:bg-gray-900/90 p-4 transition-colors">
                 <h3 className="text-lg font-medium text-gray-700 dark:text-gray-100 flex items-center gap-2 mb-4">
                   <List className="w-5 h-5 text-blue-500" />
-                  目录
+                  Table of Contents
                 </h3>
 
                 {tocHeadings.length > 0 ? (
@@ -707,7 +713,7 @@ export default function Post() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">暂无可用目录</p>
+                  <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">No table of contents available</p>
                 )}
               </div>
             </aside>

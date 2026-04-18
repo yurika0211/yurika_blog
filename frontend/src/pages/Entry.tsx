@@ -5,6 +5,8 @@ import {
   ArrowDown,
   ArrowRight,
   BookOpen,
+  ChevronLeft,
+  ChevronRight,
   Clock3,
   ExternalLink,
   Github,
@@ -15,6 +17,7 @@ import {
   Star,
   Workflow,
 } from 'lucide-react';
+import { APP_AVATAR_SRC } from '../constants/avatar';
 import { blog } from '../services/api';
 import { API_BASE_URL } from '../services/apiConfig';
 import type { BlogPost } from '../types';
@@ -27,6 +30,48 @@ const COVER_BACKGROUNDS = [
   'from-rose-200 to-pink-100 dark:from-rose-900/70 dark:to-pink-900/60',
   'from-indigo-200 to-violet-100 dark:from-indigo-900/70 dark:to-violet-900/60',
 ];
+
+const HERO_CARD_META = [
+  {
+    id: 'workspace',
+    index: '01',
+    label: 'Live Board',
+    title: 'Workspace Snapshot',
+    description: 'Latest writing, release rhythm, and repo activity on one rotating surface.',
+    glowClass: 'from-cyan-400/30 via-sky-300/12 to-transparent dark:from-cyan-500/24 dark:via-sky-400/10 dark:to-transparent',
+    badgeClass: 'border-cyan-200/80 bg-cyan-50/80 text-cyan-800 dark:border-cyan-800/70 dark:bg-cyan-950/55 dark:text-cyan-100',
+    surfaceClass: 'border-cyan-100/90 bg-cyan-50/75 dark:border-cyan-900/70 dark:bg-cyan-950/40',
+  },
+  {
+    id: 'pinned',
+    index: '02',
+    label: 'Pinned Shelf',
+    title: 'Pinned Articles On Deck',
+    description: 'A quick-access stack for the posts that define the front page right now.',
+    glowClass: 'from-amber-400/28 via-orange-300/12 to-transparent dark:from-amber-500/24 dark:via-orange-400/10 dark:to-transparent',
+    badgeClass: 'border-amber-200/80 bg-amber-50/80 text-amber-800 dark:border-amber-800/70 dark:bg-amber-950/50 dark:text-amber-100',
+    surfaceClass: 'border-amber-100/90 bg-amber-50/80 dark:border-amber-900/70 dark:bg-amber-950/35',
+  },
+  {
+    id: 'stack',
+    index: '03',
+    label: 'Build Stack',
+    title: 'Current Tools And Momentum',
+    description: 'Languages, shipping habits, and the project pace behind the blog.',
+    glowClass: 'from-emerald-400/28 via-teal-300/12 to-transparent dark:from-emerald-500/22 dark:via-teal-400/10 dark:to-transparent',
+    badgeClass: 'border-emerald-200/80 bg-emerald-50/80 text-emerald-800 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-100',
+    surfaceClass: 'border-emerald-100/90 bg-emerald-50/80 dark:border-emerald-900/70 dark:bg-emerald-950/35',
+  },
+] as const;
+
+type HeroCardState = 'active' | 'hidden';
+
+const getHeroCardState = (
+  cardIndex: number,
+  activeIndex: number,
+): HeroCardState => {
+  return cardIndex === activeIndex ? 'active' : 'hidden';
+};
 
 const getFirstCoverImage = (markdown: string): string | null => {
   const markdownImgMatch = markdown.match(/!\[[^\]]*]\(([^)\s]+)(?:\s+["'][^"']*["'])?\)/);
@@ -82,6 +127,7 @@ export default function Entry() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [ghRepos, setGhRepos] = useState<GitHubRepo[]>([]);
+  const [activeHeroCard, setActiveHeroCard] = useState(0);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -91,7 +137,7 @@ export default function Entry() {
         const data = await blog.getPosts();
         setPosts(Array.isArray(data) ? data : []);
       } catch (err) {
-        const message = err instanceof Error ? err.message : '加载文章失败';
+        const message = err instanceof Error ? err.message : 'Failed to load posts';
         setError(message);
       } finally {
         setLoading(false);
@@ -153,9 +199,18 @@ export default function Entry() {
   const heroPinnedPreview = useMemo(() => recentPosts.slice(0, 3), [recentPosts]);
   const heroUpdatePreview = useMemo(() => recentUpdates.slice(0, 3), [recentUpdates]);
   const stackKeywords = ['Rust', 'React', 'TypeScript', 'Golang', 'Galgame'];
+  const activeHeroMeta = HERO_CARD_META[activeHeroCard];
+
+  const handlePrevHeroCard = () => {
+    setActiveHeroCard((current) => (current - 1 + HERO_CARD_META.length) % HERO_CARD_META.length);
+  };
+
+  const handleNextHeroCard = () => {
+    setActiveHeroCard((current) => (current + 1) % HERO_CARD_META.length);
+  };
 
   return (
-    <div className="animate-fade-in">
+    <div>
       <section className="relative min-h-[calc(100vh-3.5rem)] overflow-hidden">
         <div className="hero-grid absolute inset-0 opacity-50 dark:opacity-25" />
         <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -165,168 +220,355 @@ export default function Entry() {
           <div className="absolute -right-24 top-16 h-64 w-64 rounded-full bg-teal-300/25 blur-3xl dark:bg-teal-500/20" />
         </div>
 
-        <div className="relative z-20 mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-7xl items-center px-4 py-6 md:py-8">
-          <div className="w-full -translate-y-3 md:-translate-y-5">
-            <div className="hero-rise mx-auto max-w-5xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200/70 bg-white/65 px-4.5 py-2 text-xs font-semibold tracking-[0.16em] text-cyan-800 uppercase dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-200">
-              <Sparkles className="h-3.5 w-3.5" />
-              Design + Code + Writing
-            </span>
+        <div className="relative z-20 mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-7xl items-center px-4 py-8 md:py-10">
+          <div className="grid w-full items-center gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(22rem,0.98fr)] lg:gap-12">
+            <div className="max-w-2xl lg:-translate-y-4">
+              <div>
+                <h1 className="mt-5 text-5xl font-black leading-[1.04] text-[#0f2f43] dark:text-[#f0eee6] [text-shadow:0_2px_16px_rgba(240,238,230,0.85)] dark:[text-shadow:0_2px_16px_rgba(20,20,19,0.55)] sm:text-6xl md:text-[3.8rem]">
+                  時よ止まれ―――
+                  <span className="block text-[#0a6a89] dark:text-[#9fd7ea]">おまえは美しい</span>
+                </h1>
+                <p className="mt-4 max-w-xl text-base leading-8 font-medium text-cyan-950 [text-shadow:0_1px_10px_rgba(255,255,255,0.58)] dark:text-cyan-50 dark:[text-shadow:0_1px_12px_rgba(2,8,23,0.48)] md:text-lg">
+                  Built around Rust, React, TypeScript, and Golang, this is one place for development logs, learning notes, and project updates.
+                </p>
+              </div>
 
-            <h1 className="mt-5 text-5xl font-black leading-[1.04] text-[#0f2f43] dark:text-[#f0eee6] [text-shadow:0_2px_16px_rgba(240,238,230,0.85)] dark:[text-shadow:0_2px_16px_rgba(20,20,19,0.55)] sm:text-6xl md:text-[3.8rem]">
-              Design your ideas,
-              <span className="block text-[#0a6a89] dark:text-[#9fd7ea]">ship your stories.</span>
-            </h1>
-            <p className="mx-auto mt-4 max-w-4xl text-base leading-8 text-cyan-900/80 dark:text-cyan-100/85 md:text-lg">
-              以 Rust、React、TypeScript、Golang 为核心，把开发记录、学习沉淀和项目更新放进同一个发布空间。
-            </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link
+                  to="/posts"
+                  className="inline-flex items-center gap-2 rounded-xl bg-cyan-900 px-6 py-3 text-base font-semibold text-white transition-all hover:bg-cyan-800 hover:-translate-y-0.5 dark:bg-cyan-200 dark:text-cyan-950 dark:hover:bg-cyan-100"
+                >
+                  Read Articles
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a
+                  href="#entry-content"
+                  className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/80 bg-white/65 px-6 py-3 text-base font-semibold text-cyan-900 transition-all hover:bg-white hover:-translate-y-0.5 dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-100 dark:hover:bg-gray-900/60"
+                >
+                  Explore Feed
+                  <ArrowDown className="h-4 w-4" />
+                </a>
+              </div>
 
-            <div className="hero-rise-delay-1 mt-6 flex flex-wrap justify-center gap-3">
-              <Link
-                to="/posts"
-                className="inline-flex items-center gap-2 rounded-xl bg-cyan-900 px-6 py-3 text-base font-semibold text-white transition-all hover:bg-cyan-800 hover:-translate-y-0.5 dark:bg-cyan-200 dark:text-cyan-950 dark:hover:bg-cyan-100"
-              >
-                Read Articles
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-              <a
-                href="#entry-content"
-                className="inline-flex items-center gap-2 rounded-xl border border-cyan-300/80 bg-white/65 px-6 py-3 text-base font-semibold text-cyan-900 transition-all hover:bg-white hover:-translate-y-0.5 dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-100 dark:hover:bg-gray-900/60"
-              >
-                Explore Feed
-                <ArrowDown className="h-4 w-4" />
-              </a>
-            </div>
+              <div className="mt-6 flex flex-wrap gap-2.5 text-sm font-medium">
+                <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3.5 py-1.5 text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-200">
+                  Articles {posts.length}
+                </span>
+                <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3.5 py-1.5 text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-200">
+                  Recent Updates {recentUpdates.length}
+                </span>
+                <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3.5 py-1.5 text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-200">
+                  Last Update {latestPostDate}
+                </span>
+              </div>
 
-            <div className="hero-rise-delay-2 mt-6 flex flex-wrap justify-center gap-2.5 text-sm font-medium">
-              <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3.5 py-1.5 text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-200">
-                Articles {posts.length}
-              </span>
-              <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3.5 py-1.5 text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-200">
-                Recent Updates {recentUpdates.length}
-              </span>
-              <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3.5 py-1.5 text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/45 dark:text-cyan-200">
-                Last Update {latestPostDate}
-              </span>
-            </div>
-            </div>
-
-            <div className="hero-rise-delay-3 mt-7 md:mt-8">
-              <div className="grid gap-4 md:grid-cols-12">
-                <article className="hero-card-float rounded-2xl border border-cyan-200/80 bg-white/50 p-5 md:p-6 shadow-md backdrop-blur-sm dark:border-cyan-800/80 dark:bg-gray-900/50 md:col-span-3 md:mt-5 md:min-h-[20rem]">
-                <div className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.1em] text-cyan-700 uppercase dark:text-cyan-300">
-                  <Pin className="h-3.5 w-3.5" />
-                  Pinned
-                </div>
-                <div className="mt-3 space-y-2">
-                  {heroPinnedPreview.length === 0 ? (
-                    <p className="rounded-lg border border-dashed border-cyan-200/80 bg-cyan-50/70 px-3 py-2 text-xs text-cyan-700 dark:border-cyan-700/60 dark:bg-gray-900/50 dark:text-cyan-200">
-                      No pinned article
-                    </p>
-                  ) : (
-                    heroPinnedPreview.map((item) => (
-                      <Link
-                        key={`hero-pin-${item.id}`}
-                        to={`/post/${item.id}`}
-                        className="block truncate rounded-lg border border-cyan-100/80 bg-cyan-50/70 px-3 py-2 text-xs font-medium text-cyan-900 transition-colors hover:bg-cyan-100 dark:border-cyan-800/80 dark:bg-gray-900/55 dark:text-cyan-100 dark:hover:bg-gray-900/75"
-                      >
-                        {item.title}
-                      </Link>
-                    ))
-                  )}
-                </div>
-              </article>
-
-                <article className="hero-card-float-slow rounded-3xl border border-cyan-200/80 bg-white/50 p-6 md:p-7 shadow-lg backdrop-blur-sm dark:border-cyan-800/80 dark:bg-gray-900/50 md:col-span-6 md:min-h-[22rem]">
-                <div className="flex items-start justify-between gap-3">
+              <div className="mt-6 max-w-xl rounded-[1.75rem] border border-cyan-200/70 bg-white/55 p-5 shadow-[0_20px_50px_rgba(12,57,87,0.12)] backdrop-blur-md dark:border-cyan-900/70 dark:bg-slate-950/45">
+                <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="text-xs font-semibold tracking-[0.1em] text-cyan-700 uppercase dark:text-cyan-300">
-                      Blog Workspace
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
+                      Hero Deck
                     </p>
-                    <h2 className="mt-1 text-2xl font-black text-cyan-950 dark:text-cyan-50 md:text-3xl">
-                      ユリカのブログ
+                    <h2 className="mt-2 text-2xl font-black text-cyan-950 dark:text-cyan-50">
+                      {activeHeroMeta.title}
                     </h2>
                   </div>
-                  <img
-                    src="/profile.webp"
-                    alt="avatar"
-                    className="h-11 w-11 rounded-full border-2 border-cyan-200 object-cover dark:border-cyan-700"
-                  />
+                  <span className="rounded-full border border-cyan-200/80 bg-cyan-50/80 px-3 py-1 text-xs font-semibold text-cyan-800 dark:border-cyan-800/70 dark:bg-cyan-950/55 dark:text-cyan-100">
+                    {activeHeroMeta.index} / {HERO_CARD_META.length}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm leading-7 text-cyan-900/75 dark:text-cyan-100/75">
+                  {activeHeroMeta.description}
+                </p>
+                <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium text-cyan-900/60 dark:text-cyan-100/60">
+                  <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3 py-1 dark:border-cyan-800/70 dark:bg-slate-900/60">
+                    Manual deck switch
+                  </span>
+                  <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3 py-1 dark:border-cyan-800/70 dark:bg-slate-900/60">
+                    Focused on cards, not panels
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="lg:justify-self-end">
+              <div className="hero-rotator-shell mx-auto w-full max-w-[34rem] lg:max-w-[36rem]">
+                <div className="hero-rotator-stage min-h-[37rem] sm:min-h-[40rem] lg:min-h-[45rem]">
+                  {HERO_CARD_META.map((card, index) => {
+                    const state = getHeroCardState(index, activeHeroCard);
+                    const isActive = state === 'active';
+
+                    return (
+                      <article
+                        key={card.id}
+                        data-state={state}
+                        aria-hidden={!isActive}
+                        className={`hero-rotator-card overflow-hidden rounded-[2rem] border bg-white/72 p-5 shadow-[0_28px_80px_rgba(7,32,51,0.2)] backdrop-blur-xl dark:bg-slate-950/78 sm:p-6 ${card.surfaceClass} ${isActive ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                      >
+                        <div className={`pointer-events-none absolute inset-x-6 top-0 h-24 rounded-b-[2rem] bg-gradient-to-b ${card.glowClass}`} />
+
+                        <div className="relative flex h-full flex-col">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] ${card.badgeClass}`}>
+                                {card.id === 'workspace' ? <Sparkles className="h-3.5 w-3.5" /> : null}
+                                {card.id === 'pinned' ? <Pin className="h-3.5 w-3.5" /> : null}
+                                {card.id === 'stack' ? <Workflow className="h-3.5 w-3.5" /> : null}
+                                {card.label}
+                              </div>
+                              <h3 className="mt-4 text-[1.85rem] font-black leading-tight text-slate-950 dark:text-slate-50">
+                                {card.title}
+                              </h3>
+                              <p className="mt-2 max-w-md text-sm leading-7 text-slate-700/85 dark:text-slate-200/80">
+                                {card.description}
+                              </p>
+                            </div>
+                            <span className="rounded-full border border-slate-200/80 bg-white/85 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-900/85 dark:text-slate-200">
+                              {card.index}
+                            </span>
+                          </div>
+
+                          {card.id === 'workspace' ? (
+                            <>
+                              <div className="mt-5 flex items-center justify-between gap-3 rounded-[1.4rem] border border-slate-200/80 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-900/55">
+                                <div>
+                                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
+                                    Blog Workspace
+                                  </p>
+                                  <h4 className="mt-1 text-xl font-black text-slate-950 dark:text-slate-50">
+                                    ユリカのブログ
+                                  </h4>
+                                </div>
+                                <img
+                                  src={APP_AVATAR_SRC}
+                                  alt="avatar"
+                                  className="h-12 w-12 rounded-full border-2 border-cyan-200 object-cover dark:border-cyan-700"
+                                />
+                              </div>
+
+                              <div className="mt-4 grid grid-cols-2 gap-3">
+                                <div className="rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/55">
+                                  <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Posts</p>
+                                  <p className="mt-1 text-lg font-bold text-slate-950 dark:text-slate-50">{posts.length}</p>
+                                </div>
+                                <div className="rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/55">
+                                  <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Pinned</p>
+                                  <p className="mt-1 text-lg font-bold text-slate-950 dark:text-slate-50">{recentPosts.length}</p>
+                                </div>
+                                <div className="rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/55">
+                                  <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Repos</p>
+                                  <p className="mt-1 text-lg font-bold text-slate-950 dark:text-slate-50">{ghRepos.length}</p>
+                                </div>
+                                <div className="rounded-2xl border border-slate-200/80 bg-white/70 px-4 py-3 dark:border-slate-800 dark:bg-slate-900/55">
+                                  <p className="text-[11px] uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Updated</p>
+                                  <p className="mt-1 truncate text-sm font-bold text-slate-950 dark:text-slate-50">{latestPostDate}</p>
+                                </div>
+                              </div>
+
+                              <div className="mt-4 rounded-[1.5rem] border border-slate-200/80 bg-white/70 p-4 dark:border-slate-800 dark:bg-slate-900/55">
+                                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                                  Latest Updates
+                                </p>
+                                <div className="mt-3 space-y-2.5">
+                                  {loading ? (
+                                    <p className="text-sm text-slate-600 dark:text-slate-300">Syncing updates…</p>
+                                  ) : error ? (
+                                    <p className="text-sm text-red-600 dark:text-red-300">{error}</p>
+                                  ) : heroUpdatePreview.length === 0 ? (
+                                    <p className="text-sm text-slate-600 dark:text-slate-300">No updates yet.</p>
+                                  ) : (
+                                    heroUpdatePreview.map((item) => (
+                                      <Link
+                                        key={`hero-update-${item.id}`}
+                                        to={`/post/${item.id}`}
+                                        tabIndex={isActive ? 0 : -1}
+                                        className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200/80 bg-white/80 px-3.5 py-3 text-sm transition-colors hover:border-cyan-300 hover:bg-cyan-50/80 dark:border-slate-800 dark:bg-slate-900/70 dark:hover:border-cyan-700 dark:hover:bg-cyan-950/40"
+                                      >
+                                        <span className="truncate font-medium text-slate-900 dark:text-slate-100">{item.title}</span>
+                                        <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500" />
+                                      </Link>
+                                    ))
+                                  )}
+                                </div>
+                              </div>
+                            </>
+                          ) : null}
+
+                          {card.id === 'pinned' ? (
+                            <>
+                              <div className="mt-5 rounded-[1.5rem] border border-slate-200/80 bg-white/72 p-4 dark:border-slate-800 dark:bg-slate-900/55">
+                                <div className="flex items-center justify-between gap-3">
+                                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                                    Front Page Picks
+                                  </p>
+                                  <span className="rounded-full border border-amber-200/80 bg-amber-50/80 px-2.5 py-1 text-[11px] font-semibold text-amber-800 dark:border-amber-800/70 dark:bg-amber-950/50 dark:text-amber-100">
+                                    {recentPosts.length} pinned
+                                  </span>
+                                </div>
+                                <div className="mt-4 space-y-3">
+                                  {loading ? (
+                                    <p className="rounded-2xl border border-dashed border-slate-200/80 bg-white/75 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/55 dark:text-slate-300">
+                                      Loading pinned articles…
+                                    </p>
+                                  ) : error ? (
+                                    <p className="rounded-2xl border border-red-200/80 bg-red-50/80 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-950/30 dark:text-red-300">
+                                      {error}
+                                    </p>
+                                  ) : heroPinnedPreview.length === 0 ? (
+                                    <p className="rounded-2xl border border-dashed border-slate-200/80 bg-white/75 px-4 py-3 text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-900/55 dark:text-slate-300">
+                                      No pinned article.
+                                    </p>
+                                  ) : (
+                                    heroPinnedPreview.map((item, itemIndex) => (
+                                      <Link
+                                        key={`hero-pin-${item.id}`}
+                                        to={`/post/${item.id}`}
+                                        tabIndex={isActive ? 0 : -1}
+                                        className="block rounded-[1.35rem] border border-slate-200/80 bg-white/80 p-4 transition-colors hover:border-amber-300 hover:bg-amber-50/80 dark:border-slate-800 dark:bg-slate-900/70 dark:hover:border-amber-700 dark:hover:bg-amber-950/35"
+                                      >
+                                        <div className="flex items-start gap-3">
+                                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-950 text-xs font-bold text-white dark:bg-slate-100 dark:text-slate-950">
+                                            0{itemIndex + 1}
+                                          </span>
+                                          <div className="min-w-0">
+                                            <p className="truncate text-base font-semibold text-slate-950 dark:text-slate-50">
+                                              {item.title}
+                                            </p>
+                                            <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">
+                                              {formatDate(item.date)}
+                                            </p>
+                                          </div>
+                                        </div>
+                                      </Link>
+                                    ))
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                                <div className="rounded-[1.4rem] border border-slate-200/80 bg-white/72 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/55">
+                                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                                    Last Update
+                                  </p>
+                                  <p className="mt-2 text-lg font-bold text-slate-950 dark:text-slate-50">
+                                    {latestPostDate}
+                                  </p>
+                                </div>
+                                <Link
+                                  to="/posts"
+                                  tabIndex={isActive ? 0 : -1}
+                                  className="inline-flex items-center justify-between rounded-[1.4rem] border border-slate-200/80 bg-slate-950 px-4 py-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800 dark:border-slate-800 dark:bg-slate-100 dark:text-slate-950 dark:hover:bg-white"
+                                >
+                                  Browse full archive
+                                  <ArrowRight className="h-4 w-4" />
+                                </Link>
+                              </div>
+                            </>
+                          ) : null}
+
+                          {card.id === 'stack' ? (
+                            <>
+                              <div className="mt-5 rounded-[1.5rem] border border-slate-200/80 bg-white/72 p-4 dark:border-slate-800 dark:bg-slate-900/55">
+                                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                                  Core Stack
+                                </p>
+                                <div className="mt-4 flex flex-wrap gap-2">
+                                  {stackKeywords.map((keyword) => (
+                                    <span
+                                      key={keyword}
+                                      className="rounded-full border border-emerald-200/80 bg-emerald-50/80 px-3 py-1.5 text-xs font-medium text-emerald-800 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-100"
+                                    >
+                                      {keyword}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+
+                              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                                <div className="rounded-[1.4rem] border border-slate-200/80 bg-white/72 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/55">
+                                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                                    Active Signals
+                                  </p>
+                                  <div className="mt-3 space-y-2 text-sm text-slate-700 dark:text-slate-300">
+                                    <p className="rounded-xl border border-slate-200/80 bg-white/70 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/55">
+                                      Ship in progress
+                                    </p>
+                                    <p className="rounded-xl border border-slate-200/80 bg-white/70 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/55">
+                                      Keep writing and building
+                                    </p>
+                                    <p className="rounded-xl border border-slate-200/80 bg-white/70 px-3 py-2 dark:border-slate-800 dark:bg-slate-950/55">
+                                      {ghRepos.length} public repositories tracked
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="rounded-[1.4rem] border border-slate-200/80 bg-white/72 px-4 py-4 dark:border-slate-800 dark:bg-slate-900/55">
+                                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">
+                                    Shortcuts
+                                  </p>
+                                  <div className="mt-3 space-y-2.5">
+                                    <Link
+                                      to="/posts"
+                                      tabIndex={isActive ? 0 : -1}
+                                      className="inline-flex w-full items-center justify-between rounded-xl bg-emerald-600 px-3.5 py-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-500 dark:bg-emerald-300 dark:text-emerald-950 dark:hover:bg-emerald-200"
+                                    >
+                                      Open Feed
+                                      <ArrowRight className="h-4 w-4" />
+                                    </Link>
+                                    <a
+                                      href="https://github.com/yurika0211"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      tabIndex={isActive ? 0 : -1}
+                                      className="inline-flex w-full items-center justify-between rounded-xl border border-slate-200/80 bg-white/80 px-3.5 py-3 text-sm font-semibold text-slate-900 transition-colors hover:border-emerald-300 hover:bg-emerald-50/80 dark:border-slate-800 dark:bg-slate-950/55 dark:text-slate-100 dark:hover:border-emerald-700 dark:hover:bg-emerald-950/35"
+                                    >
+                                      GitHub Profile
+                                      <ExternalLink className="h-4 w-4" />
+                                    </a>
+                                  </div>
+                                </div>
+                              </div>
+                            </>
+                          ) : null}
+                        </div>
+                      </article>
+                    );
+                  })}
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-                  <div className="rounded-xl border border-cyan-100/90 bg-cyan-50/75 px-3 py-2 dark:border-cyan-800/80 dark:bg-gray-900/55">
-                    <p className="text-[11px] text-cyan-700 dark:text-cyan-300">Posts</p>
-                    <p className="mt-1 text-lg font-bold text-cyan-950 dark:text-cyan-50">{posts.length}</p>
-                  </div>
-                  <div className="rounded-xl border border-cyan-100/90 bg-cyan-50/75 px-3 py-2 dark:border-cyan-800/80 dark:bg-gray-900/55">
-                    <p className="text-[11px] text-cyan-700 dark:text-cyan-300">Pinned</p>
-                    <p className="mt-1 text-lg font-bold text-cyan-950 dark:text-cyan-50">{recentPosts.length}</p>
-                  </div>
-                  <div className="rounded-xl border border-cyan-100/90 bg-cyan-50/75 px-3 py-2 dark:border-cyan-800/80 dark:bg-gray-900/55">
-                    <p className="text-[11px] text-cyan-700 dark:text-cyan-300">Repos</p>
-                    <p className="mt-1 text-lg font-bold text-cyan-950 dark:text-cyan-50">{ghRepos.length}</p>
-                  </div>
-                  <div className="rounded-xl border border-cyan-100/90 bg-cyan-50/75 px-3 py-2 dark:border-cyan-800/80 dark:bg-gray-900/55">
-                    <p className="text-[11px] text-cyan-700 dark:text-cyan-300">Updated</p>
-                    <p className="mt-1 truncate text-sm font-bold text-cyan-950 dark:text-cyan-50">{latestPostDate}</p>
-                  </div>
-                </div>
-
-                <div className="mt-4 rounded-xl border border-cyan-100/90 bg-cyan-50/75 p-3 dark:border-cyan-800/80 dark:bg-gray-900/55">
-                  <p className="text-xs font-semibold tracking-[0.1em] text-cyan-700 uppercase dark:text-cyan-300">
-                    Latest Updates
-                  </p>
-                  <div className="mt-2 space-y-2">
-                    {heroUpdatePreview.length === 0 ? (
-                      <p className="text-xs text-cyan-700 dark:text-cyan-200">No updates yet.</p>
-                    ) : (
-                      heroUpdatePreview.map((item) => (
-                        <Link
-                          key={`hero-update-${item.id}`}
-                          to={`/post/${item.id}`}
-                          className="block truncate text-sm font-medium text-cyan-900 transition-colors hover:text-cyan-700 dark:text-cyan-100 dark:hover:text-cyan-300"
-                        >
-                          {item.title}
-                        </Link>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </article>
-
-                <article className="hero-card-float-alt rounded-2xl border border-cyan-200/80 bg-white/50 p-5 md:p-6 shadow-md backdrop-blur-sm dark:border-cyan-800/80 dark:bg-gray-900/50 md:col-span-3 md:mt-8 md:min-h-[20rem]">
-                <div className="inline-flex items-center gap-2 text-xs font-semibold tracking-[0.1em] text-cyan-700 uppercase dark:text-cyan-300">
-                  <Workflow className="h-3.5 w-3.5" />
-                  Stack
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {stackKeywords.map((keyword) => (
-                    <span
-                      key={keyword}
-                      className="rounded-full border border-cyan-200/80 bg-cyan-50/70 px-2.5 py-1 text-xs text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/55 dark:text-cyan-200"
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="inline-flex items-center gap-1 self-start rounded-full border border-cyan-200/80 bg-white/70 p-1 shadow-sm backdrop-blur-sm dark:border-cyan-900/70 dark:bg-slate-950/50">
+                    <button
+                      type="button"
+                      onClick={handlePrevHeroCard}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full text-cyan-900 transition-colors hover:bg-cyan-100 dark:text-cyan-100 dark:hover:bg-slate-900"
+                      aria-label="Show previous hero card"
                     >
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
+                      <ChevronLeft className="h-4 w-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleNextHeroCard}
+                      className="inline-flex h-10 w-10 items-center justify-center rounded-full text-cyan-900 transition-colors hover:bg-cyan-100 dark:text-cyan-100 dark:hover:bg-slate-900"
+                      aria-label="Show next hero card"
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </button>
+                  </div>
 
-                <div className="mt-4 space-y-2">
-                  <p className="rounded-lg border border-cyan-100/80 bg-cyan-50/70 px-3 py-2 text-xs text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/55 dark:text-cyan-200">
-                    Ship in progress
-                  </p>
-                  <p className="rounded-lg border border-cyan-100/80 bg-cyan-50/70 px-3 py-2 text-xs text-cyan-800 dark:border-cyan-700/70 dark:bg-gray-900/55 dark:text-cyan-200">
-                    Keep writing and building
-                  </p>
-                  <Link
-                    to="/posts"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-cyan-900 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-cyan-800 dark:bg-cyan-200 dark:text-cyan-950 dark:hover:bg-cyan-100"
-                  >
-                    Open Feed
-                    <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
+                  <div className="flex flex-wrap gap-2 sm:justify-end">
+                    {HERO_CARD_META.map((card, index) => (
+                      <button
+                        key={card.id}
+                        type="button"
+                        onClick={() => setActiveHeroCard(index)}
+                        className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] transition-all ${activeHeroCard === index ? 'border-cyan-900 bg-cyan-900 text-white shadow-[0_12px_24px_rgba(8,43,65,0.18)] dark:border-cyan-200 dark:bg-cyan-200 dark:text-cyan-950' : 'border-cyan-200/80 bg-white/70 text-cyan-800 hover:border-cyan-300 hover:bg-cyan-50 dark:border-cyan-900/70 dark:bg-slate-950/50 dark:text-cyan-100 dark:hover:border-cyan-700 dark:hover:bg-slate-900'}`}
+                        aria-pressed={activeHeroCard === index}
+                      >
+                        {card.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                </article>
               </div>
             </div>
           </div>
@@ -342,7 +584,7 @@ export default function Entry() {
             </span>
             <span className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 dark:bg-gray-800">
               <Clock3 className="h-4 w-4" />
-              last update：{latestPostDate}
+              Last update: {latestPostDate}
             </span>
           </div>
         </div>
@@ -405,7 +647,7 @@ export default function Entry() {
                       </span>
                       <span className="inline-flex items-center gap-1 truncate">
                         <BookOpen className="h-3.5 w-3.5 shrink-0" />
-                        {post.tags.slice(0, 2).join(' / ') || '未分类'}
+                        {post.tags.slice(0, 2).join(' / ') || 'Uncategorized'}
                       </span>
                     </div>
                   </div>
@@ -447,7 +689,7 @@ export default function Entry() {
                 >
                   <div className="inline-flex items-center gap-2 rounded-full bg-gray-100 px-3 py-1 text-sm text-gray-600 dark:bg-gray-800 dark:text-gray-300">
                     <Newspaper className="h-3.5 w-3.5" />
-                    动态
+                    Updates
                   </div>
                   <h3 className="mt-3 truncate text-xl font-bold text-gray-900 transition-colors group-hover:text-blue-600 dark:text-white dark:group-hover:text-blue-400">
                     {item.title}

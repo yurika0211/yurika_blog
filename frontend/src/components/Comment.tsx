@@ -39,7 +39,7 @@ export default function Comment({
             className="inline-flex items-center gap-1 rounded-md border border-red-300 px-3 py-1 text-xs text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/20"
           >
             <Trash2 className="h-3.5 w-3.5" />
-            {isDeleting ? "删除中..." : "删除评论"}
+            {isDeleting ? "Deleting..." : "Delete comment"}
           </button>
         </div>
       )}

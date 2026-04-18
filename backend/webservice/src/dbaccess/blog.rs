@@ -1,5 +1,7 @@
 use crate::errors::MyError;
-use crate::models::articles::{Article, CreateArticle, PaginatedArticles, PaginationParams, UpdateArticle};
+use crate::models::articles::{
+    Article, CreateArticle, PaginatedArticles, PaginationParams, UpdateArticle,
+};
 use sqlx::postgres::PgPool;
 
 use chrono::Utc;
@@ -9,109 +11,78 @@ use chrono::Utc;
  * @param pool
  * @return Result<Vec<Article>, MyError>
  */
-pub async fn get_all_notes_db(pool: &PgPool) -> Result<Vec<Article>, MyError> {
-    let rows = sqlx::query_as::<_, Article>(r#"SELECT * FROM articles"#)
-        .fetch_all(pool)
-        .await?;
+pub async fn get_all_notes_db(
+    pool: &PgPool,
+    include_login_required: bool,
+) -> Result<Vec<Article>, MyError> {
+    let rows = sqlx::query_as::<_, Article>(
+        r#"
+        SELECT *
+        FROM articles
+        WHERE ($1::bool OR COALESCE(is_login_required, FALSE) = FALSE)
+        ORDER BY is_pinned DESC NULLS LAST, date DESC NULLS LAST
+        "#,
+    )
+    .bind(include_login_required)
+    .fetch_all(pool)
+    .await?;
     Ok(rows)
 }
 
 pub async fn get_notes_paginated_db(
     pool: &PgPool,
     params: &PaginationParams,
+    include_login_required: bool,
 ) -> Result<PaginatedArticles, MyError> {
     let page = params.page.unwrap_or(1).max(1);
     let per_page = params.per_page.unwrap_or(5).clamp(1, 100);
     let offset = (page - 1) * per_page;
 
-    let has_tag = params.tag.is_some();
-    let has_search = params.search.is_some();
+    let search_pattern = params
+        .search
+        .as_ref()
+        .map(|s| format!("%{}%", s.to_lowercase()));
+    let total: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*) as count
+        FROM articles
+        WHERE ($1::bool OR COALESCE(is_login_required, FALSE) = FALSE)
+          AND ($2::text IS NULL OR $2 = ANY(tags))
+          AND (
+            $3::text IS NULL
+            OR LOWER(title) LIKE $3
+            OR LOWER(summary) LIKE $3
+          )
+        "#,
+    )
+    .bind(include_login_required)
+    .bind(params.tag.as_deref())
+    .bind(search_pattern.as_deref())
+    .fetch_one(pool)
+    .await?;
 
-    // count 查询的占位符从 $1 开始
-    let count_where = match (has_tag, has_search) {
-        (true, true) => "WHERE $1 = ANY(tags) AND (LOWER(title) LIKE $2 OR LOWER(summary) LIKE $2)",
-        (true, false) => "WHERE $1 = ANY(tags)",
-        (false, true) => "WHERE LOWER(title) LIKE $1 OR LOWER(summary) LIKE $1",
-        (false, false) => "",
-    };
-
-    // data 查询的 $1=limit, $2=offset，过滤占位符从 $3 开始
-    let data_where = match (has_tag, has_search) {
-        (true, true) => "WHERE $3 = ANY(tags) AND (LOWER(title) LIKE $4 OR LOWER(summary) LIKE $4)",
-        (true, false) => "WHERE $3 = ANY(tags)",
-        (false, true) => "WHERE LOWER(title) LIKE $3 OR LOWER(summary) LIKE $3",
-        (false, false) => "",
-    };
-
-    let count_sql = format!("SELECT COUNT(*) as count FROM articles {}", count_where);
-    let data_sql = format!(
-        "SELECT * FROM articles {} ORDER BY is_pinned DESC NULLS LAST, date DESC NULLS LAST LIMIT $1 OFFSET $2",
-        data_where
-    );
-
-    let search_pattern = params.search.as_ref().map(|s| format!("%{}%", s.to_lowercase()));
-
-    let total: i64 = match (has_tag, has_search) {
-        (true, true) => {
-            sqlx::query_scalar(&count_sql)
-                .bind(params.tag.as_ref().unwrap())
-                .bind(search_pattern.as_ref().unwrap())
-                .fetch_one(pool)
-                .await?
-        }
-        (true, false) => {
-            sqlx::query_scalar(&count_sql)
-                .bind(params.tag.as_ref().unwrap())
-                .fetch_one(pool)
-                .await?
-        }
-        (false, true) => {
-            sqlx::query_scalar(&count_sql)
-                .bind(search_pattern.as_ref().unwrap())
-                .fetch_one(pool)
-                .await?
-        }
-        (false, false) => {
-            sqlx::query_scalar(&count_sql)
-                .fetch_one(pool)
-                .await?
-        }
-    };
-
-    let rows: Vec<Article> = match (has_tag, has_search) {
-        (true, true) => {
-            sqlx::query_as::<_, Article>(&data_sql)
-                .bind(per_page)
-                .bind(offset)
-                .bind(params.tag.as_ref().unwrap())
-                .bind(search_pattern.as_ref().unwrap())
-                .fetch_all(pool)
-                .await?
-        }
-        (true, false) => {
-            sqlx::query_as::<_, Article>(&data_sql)
-                .bind(per_page)
-                .bind(offset)
-                .bind(params.tag.as_ref().unwrap())
-                .fetch_all(pool)
-                .await?
-        }
-        (false, true) => {
-            sqlx::query_as::<_, Article>(&data_sql)
-                .bind(per_page)
-                .bind(offset)
-                .bind(search_pattern.as_ref().unwrap())
-                .fetch_all(pool)
-                .await?
-        }
-        (false, false) => {
-            sqlx::query_as::<_, Article>(&data_sql)
-                .bind(per_page)
-                .bind(offset)
-                .fetch_all(pool)
-                .await?
-        }
-    };
+    let rows: Vec<Article> = sqlx::query_as::<_, Article>(
+        r#"
+        SELECT *
+        FROM articles
+        WHERE ($1::bool OR COALESCE(is_login_required, FALSE) = FALSE)
+          AND ($2::text IS NULL OR $2 = ANY(tags))
+          AND (
+            $3::text IS NULL
+            OR LOWER(title) LIKE $3
+            OR LOWER(summary) LIKE $3
+          )
+        ORDER BY is_pinned DESC NULLS LAST, date DESC NULLS LAST
+        LIMIT $4 OFFSET $5
+        "#,
+    )
+    .bind(include_login_required)
+    .bind(params.tag.as_deref())
+    .bind(search_pattern.as_deref())
+    .bind(per_page)
+    .bind(offset)
+    .fetch_all(pool)
+    .await?;
 
     Ok(PaginatedArticles {
         data: rows,
@@ -127,11 +98,24 @@ pub async fn get_notes_paginated_db(
  * @param article_id
  * @return Result<Article, MyError>
  */
-pub async fn get_article_by_id_db(pool: &PgPool, article_id: i32) -> Result<Article, MyError> {
-    let row = sqlx::query_as::<_, Article>(r#"SELECT * FROM articles where id = $1"#)
-        .bind(article_id)
-        .fetch_one(pool)
-        .await?;
+pub async fn get_article_by_id_db(
+    pool: &PgPool,
+    article_id: i32,
+    include_login_required: bool,
+) -> Result<Article, MyError> {
+    let row = sqlx::query_as::<_, Article>(
+        r#"
+        SELECT *
+        FROM articles
+        WHERE id = $1
+          AND ($2::bool OR COALESCE(is_login_required, FALSE) = FALSE)
+        "#,
+    )
+    .bind(article_id)
+    .bind(include_login_required)
+    .fetch_optional(pool)
+    .await?
+    .ok_or_else(|| MyError::NotFound("Article Id not found".into()))?;
     Ok(row)
 }
 
@@ -177,14 +161,27 @@ pub async fn update_article_by_id_db(
         current_article_row.is_pinned.unwrap_or(false)
     };
 
+    let is_login_required: bool = if let Some(is_login_required) = update_article.is_login_required
+    {
+        is_login_required
+    } else {
+        current_article_row.is_login_required.unwrap_or(false)
+    };
+
     let updated_article_row = sqlx::query_as::<_, Article>(
-        r#"UPDATE articles SET title = $1, content = $2, summary = $3, tags = $4, is_pinned = $5 WHERE id = $6 RETURNING *"#,
+        r#"
+        UPDATE articles
+        SET title = $1, content = $2, summary = $3, tags = $4, is_pinned = $5, is_login_required = $6
+        WHERE id = $7
+        RETURNING *
+        "#,
     )
     .bind(title)
     .bind(content)
     .bind(summary)
     .bind(tags)
     .bind(is_pinned)
+    .bind(is_login_required)
     .bind(article_id)
     .fetch_one(pool)
     .await?;
@@ -209,8 +206,13 @@ pub async fn create_article_db(
 ) -> Result<Article, MyError> {
     let now = Utc::now().naive_utc();
     let is_pinned = create_article.is_pinned.unwrap_or(false);
+    let is_login_required = create_article.is_login_required.unwrap_or(false);
     let new_article_row = sqlx::query_as::<_, Article>(
-        r#"INSERT INTO articles (title, content, summary, tags, date, is_pinned) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *"#,
+        r#"
+        INSERT INTO articles (title, content, summary, tags, date, is_pinned, is_login_required)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+        "#,
     )
     .bind(create_article.title)
     .bind(create_article.content)
@@ -218,6 +220,7 @@ pub async fn create_article_db(
     .bind(create_article.tags)
     .bind(now)
     .bind(is_pinned)
+    .bind(is_login_required)
     .fetch_one(pool)
     .await?;
 

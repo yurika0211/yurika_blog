@@ -2,7 +2,7 @@ import { useState, useEffect, type HTMLAttributes, type ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Save, Eye, PenLine, Tag, FileText, Pin } from 'lucide-react';
+import { Save, Eye, PenLine, Tag, FileText, Pin, Lock } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -41,6 +41,7 @@ export default function Editor() {
   const [tags, setTags] = useState('');
   const [content, setContent] = useState('# Hello World');
   const [isPinned, setIsPinned] = useState(false);
+  const [isLoginRequired, setIsLoginRequired] = useState(false);
 
   const [originalDate, setOriginalDate] = useState<string | undefined>(undefined);
 
@@ -63,13 +64,13 @@ export default function Editor() {
       if (!id) return;
       setLoading(true);
       setError(null);
-      setStatusMsg('正在从服务器加载文章…');
+      setStatusMsg('Loading article from the server...');
 
       try {
         const post = await blog.getPostById(id);
         if (!mounted) return;
         if (!post) {
-          setError('未找到指定文章。');
+          setError('The requested article could not be found.');
           setStatusMsg(null);
           return;
         }
@@ -80,10 +81,11 @@ export default function Editor() {
         setContent(post.content || '');
         setOriginalDate(post.date);
         setIsPinned(post.is_pinned ?? false);
+        setIsLoginRequired(post.is_login_required ?? false);
         setStatusMsg(null);
       } catch (err: unknown) {
         console.error('Fetch post failed:', err);
-        setError(getErrorMessage(err, '获取文章时发生错误。'));
+        setError(getErrorMessage(err, 'Something went wrong while loading the article.'));
         setStatusMsg(null);
       } finally {
         if (mounted) setLoading(false);
@@ -101,7 +103,7 @@ export default function Editor() {
     setStatusMsg(null);
 
     if (!title.trim() || !content.trim()) {
-      setError('标题和内容不能为空！');
+      setError('Title and content cannot be empty.');
       return;
     }
 
@@ -113,6 +115,7 @@ export default function Editor() {
       tags: tagsArray,
       content,
       is_pinned: isPinned,
+      is_login_required: isLoginRequired,
     };
 
     if (originalDate) {
@@ -120,14 +123,14 @@ export default function Editor() {
     }
 
     setSaving(true);
-    setStatusMsg(id ? '正在更新文章…' : '正在发布文章…');
+    setStatusMsg(id ? 'Updating article...' : 'Publishing article...');
 
     try {
       if (id) {
         const updatePayload: UpdatePostPayload = { ...payload };
         const updated = await blog.updatePost(id, updatePayload);
         if (updated?.date) setOriginalDate(updated.date);
-        setStatusMsg('修改成功，正在返回文章列表…');
+        setStatusMsg('Article updated. Returning to the article list...');
         setTimeout(() => navigate('/posts'), 600);
       } else {
         const created = await blog.createPost(payload);
@@ -138,21 +141,23 @@ export default function Editor() {
           if ((created as BlogPost).summary) setSummary((created as BlogPost).summary);
           if (Array.isArray((created as BlogPost).tags)) setTags((created as BlogPost).tags.join(', '));
           if ((created as BlogPost).content) setContent((created as BlogPost).content);
+          setIsPinned(Boolean((created as BlogPost).is_pinned));
+          setIsLoginRequired(Boolean((created as BlogPost).is_login_required));
 
           const newId = (created as BlogPost).id;
           if (newId) {
-            setStatusMsg('发布成功！正在打开新文章编辑页…');
+            setStatusMsg('Article published. Opening the new editor page...');
             setTimeout(() => navigate(`/editor/${newId}`), 300);
             return;
           }
         }
 
-        setStatusMsg('发布成功！正在返回文章列表…');
+        setStatusMsg('Article published. Returning to the article list...');
         setTimeout(() => navigate('/posts'), 600);
       }
     } catch (err: unknown) {
       console.error('Save failed:', err);
-      setError(getErrorMessage(err, '保存文章时发生错误。'));
+      setError(getErrorMessage(err, 'Something went wrong while saving the article.'));
       setStatusMsg(null);
     } finally {
       setSaving(false);
@@ -165,11 +170,11 @@ export default function Editor() {
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <PenLine className="w-5 h-5 text-blue-500" />
-            {id ? '编辑文章' : '新建文章'}
+            {id ? 'Edit Article' : 'New Article'}
           </h2>
 
           <div className="flex items-center gap-3">
-            {loading && <div className="text-sm text-gray-500">正在加载文章…</div>}
+            {loading && <div className="text-sm text-gray-500">Loading article...</div>}
             {statusMsg && <div className="text-sm text-gray-700 dark:text-gray-300">{statusMsg}</div>}
             {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
             <button
@@ -183,20 +188,20 @@ export default function Editor() {
               aria-disabled={loading || saving}
             >
               <Save className="w-4 h-4" />
-              {saving ? '保存中…' : '发布文章'}
+              {saving ? 'Saving...' : id ? 'Save Changes' : 'Publish Article'}
             </button>
           </div>
         </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-            文章标题
+            Article Title
           </label>
           <input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="输入引人入胜的标题..."
+            placeholder="Write a compelling title..."
             disabled={loading || saving}
             className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white"
           />
@@ -205,13 +210,13 @@ export default function Editor() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-              <FileText className="w-3 h-3" /> 摘要
+              <FileText className="w-3 h-3" /> Summary
             </label>
             <input
               type="text"
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
-              placeholder="简短的介绍..."
+              placeholder="Write a short introduction..."
               disabled={loading || saving}
               className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white"
             />
@@ -219,14 +224,14 @@ export default function Editor() {
 
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-              <Tag className="w-3 h-3" /> 标签 (用逗号分隔)
+              <Tag className="w-3 h-3" /> Tags (comma separated)
             </label>
             <div className="flex gap-2">
               <input
                 type="text"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
-                placeholder="例如: Rust, React, Life"
+                placeholder="For example: Rust, React, Life"
                 disabled={loading || saving}
                 className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white"
               />
@@ -239,10 +244,24 @@ export default function Editor() {
                     ? 'bg-cyan-50 border-cyan-300 text-cyan-700 dark:bg-cyan-900/30 dark:border-cyan-600 dark:text-cyan-300'
                     : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
                 }`}
-                title={isPinned ? '取消置顶' : '置顶文章'}
+                title={isPinned ? 'Unpin article' : 'Pin article'}
               >
                 <Pin className={`w-4 h-4 ${isPinned ? 'text-cyan-500' : ''}`} />
-                {isPinned ? '已置顶' : '置顶'}
+                {isPinned ? 'Pinned' : 'Pin'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsLoginRequired(!isLoginRequired)}
+                disabled={loading || saving}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                  isLoginRequired
+                    ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-900/30 dark:border-amber-600 dark:text-amber-300'
+                    : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
+                }`}
+                title={isLoginRequired ? 'Remove login-only access' : 'Make this article login-only'}
+              >
+                <Lock className={`w-4 h-4 ${isLoginRequired ? 'text-amber-500' : ''}`} />
+                {isLoginRequired ? 'Login only' : 'Public'}
               </button>
             </div>
           </div>
@@ -252,21 +271,21 @@ export default function Editor() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-200">
         <div className="flex flex-col bg-white/30 dark:bg-gray-900/30 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 overflow-hidden">
           <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 font-medium text-sm text-gray-500">
-            Markdown 源码
+            Markdown Source
           </div>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="grow w-full p-4 bg-transparent resize-none focus:outline-none font-mono text-sm text-gray-800 dark:text-gray-200"
-            placeholder="在此处编写 Markdown..."
+            placeholder="Write Markdown here..."
             disabled={loading || saving}
-            aria-label="Markdown 编辑器"
+            aria-label="Markdown editor"
           />
         </div>
 
         <div className="flex flex-col bg-white/30 dark:bg-gray-900/30 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 overflow-hidden">
           <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 font-medium text-sm text-gray-500 flex items-center gap-2">
-            <Eye className="w-4 h-4" /> 实时预览
+            <Eye className="w-4 h-4" /> Live Preview
           </div>
 
           <div className="grow p-6 overflow-y-auto prose prose-blue dark:prose-invert max-w-none">

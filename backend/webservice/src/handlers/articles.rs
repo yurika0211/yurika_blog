@@ -1,9 +1,9 @@
+use crate::auth::is_authorized;
 use crate::db_access::blog::*;
 use crate::errors::MyError;
 use crate::models::articles::{CreateArticle, PaginationParams, UpdateArticle};
 use crate::state::AppState;
-use actix_web::{HttpResponse, web};
-
+use actix_web::{HttpRequest, HttpResponse, web};
 
 /**
  * get all of the notes from the database
@@ -13,14 +13,16 @@ use actix_web::{HttpResponse, web};
 pub async fn get_all_notes(
     app_state: web::Data<AppState>,
     query: web::Query<PaginationParams>,
+    req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
+    let include_login_required = is_authorized(&req);
     let params = query.into_inner();
     if params.page.is_some() {
-        get_notes_paginated_db(&app_state.db, &params)
+        get_notes_paginated_db(&app_state.db, &params, include_login_required)
             .await
             .map(|result| HttpResponse::Ok().json(result))
     } else {
-        get_all_notes_db(&app_state.db)
+        get_all_notes_db(&app_state.db, include_login_required)
             .await
             .map(|articles| HttpResponse::Ok().json(articles))
     }
@@ -35,9 +37,11 @@ pub async fn get_all_notes(
 pub async fn get_article_by_id(
     app_state: web::Data<AppState>,
     params: web::Path<(usize,)>,
+    req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
+    let include_login_required = is_authorized(&req);
     let article_id = i32::try_from(params.0).unwrap();
-    get_article_by_id_db(&app_state.db, article_id)
+    get_article_by_id_db(&app_state.db, article_id, include_login_required)
         .await
         .map(|article| HttpResponse::Ok().json(article))
 }

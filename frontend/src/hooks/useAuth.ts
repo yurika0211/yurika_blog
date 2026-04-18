@@ -21,8 +21,8 @@ export function useAuth() {
       session,
       isLoggedIn: Boolean(session),
       username: session?.username ?? "",
-      login: (username: string) => {
-        setAuthSession(username);
+      login: (username: string, token: string) => {
+        setAuthSession(username, token);
       },
       logout: () => {
         clearAuthSession();

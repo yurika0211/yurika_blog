@@ -255,19 +255,19 @@ html.dark .homepage-mist-layer {
 }
 
 .hero-rise {
-    animation: hero-rise 0.7s ease-out both;
+    animation: none;
 }
 
 .hero-rise-delay-1 {
-    animation: hero-rise 0.75s ease-out 0.12s both;
+    animation: none;
 }
 
 .hero-rise-delay-2 {
-    animation: hero-rise 0.75s ease-out 0.22s both;
+    animation: none;
 }
 
 .hero-rise-delay-3 {
-    animation: hero-rise 0.8s ease-out 0.32s both;
+    animation: none;
 }
 
 @keyframes hero-grid-pan {
@@ -280,7 +280,6 @@ html.dark .homepage-mist-layer {
         linear-gradient(to right, rgba(14, 116, 144, 0.14) 1px, transparent 1px),
         linear-gradient(to bottom, rgba(14, 116, 144, 0.14) 1px, transparent 1px);
     background-size: 44px 44px;
-    animation: hero-grid-pan 18s linear infinite;
 }
 
 html.dark .hero-grid {
@@ -304,6 +303,61 @@ html.dark .hero-grid {
 
 .hero-card-float-alt {
     animation: hero-card-float 9s ease-in-out 0.6s infinite;
+}
+
+.hero-rotator-shell {
+    position: relative;
+}
+
+.hero-rotator-shell::before {
+    display: none;
+}
+
+.hero-rotator-stage {
+    position: relative;
+    z-index: 1;
+}
+
+.hero-rotator-card {
+    position: absolute;
+    inset: 0;
+    transition: none;
+}
+
+.hero-rotator-card[data-state="active"] {
+    z-index: 2;
+    opacity: 1;
+    filter: none;
+    transform: none;
+}
+
+.hero-rotator-card[data-state="prev"] {
+    z-index: 1;
+    opacity: 0;
+    filter: none;
+    transform: none;
+}
+
+.hero-rotator-card[data-state="next"] {
+    z-index: 1;
+    opacity: 0;
+    filter: none;
+    transform: none;
+}
+
+.hero-rotator-card[data-state="hidden"] {
+    z-index: 1;
+    opacity: 0;
+    filter: none;
+    transform: none;
+}
+
+html.dark .hero-rotator-shell::before {
+    background:
+        radial-gradient(circle at 50% 40%,
+        rgba(66, 153, 188, 0.2) 0%,
+        rgba(66, 153, 188, 0.11) 34%,
+        rgba(66, 153, 188, 0) 78%);
 }
 
 @keyframes hero-fog-drift-a {
@@ -483,6 +537,21 @@ html.dark .hero-fog-bridge {
     .hero-fog-bridge,
     .homepage-mist-layer {
         animation: none !important;
+    }
+
+    .hero-rotator-card {
+        transition: opacity 180ms ease !important;
+        transform: none !important;
+    }
+
+    .hero-rotator-card[data-state="active"] {
+        opacity: 1;
+    }
+
+    .hero-rotator-card[data-state="prev"],
+    .hero-rotator-card[data-state="next"],
+    .hero-rotator-card[data-state="hidden"] {
+        opacity: 0;
     }
 }
 

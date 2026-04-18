@@ -8,6 +8,8 @@ pub enum MyError {
     DBError(String),
     ActixError(String),
     NotFound(String),
+    BadRequest(String),
+    Unauthorized(String),
 }
 
 #[derive(Debug, Serialize)]
@@ -29,7 +31,15 @@ impl MyError {
             }
             MyError::NotFound(msg) => {
                 println!("Not found error occurred: {:?}", msg);
-                "Not found".into()
+                msg.clone()
+            }
+            MyError::BadRequest(msg) => {
+                println!("Bad request error occurred: {:?}", msg);
+                msg.clone()
+            }
+            MyError::Unauthorized(msg) => {
+                println!("Unauthorized error occurred: {:?}", msg);
+                msg.clone()
             }
         }
     }
@@ -41,6 +51,8 @@ impl error::ResponseError for MyError {
         match self {
             MyError::DBError(_msg) | MyError::ActixError(_msg) => StatusCode::INTERNAL_SERVER_ERROR,
             MyError::NotFound(_msg) => StatusCode::NOT_FOUND,
+            MyError::BadRequest(_msg) => StatusCode::BAD_REQUEST,
+            MyError::Unauthorized(_msg) => StatusCode::UNAUTHORIZED,
         }
     }
     // 错误返回

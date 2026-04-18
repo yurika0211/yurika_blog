@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { AlertCircle, Loader2, LogIn, LogOut } from "lucide-react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { getApiErrorMessage } from "../services/api";
 import { loginApi } from "../services/api_login";
 import { useAuth } from "../hooks/useAuth";
 
@@ -30,14 +31,14 @@ export default function Login() {
     if (!trimmedUsername || !trimmedPassword) {
       setResult({
         status: "error",
-        message: "用户名和密码不能为空",
+        message: "Username and password are required.",
       });
       return;
     }
     if (trimmedUsername === "admin" && trimmedPassword === "admin123") {
       setResult({
         status: "error",
-        message: "检测到弱口令 admin/admin123，请先在后端修改为强密码后再登录。",
+        message: "Weak credentials admin/admin123 detected. Please change them in the backend before signing in.",
       });
       return;
     }
@@ -49,19 +50,23 @@ export default function Login() {
         username: trimmedUsername,
         password: trimmedPassword,
       });
+      const token =
+        typeof response.token === "string" ? response.token.trim() : "";
+      if (!token) {
+        throw new Error("The login API did not return a valid token. Please check the backend configuration.");
+      }
 
       setResult({
         status: "success",
-        message: "登录成功，正在跳转...",
+        message: "Signed in successfully. Redirecting...",
         raw: response,
       });
-      login(trimmedUsername);
+      login(trimmedUsername, token);
       setTimeout(() => {
         navigate(redirectPath, { replace: true });
       }, 250);
     } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "登录失败，请稍后重试";
+      const message = getApiErrorMessage(error, "Sign-in failed. Please try again.");
       setResult({
         status: "error",
         message,
@@ -77,22 +82,19 @@ export default function Login() {
         <div className="border-b border-gray-200/80 px-6 py-5 dark:border-gray-800">
           <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
             <LogIn className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-            登录
+            Sign In
           </h1>
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            调用接口 <code>POST http://localhost:3001/login</code>
-          </p>
         </div>
 
         {isLoggedIn && (
           <div className="mx-6 mt-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300">
-            <p>当前已登录：{currentUsername}</p>
+            <p>Signed in as: {currentUsername}</p>
             <div className="mt-3 flex gap-2">
               <Link
                 to={redirectPath}
                 className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-white hover:bg-green-700"
               >
-                继续访问
+                Continue
               </Link>
               <button
                 type="button"
@@ -100,7 +102,7 @@ export default function Login() {
                 className="inline-flex items-center gap-1 rounded-md border border-green-400 px-3 py-1.5 hover:bg-green-100 dark:border-green-700 dark:hover:bg-green-900/30"
               >
                 <LogOut className="h-4 w-4" />
-                退出登录
+                Sign out
               </button>
             </div>
           </div>
@@ -112,14 +114,14 @@ export default function Login() {
               htmlFor="username"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              用户名
+              Username
             </label>
             <input
               id="username"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
-              placeholder="请输入用户名"
+              placeholder="Enter your username"
               autoComplete="username"
             />
           </div>
@@ -129,7 +131,7 @@ export default function Login() {
               htmlFor="password"
               className="block text-sm font-medium text-gray-700 dark:text-gray-200"
             >
-              密码
+              Password
             </label>
             <input
               id="password"
@@ -137,7 +139,7 @@ export default function Login() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
-              placeholder="请输入密码"
+              placeholder="Enter your password"
               autoComplete="current-password"
             />
           </div>
@@ -150,12 +152,12 @@ export default function Login() {
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                登录中...
+                Signing in...
               </>
             ) : (
               <>
                 <LogIn className="h-4 w-4" />
-                登录
+                Sign In
               </>
             )}
           </button>
@@ -171,7 +173,7 @@ export default function Login() {
               {result.status === "error" && (
                 <div className="mb-2 flex items-center gap-1.5 font-medium">
                   <AlertCircle className="h-4 w-4" />
-                  登录失败
+                  Sign-in failed
                 </div>
               )}
 

@@ -1,41 +1,34 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { Tag as TagIcon, Loader, AlertCircle, Hash, FileText } from 'lucide-react';
+import Pagination from '../components/Pagination';
 import { blog } from '../services/api';
 import type { BlogPost } from '../types';
 
-const TAG_COLORS = [
-  'from-sky-400 to-cyan-300 dark:from-sky-600 dark:to-cyan-500',
-  'from-emerald-400 to-lime-300 dark:from-emerald-600 dark:to-lime-500',
-  'from-amber-400 to-orange-300 dark:from-amber-600 dark:to-orange-500',
-  'from-rose-400 to-pink-300 dark:from-rose-600 dark:to-pink-500',
-  'from-indigo-400 to-violet-300 dark:from-indigo-600 dark:to-violet-500',
-  'from-teal-400 to-emerald-300 dark:from-teal-600 dark:to-emerald-500',
-  'from-fuchsia-400 to-purple-300 dark:from-fuchsia-600 dark:to-purple-500',
-  'from-orange-400 to-red-300 dark:from-orange-600 dark:to-red-500',
-];
-
-const getTagColor = (tag: string): string => {
-  let hash = 0;
-  for (let i = 0; i < tag.length; i += 1) {
-    hash = (hash * 31 + tag.charCodeAt(i)) | 0;
-  }
-  return TAG_COLORS[Math.abs(hash) % TAG_COLORS.length];
-};
+const TAGS_PER_PAGE = 12;
 
 export default function Tags() {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const pageFromUrl = Math.max(1, Number(searchParams.get('page')) || 1);
+  const [currentPage, setCurrentPage] = useState(pageFromUrl);
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    setCurrentPage(pageFromUrl);
+  }, [pageFromUrl]);
+
+  useEffect(() => {
     const fetchPosts = async () => {
       try {
         setLoading(true);
+        setError(null);
         const data = await blog.getPosts();
         setPosts(Array.isArray(data) ? data : []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : '加载失败');
+        setError(err instanceof Error ? err.message : 'Failed to load tags');
       } finally {
         setLoading(false);
       }
@@ -55,11 +48,45 @@ export default function Tags() {
       .sort((a, b) => b.count - a.count);
   }, [posts]);
 
+  const totalPages = Math.ceil(tagStats.length / TAGS_PER_PAGE);
+  const safeCurrentPage = totalPages > 0 ? Math.min(currentPage, totalPages) : currentPage;
+
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      const params = new URLSearchParams(searchParams);
+      if (totalPages === 1) {
+        params.delete('page');
+      } else {
+        params.set('page', String(totalPages));
+      }
+      navigate(`?${params.toString()}`, { replace: true });
+    }
+  }, [currentPage, navigate, searchParams, totalPages]);
+
+  const pagedTags = useMemo(() => {
+    const start = (safeCurrentPage - 1) * TAGS_PER_PAGE;
+    return tagStats.slice(start, start + TAGS_PER_PAGE);
+  }, [safeCurrentPage, tagStats]);
+
+  const visibleStart = tagStats.length === 0 ? 0 : (safeCurrentPage - 1) * TAGS_PER_PAGE + 1;
+  const visibleEnd = Math.min(safeCurrentPage * TAGS_PER_PAGE, tagStats.length);
+
+  const handlePageChange = (pageNumber: number) => {
+    const params = new URLSearchParams(searchParams);
+    if (pageNumber <= 1) {
+      params.delete('page');
+    } else {
+      params.set('page', String(pageNumber));
+    }
+    navigate(`?${params.toString()}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-        <p className="text-gray-600 dark:text-gray-300">加载标签中...</p>
+        <p className="text-gray-600 dark:text-gray-300">Loading tags...</p>
       </div>
     );
   }
@@ -78,23 +105,23 @@ export default function Tags() {
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
           <TagIcon className="w-6 h-6 text-blue-500" />
-          标签归档
+          Tag Archive
         </h2>
-        <span className="text-sm text-gray-500 dark:text-gray-400">
-          共 {tagStats.length} 个标签
-        </span>
+        <div className="text-right text-sm text-gray-500 dark:text-gray-400">
+          <div>{tagStats.length} tags</div>
+          {tagStats.length > 0 ? (
+            <div>Showing {visibleStart}-{visibleEnd}</div>
+          ) : null}
+        </div>
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {tagStats.map(({ name, count }) => (
+        {pagedTags.map(({ name, count }) => (
           <Link
             key={name}
             to={`/tag/${encodeURIComponent(name)}`}
             className="group relative overflow-hidden rounded-2xl border border-gray-100 dark:border-gray-800 bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-sm shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300"
           >
-            {/* 渐变顶栏 */}
-            <div className={`h-2 bg-gradient-to-r ${getTagColor(name)}`} />
-
             <div className="p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Hash className="w-4 h-4 text-gray-400 group-hover:text-blue-500 transition-colors" />
@@ -104,12 +131,18 @@ export default function Tags() {
               </div>
               <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                 <FileText className="w-3.5 h-3.5" />
-                <span>{count} 篇文章</span>
+                <span>{count} articles</span>
               </div>
             </div>
           </Link>
         ))}
       </div>
+
+      <Pagination
+        currentPage={safeCurrentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
     </div>
   );
 }

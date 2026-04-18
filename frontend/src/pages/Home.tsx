@@ -15,6 +15,7 @@ import {
   Loader,
   BookOpen,
   Archive,
+  Lock,
 } from "lucide-react";
 import Pagination from "../components/Pagination";
 import SearchWidget from "../components/SearchWidget";
@@ -30,6 +31,21 @@ const COVER_BACKGROUNDS = [
   "from-amber-200 to-orange-100 dark:from-amber-900/70 dark:to-orange-900/60",
   "from-rose-200 to-pink-100 dark:from-rose-900/70 dark:to-pink-900/60",
   "from-indigo-200 to-violet-100 dark:from-indigo-900/70 dark:to-violet-900/60",
+];
+
+const ARCHIVE_MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 const getFirstCoverImage = (markdown: string): string | null => {
@@ -48,26 +64,33 @@ const getCoverBackground = (id: string): string => {
   return COVER_BACKGROUNDS[Math.abs(hash) % COVER_BACKGROUNDS.length];
 };
 
+const formatArchiveLabel = (archive: string): string => {
+  const [yearStr, monthStr] = archive.split("-");
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+
+  if (!Number.isFinite(year) || !Number.isFinite(month) || month < 1 || month > 12) {
+    return archive;
+  }
+
+  return `${ARCHIVE_MONTH_NAMES[month - 1]} ${year}`;
+};
+
 export default function Home() {
   const { tag } = useParams();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const pageFromUrl = Number(searchParams.get("page")) || 1;
-  const [currentPage, setCurrentPage] = useState(pageFromUrl);
+  const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
 
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [totalPosts, setTotalPosts] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const searchQuery = searchParams.get("search") || "";
   const archiveParam = searchParams.get("archive") || "";
-
-  // URL 中 page 参数变化时同步到 state
-  useEffect(() => {
-    setCurrentPage(pageFromUrl);
-  }, [pageFromUrl]);
 
   // 筛选条件变化时重置到第 1 页（跳过首次挂载）
   const isFirstMount = useRef(true);
@@ -88,12 +111,14 @@ export default function Home() {
   }, [tag, searchQuery, archiveParam]);
 
   useEffect(() => {
+    let isCurrentRequest = true;
+
     const fetchPosts = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        if (archiveParam) {
+        if (archiveParam && !searchQuery) {
           // 归档模式：获取全部文章，前端按年月过滤+分页
           const allPosts = await blog.getPosts();
           const [yearStr, monthStr] = archiveParam.split("-");
@@ -105,6 +130,9 @@ export default function Home() {
             return d.getFullYear() === year && d.getMonth() + 1 === month;
           });
           const start = (currentPage - 1) * POSTS_PER_PAGE;
+          if (!isCurrentRequest) {
+            return;
+          }
           setPosts(filtered.slice(start, start + POSTS_PER_PAGE));
           setTotalPosts(filtered.length);
         } else {
@@ -114,20 +142,33 @@ export default function Home() {
             tag: tag || undefined,
             search: searchQuery || undefined,
           });
+          if (!isCurrentRequest) {
+            return;
+          }
           setPosts(result.data);
           setTotalPosts(result.total);
         }
+        setHasLoadedOnce(true);
       } catch (err) {
+        if (!isCurrentRequest) {
+          return;
+        }
         const errorMessage =
           err instanceof Error ? err.message : "Failed to load posts";
         setError(errorMessage);
         console.error("Error fetching posts:", err);
       } finally {
-        setLoading(false);
+        if (isCurrentRequest) {
+          setLoading(false);
+        }
       }
     };
 
     void fetchPosts();
+
+    return () => {
+      isCurrentRequest = false;
+    };
   }, [currentPage, tag, searchQuery, archiveParam]);
 
   const postCards = useMemo(
@@ -153,28 +194,28 @@ export default function Home() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  if (loading) {
+  if (loading && !hasLoadedOnce) {
     return (
       <div className="flex flex-col items-center justify-center py-20">
         <Loader className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-        <p className="text-gray-600 dark:text-gray-300">加载文章中...</p>
+        <p className="text-gray-600 dark:text-gray-300">Loading articles...</p>
       </div>
     );
   }
 
-  if (error) {
+  if (error && !hasLoadedOnce) {
     return (
       <div className="flex flex-col items-center justify-center py-20 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800">
         <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
         <h3 className="text-xl font-medium text-red-600 dark:text-red-400 mb-2">
-          加载失败
+          Load failed
         </h3>
         <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
         <button
           onClick={() => window.location.reload()}
           className="mt-6 px-6 py-2 bg-red-500 text-white rounded-full text-sm font-medium hover:bg-red-600 transition-colors"
         >
-          重新加载
+          Reload
         </button>
       </div>
     );
@@ -189,7 +230,7 @@ export default function Home() {
           {searchQuery ? (
             <>
               <Search className="w-7 h-7 text-purple-500" />
-              <span className="text-gray-500 text-lg font-normal">搜索:</span>
+              <span className="text-gray-500 text-lg font-normal">Search:</span>
               <span className="text-purple-600 dark:text-purple-400">
                 "{searchQuery}"
               </span>
@@ -198,39 +239,50 @@ export default function Home() {
             <>
               <TagIcon className="w-7 h-7 text-blue-500" />
               <span className="text-blue-600 dark:text-blue-400">#{tag}</span>{" "}
-              的文章
+              posts
             </>
           ) : archiveParam ? (
             <>
               <Archive className="w-7 h-7 text-orange-500" />
               <span className="text-orange-600 dark:text-orange-400">
-                {archiveParam.replace("-", "年") + "月"}
+                {formatArchiveLabel(archiveParam)}
               </span>{" "}
-              的文章
+              posts
             </>
           ) : (
-            "全部文章"
+            "All Articles"
           )}
         </h2>
-        <span className="text-base text-gray-500 dark:text-gray-400">
-          共 {totalPosts} 篇
-        </span>
+        <div className="flex items-center gap-2 text-base text-gray-500 dark:text-gray-400">
+          {loading ? <Loader className="w-4 h-4 animate-spin" /> : null}
+          <span>{totalPosts} posts</span>
+        </div>
       </div>
+
+      {error ? (
+        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800 dark:border-amber-900/80 dark:bg-amber-950/40 dark:text-amber-200">
+          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
+          <div>
+            <p className="font-medium">Search refresh failed</p>
+            <p className="text-sm opacity-90">{error}</p>
+          </div>
+        </div>
+      ) : null}
 
       {postCards.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 bg-slate-100/50 dark:bg-gray-900/30 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 backdrop-blur-sm">
           <SearchX className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
           <h3 className="text-2xl font-medium text-gray-600 dark:text-gray-300">
-            没有找到相关文章
+            No matching articles found
           </h3>
           <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">
-            尝试更换关键词，或者查看全部文章
+            Try another keyword or browse all articles
           </p>
           <Link
             to="/posts"
             className="mt-6 px-7 py-3 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full text-base font-medium shadow-sm hover:shadow-md transition-all border border-gray-200 dark:border-gray-700"
           >
-            清空筛选
+            Clear filters
           </Link>
         </div>
       ) : (
@@ -260,9 +312,17 @@ export default function Home() {
 
               {/* 文字内容 */}
               <div className="flex flex-1 flex-col p-5 sm:p-6 min-w-0">
-                <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
-                  {post.title}
-                </h3>
+                <div className="mb-1 sm:mb-2 flex items-center gap-2 min-w-0">
+                  <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1 min-w-0">
+                    {post.title}
+                  </h3>
+                  {post.is_login_required ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/80 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-700/80 dark:bg-amber-900/30 dark:text-amber-300 shrink-0">
+                      <Lock className="w-3 h-3" />
+                      Login only
+                    </span>
+                  ) : null}
+                </div>
                 <p className="text-gray-600 dark:text-gray-300 mb-3 sm:mb-4 line-clamp-2 leading-relaxed text-sm sm:text-base">
                   {post.summary}
                 </p>
@@ -288,7 +348,7 @@ export default function Home() {
                   </div>
 
                   <span className="inline-flex items-center shrink-0 whitespace-nowrap text-sm sm:text-base font-medium text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                    阅读全文 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
+                    Read more <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
                   </span>
                 </div>
               </div>

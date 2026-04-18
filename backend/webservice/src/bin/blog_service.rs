@@ -5,7 +5,8 @@ use sqlx::postgres::PgPool;
 use std::env;
 use std::io;
 use std::sync::Mutex;
-use tracing_subscriber::{util::SubscriberInitExt};
+#[path = "../auth.rs"]
+mod auth;
 #[path = "../dbaccess/mod.rs"]
 mod db_access;
 #[path = "../errors.rs"]
@@ -33,6 +34,12 @@ async fn main() -> io::Result<()> {
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
     let db_pool = PgPool::connect(&database_url).await.unwrap();
+    db_access::moments::ensure_moments_schema_db(&db_pool)
+        .await
+        .unwrap();
+    db_access::guestbook::ensure_guestbook_schema_db(&db_pool)
+        .await
+        .unwrap();
 
     let shared_data = web::Data::new(AppState {
         health_check_response: "I'm OK.".to_string(),
@@ -52,9 +59,13 @@ async fn main() -> io::Result<()> {
         App::new()
             .wrap(cors) // <--- 3. 重点：把 Cors 中间件 wrap 进去
             .app_data(shared_data.clone())
+            .app_data(web::JsonConfig::default().limit(10 * 1024 * 1024))
             .configure(general_routes)
             .configure(articles_routes)
             .configure(comments_routes)
+            .configure(friend_links_routes)
+            .configure(moments_routes)
+            .configure(guestbook_routes)
             .configure(user_routes)
     })
     .bind("0.0.0.0:3001")?

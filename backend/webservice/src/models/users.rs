@@ -1,8 +1,6 @@
 use std::fmt::Debug;
 
-use crate::errors::MyError;
-use actix_web::web;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sqlx::FromRow;
 
 #[derive(Serialize, Debug, Clone, FromRow)]
