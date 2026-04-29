@@ -75,7 +75,7 @@ services:
 
   # ── Backend API ──
   backend:
-    image: shiokou/blog:backend
+    image: ${BACKEND_IMAGE:-shiokou/blog:backend}
     restart: unless-stopped
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-postgres}
@@ -93,7 +93,7 @@ services:
 
   # ── Frontend (static files via internal nginx) ──
   frontend:
-    image: shiokou/blog:frontend
+    image: ${FRONTEND_IMAGE:-shiokou/blog:frontend}
     restart: unless-stopped
     networks:
       - frontend
@@ -108,7 +108,7 @@ services:
 
   # ── Chat AI ──
   chat-ai:
-    image: shiokou/blog:chat-ai
+    image: ${CHAT_AI_IMAGE:-shiokou/blog:chat-ai}
     restart: unless-stopped
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-postgres}?sslmode=disable
