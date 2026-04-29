@@ -129,9 +129,9 @@ jobs:
 
             # 定义镜像名（全小写）
             REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-            FRONTEND="ghcr.io/${REPO}-frontend:sha-${{ github.sha }}"
-            BACKEND="ghcr.io/${REPO}-backend:sha-${{ github.sha }}"
-            CHAT_AI="ghcr.io/${REPO}-chat-ai:sha-${{ github.sha }}"
+            FRONTEND="ghcr.io/${REPO}-frontend:latest"
+            BACKEND="ghcr.io/${REPO}-backend:latest"
+            CHAT_AI="ghcr.io/${REPO}-chat-ai:latest"
 
             SERVICES=""
 
