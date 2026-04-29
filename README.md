@@ -71,50 +71,100 @@ blog/
      - `images/blog-stack-images_20260307_013502.tar`  
      - `images/blog-stack-images_20260307_013502.tar.sha256`
 
-## 常用命令
+## 开发指令
 
-### 启动/停止
+以下命令以当前仓库目录结构为准，推荐在项目根目录 `blog/` 下按服务分别启动。
+
+### 环境要求
+
+- Node.js >= 20
+- Rust >= 1.88
+- Go >= 1.24
+- Docker / Docker Compose
+
+### 1. 初始化环境变量
 
 ```bash
-cd /media/shiokou/DevRepo24/DevHub/Projects/2026-myapp/typescript/blog
+test -f .env || cp .env.example .env
+test -f frontend/.env.local || cp frontend/.env.example frontend/.env.local
+test -f chat-ai/.env || cp chat-ai/.env.example chat-ai/.env
+```
 
-# 首次或代码改动后
-docker compose up -d --build
+说明：
+- `backend/.env` 默认连接本地 `Postgres`：`postgres://admin:password123@localhost:5432/postgres`
+- 前端本地开发默认通过 `Vite proxy` 转发 `/api` 和 `/api/v1`
 
-# 日常启动
-docker compose up -d
+### 2. 启动数据库
 
-# 查看状态
+```bash
+cd backend
+docker compose up -d db
 docker compose ps
+```
 
-# 查看日志
-docker compose logs -f
+数据库默认监听：`localhost:5432`
 
-# 停止
+### 3. 启动 Rust 后端
+
+```bash
+cd backend
+cargo run --bin blog_service
+```
+
+后端地址：
+- API：`http://localhost:3001`
+- 健康检查：`http://localhost:3001/health`
+
+### 4. 启动 chat-ai
+
+```bash
+cd chat-ai
+set -a
+source .env
+set +a
+go run ./cmd/chat
+```
+
+服务地址：`http://localhost:8080`
+
+### 5. 启动前端
+
+```bash
+cd frontend
+npm install
+npm run dev -- --host 0.0.0.0
+```
+
+前端地址：`http://localhost:5173`
+
+开发代理规则：
+- `/api/*` -> `http://127.0.0.1:3001/*`
+- `/api/v1/*` -> `http://127.0.0.1:8080/api/v1/*`
+- `/chat/*` -> `http://127.0.0.1:8080/*`
+
+### 6. 后端双容器开发（可选）
+
+如果只需要启动 `db + Rust backend`，可以直接使用后端目录里的 compose：
+
+```bash
+cd backend
+docker compose up -d --build
+docker compose logs -f webservice
+```
+
+### 常用维护命令
+
+```bash
+# 查看数据库日志
+cd backend
+docker compose logs -f db
+
+# 停止后端目录下的容器
 docker compose down
+
+# 备份数据库
+docker compose exec -T db pg_dump -U admin -d postgres > ../DB/pre_import_backup_$(date +%Y%m%d_%H%M%S).sql
+
+# 导入数据库备份
+docker compose exec -T db psql -U admin -d postgres -v ON_ERROR_STOP=1 < ../DB/my_database_backup.sql
 ```
-
-### 数据库导入（按本次操作方式）
-
-```bash
-# 1) 备份当前数据库
-docker compose exec -T db pg_dump -U admin -d postgres > DB/pre_import_backup_$(date +%Y%m%d_%H%M%S).sql
-
-# 2) 清空并重建 public schema
-docker compose exec -T db psql -U admin -d postgres -v ON_ERROR_STOP=1 -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public; ALTER SCHEMA public OWNER TO admin; GRANT ALL ON SCHEMA public TO admin; GRANT ALL ON SCHEMA public TO public;"
-
-# 3) 导入备份 SQL
-docker compose exec -T db psql -U admin -d postgres -v ON_ERROR_STOP=1 < DB/my_database_backup.sql
-```
-
-### 镜像导入/导出
-
-```bash
-# 导出（本次已执行）
-docker save -o images/blog-stack-images_YYYYmmdd_HHMMSS.tar \
-  blog-frontend:latest blog-backend:latest blog-chat-ai:latest postgres:16-alpine
-
-# 导入
-docker load -i images/blog-stack-images_20260307_013502.tar
-```
-
