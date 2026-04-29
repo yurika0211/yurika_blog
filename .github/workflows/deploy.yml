@@ -94,7 +94,7 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.image_suffix }}
           tags: |
-            type=sha,prefix=
+            type=raw,value=${{ github.sha }}
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build & push image
@@ -133,9 +133,9 @@ jobs:
 
             # 定义镜像名（全小写）
             REPO=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-            FRONTEND="ghcr.io/${REPO}-frontend:latest"
-            BACKEND="ghcr.io/${REPO}-backend:latest"
-            CHAT_AI="ghcr.io/${REPO}-chat-ai:latest"
+            FRONTEND="ghcr.io/${REPO}-frontend:${{ github.sha }}"
+            BACKEND="ghcr.io/${REPO}-backend:${{ github.sha }}"
+            CHAT_AI="ghcr.io/${REPO}-chat-ai:${{ github.sha }}"
 
             SERVICES=""
 
