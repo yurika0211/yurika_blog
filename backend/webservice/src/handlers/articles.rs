@@ -1,4 +1,5 @@
 use crate::auth::is_authorized;
+use crate::auth::require_authorized;
 use crate::db_access::blog::*;
 use crate::errors::MyError;
 use crate::models::articles::{CreateArticle, PaginationParams, UpdateArticle};
@@ -57,7 +58,9 @@ pub async fn update_article_by_id(
     app_state: web::Data<AppState>,
     update_article: web::Json<UpdateArticle>,
     path: web::Path<i32>,
+    req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
+    require_authorized(&req)?;
     let article_id = path.into_inner();
     update_article_by_id_db(&app_state.db, article_id, update_article.into_inner())
         .await
@@ -73,7 +76,9 @@ pub async fn update_article_by_id(
 pub async fn delete_article_by_id(
     app_state: web::Data<AppState>,
     path: web::Path<i32>,
+    req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
+    require_authorized(&req)?;
     let article_id = path.into_inner();
     delete_article_by_id_db(&app_state.db, article_id)
         .await
@@ -89,7 +94,9 @@ pub async fn delete_article_by_id(
 pub async fn create_article(
     app_state: web::Data<AppState>,
     create_article: web::Json<CreateArticle>,
+    req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
+    require_authorized(&req)?;
     create_article_db(&app_state.db, create_article.into_inner())
         .await
         .map(|article| HttpResponse::Ok().json(article))
