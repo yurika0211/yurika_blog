@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [master, main]
 
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository }}
@@ -137,18 +141,21 @@ jobs:
 
             if [ "${{ needs.detect-changes.outputs.frontend }}" = "true" ]; then
               docker pull "$FRONTEND"
+              docker image inspect "$FRONTEND" --format 'frontend digest: {{index .RepoDigests 0}}'
               export FRONTEND_IMAGE="$FRONTEND"
               SERVICES="$SERVICES frontend"
             fi
 
             if [ "${{ needs.detect-changes.outputs.backend }}" = "true" ]; then
               docker pull "$BACKEND"
+              docker image inspect "$BACKEND" --format 'backend digest: {{index .RepoDigests 0}}'
               export BACKEND_IMAGE="$BACKEND"
               SERVICES="$SERVICES backend"
             fi
 
             if [ "${{ needs.detect-changes.outputs.chat_ai }}" = "true" ]; then
               docker pull "$CHAT_AI"
+              docker image inspect "$CHAT_AI" --format 'chat-ai digest: {{index .RepoDigests 0}}'
               export CHAT_AI_IMAGE="$CHAT_AI"
               SERVICES="$SERVICES chat-ai"
             fi
