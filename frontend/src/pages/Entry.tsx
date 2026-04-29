@@ -263,7 +263,11 @@ export default function Entry() {
                 </span>
 
                 <h1 className="mt-5 text-5xl font-black leading-[1.04] text-[#0f2f43] dark:text-[#f0eee6] [text-shadow:0_2px_16px_rgba(240,238,230,0.85)] dark:[text-shadow:0_2px_16px_rgba(20,20,19,0.55)] sm:text-6xl md:text-[3.8rem]">
-                  時よ止まれ111―――
+                  時よ止まれ
+                  <span className="mx-[0.08em] inline-block font-mono text-[0.86em] font-bold tracking-[0.22em] tabular-nums">
+                    111
+                  </span>
+                  <span aria-hidden="true">―――</span>
                   <span className="block text-[#0a6a89] dark:text-[#9fd7ea]">おまえは美しい</span>
                 </h1>
                 <p className="mt-4 max-w-xl text-base leading-8 font-medium text-cyan-950 [text-shadow:0_1px_10px_rgba(255,255,255,0.58)] dark:text-cyan-50 dark:[text-shadow:0_1px_12px_rgba(2,8,23,0.48)] md:text-lg">
