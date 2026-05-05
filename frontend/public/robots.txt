@@ -1,0 +1,24 @@
+# robots.txt for ユリカのブログ
+# https://yurika0408.icu
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://yurika0408.icu/sitemap.xml
+
+# Disallow admin/editor pages
+Disallow: /editor
+Disallow: /login
+
+# Disallow API endpoints
+Disallow: /api/
+
+# Allow crawling of public content
+Allow: /post/
+Allow: /posts
+Allow: /tags
+Allow: /about
+Allow: /friends
+Allow: /moments
+Allow: /guestbook

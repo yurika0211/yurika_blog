@@ -142,14 +142,65 @@ def build_og_tags(
     return "\n    ".join(meta_tags)
 
 
-def inject_og_tags(html: str, og_tags: str, title: str) -> str:
-    """Inject OG meta tags into the HTML <head> and update <title>."""
+def build_json_ld(
+    title: str,
+    description: str,
+    url: str,
+    image: str,
+    published_time: str | None = None,
+    tags: list[str] | None = None,
+) -> str:
+    """Build JSON-LD structured data for Google rich snippets."""
+    schema = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "headline": title,
+        "description": description,
+        "url": url,
+        "image": image,
+        "publisher": {
+            "@type": "Person",
+            "name": SITE_NAME,
+            "url": SITE_URL,
+        },
+    }
+    if published_time:
+        schema["datePublished"] = published_time
+    if tags:
+        schema["keywords"] = ", ".join(tags[:5])
+    return json.dumps(schema, ensure_ascii=False, indent=2)
+
+
+def inject_og_tags(html: str, og_tags: str, title: str, json_ld: str | None = None, canonical_url: str | None = None, meta_description: str | None = None) -> str:
+    """Inject OG meta tags + JSON-LD + canonical URL + meta description into the HTML <head>."""
     # Remove any existing OG/twitter meta tags to avoid duplicates
     html = re.sub(r'\s*<meta\s+(?:property="og:|name="twitter:)[^>]*/?>', '', html)
 
-    # Inject new OG tags before </head>
-    og_block = f"\n    {og_tags}\n"
-    html = html.replace("</head>", f"{og_block}</head>")
+    # Remove any existing JSON-LD script tags
+    html = re.sub(r'\s*<script\s+type="application/ld\+json"[^>]*>.*?</script>', '', html, flags=re.DOTALL)
+
+    # Remove existing canonical link
+    html = re.sub(r'\s*<link\s+rel="canonical"[^>]*/?>', '', html)
+
+    # Remove existing meta description (will be re-injected)
+    html = re.sub(r'\s*<meta\s+name="description"[^>]*/?>', '', html)
+
+    # Build the injection block
+    inject_block = f"\n    {og_tags}\n"
+
+    # Add canonical URL
+    if canonical_url:
+        inject_block += f'    <link rel="canonical" href="{escape_html(canonical_url)}" />\n'
+
+    # Add meta description
+    if meta_description:
+        inject_block += f'    <meta name="description" content="{escape_html(meta_description)}" />\n'
+
+    # Add JSON-LD if provided
+    if json_ld:
+        inject_block += f'    <script type="application/ld+json">\n    {json_ld}\n    </script>\n'
+
+    html = html.replace("</head>", f"{inject_block}</head>")
 
     # Update <title>
     html = re.sub(
@@ -172,7 +223,7 @@ class OGHandler(BaseHTTPRequestHandler):
             self._serve_default_og()
 
     def _serve_post_og(self, post_id: int):
-        """Serve index.html with post-specific OG tags."""
+        """Serve index.html with post-specific OG tags + JSON-LD."""
         post = fetch_post_cached(post_id)
         if post:
             title = post.get("title", SITE_NAME)
@@ -191,20 +242,32 @@ class OGHandler(BaseHTTPRequestHandler):
                 published_time=published_time,
                 tags=tags,
             )
+            json_ld = build_json_ld(
+                title=title,
+                description=description,
+                url=url,
+                image=image,
+                published_time=published_time,
+                tags=tags,
+            )
             page_title = f"{title} | {SITE_NAME}"
         else:
             og_tags = self._default_og_tags()
+            json_ld = None
             page_title = f"Post | {SITE_NAME}"
 
         html = load_index_html()
-        html = inject_og_tags(html, og_tags, page_title)
+        html = inject_og_tags(html, og_tags, page_title, json_ld,
+                              canonical_url=url, meta_description=description)
         self._send_html(html)
 
     def _serve_default_og(self):
         """Serve index.html with site-level default OG tags."""
         og_tags = self._default_og_tags()
         html = load_index_html()
-        html = inject_og_tags(html, og_tags, SITE_NAME)
+        html = inject_og_tags(html, og_tags, SITE_NAME,
+                              canonical_url=SITE_URL,
+                              meta_description="ユリカのブログ — 技术笔记 · Galgame 评论 · 随笔")
         self._send_html(html)
 
     def _default_og_tags(self) -> str:
