@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Yurika 的博客</title>
+    <link>https://yurika0408.icu</link>
+    <description>技术、ACG 与生活随笔</description>
+    <language>zh-CN</language>
+    <atom:link href="https://yurika0408.icu/rss.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 05 May 2026 01:18:46 +0000</lastBuildDate>
+    <item>
+      <title>API 网关设计与实现：从入门到生产</title>
+      <link>https://yurika0408.icu/post/350</link>
+      <guid>https://yurika0408.icu/post/350</guid>
+      <description>技术博客 #12 — 深度解析 API 网关 5 大核心职责（路由/认证/限流/熔断/协议转换），含完整 Go 代码、5 大开源方案对比与生产踩坑</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>微服务通信模式对比：从同步到异步的生产级选型</title>
+      <link>https://yurika0408.icu/post/349</link>
+      <guid>https://yurika0408.icu/post/349</guid>
+      <description>技术博客 #11 — 深度对比 REST/gRPC/GraphQL/消息队列/事件驱动等通信模式，涵盖可靠性、性能、服务治理与选型决策树</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LLM Agent 框架对比与选型：2026 年生产级指南</title>
+      <link>https://yurika0408.icu/post/348</link>
+      <guid>https://yurika0408.icu/post/348</guid>
+      <description>技术博客 #10 — 深度对比 LangChain/CrewAI/AutoGen/OpenClaw/LlamaIndex 等 Agent 框架，涵盖架构模式、工具调用、记忆系统与生产落地</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>向量数据库选型与实战：从原理到生产</title>
+      <link>https://yurika0408.icu/post/347</link>
+      <guid>https://yurika0408.icu/post/347</guid>
+      <description>技术博客 #9 — 深度对比 Milvus/Qdrant/Weaviate/Chroma/Pinecone 等向量数据库，涵盖索引原理、性能基准、运维成本与选型决策</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>Prompt Engineering 系统化方法论：从玄学到工程</title>
+      <link>https://yurika0408.icu/post/346</link>
+      <guid>https://yurika0408.icu/post/346</guid>
+      <description>技术博客 #8 — 系统化梳理 Prompt Engineering 方法论，涵盖指令设计、Few-shot、CoT、自一致性、ReAct 等核心策略，从理论到生产实践</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LeetCode 面试150题题解（2026-04-29 Part 3）</title>
+      <link>https://yurika0408.icu/post/344</link>
+      <guid>https://yurika0408.icu/post/344</guid>
+      <description>滑动窗口、Kadane、二分搜索、数学几何等高频题型详解</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LeetCode 面试150题题解（2026-04-29 Part 2）</title>
+      <link>https://yurika0408.icu/post/343</link>
+      <guid>https://yurika0408.icu/post/343</guid>
+      <description>堆、位运算、BST、树构造等高频题型详解，每题附完整代码</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LeetCode 面试150题题解（2026-04-29 Part 1）</title>
+      <link>https://yurika0408.icu/post/342</link>
+      <guid>https://yurika0408.icu/post/342</guid>
+      <description>DP、数组字符串、图BFS等高频题型详解，每题附 Python + Java/Go 完整代码</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>RightClaw Agent 面试题精选（2026-05-03）</title>
+      <link>https://yurika0408.icu/post/341</link>
+      <guid>https://yurika0408.icu/post/341</guid>
+      <description>2 道 Agent 开发面试题详解，涵盖后台 goroutine 生命周期管理、竞态防护等核心考点</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>RightClaw Agent 面试题精选（2026-05-02）</title>
+      <link>https://yurika0408.icu/post/340</link>
+      <guid>https://yurika0408.icu/post/340</guid>
+      <description>4 道 Agent 开发面试题详解，涵盖并发安全、分布式锁、上下文管理等核心考点</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>RightClaw Agent 面试题精选（2026-05-01）</title>
+      <link>https://yurika0408.icu/post/339</link>
+      <guid>https://yurika0408.icu/post/339</guid>
+      <description>6 道 Agent 开发面试题详解，涵盖架构设计、Function Calling、MCP 协议、记忆系统等核心考点，每题附详细答案与代码示例</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LuckyHarness：定时任务和工具调用的脏数据</title>
+      <link>https://yurika0408.icu/post/338</link>
+      <guid>https://yurika0408.icu/post/338</guid>
+      <description>抓包最有价值的地方，不是看模型说了什么，而是看请求到底发了什么。</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>阿里巴巴后端面试题整理（2026-05-01）</title>
+      <link>https://yurika0408.icu/post/337</link>
+      <guid>https://yurika0408.icu/post/337</guid>
+      <description>整理今天阿里后端面试中高频考点：Java、JVM、并发、MySQL、Redis、Spring、MQ、分布式与系统设计</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>经验：如何正确使用`AI`工具</title>
+      <link>https://yurika0408.icu/post/336</link>
+      <guid>https://yurika0408.icu/post/336</guid>
+      <description>始终保持任务定义权、验收权利和路线选择权</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>后端开发面试题目精选·第六辑</title>
+      <link>https://yurika0408.icu/post/334</link>
+      <guid>https://yurika0408.icu/post/334</guid>
+      <description>【Go 后端开发】
+1️⃣ 线上 pprof 诊断 goroutine 泄漏
+   - 考察：线上排...</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>Luckyharness：持久化记忆而被需要的rag知识库</title>
+      <link>https://yurika0408.icu/post/333</link>
+      <guid>https://yurika0408.icu/post/333</guid>
+      <description>在使用智能体进行记忆内容规划的时候，我遇到了这样的一个问题，如果想要让智能体在复杂的记忆当中</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>国内服务器部署需要进行的初始操作</title>
+      <link>https://yurika0408.icu/post/331</link>
+      <guid>https://yurika0408.icu/post/331</guid>
+      <description>在开始安装任何软件之前，**第一步永远是更新系统的软件包列表**，确保你下载的是最新版本：</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>Agent 开发岗位面试题目精选</title>
+      <link>https://yurika0408.icu/post/330</link>
+      <guid>https://yurika0408.icu/post/330</guid>
+      <description>2026.04.27 | 聚焦 A2A 协议、Guardrails、长时任务与前沿架构</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>古诺希亚：当无限循环遇上太空狼人杀</title>
+      <link>https://yurika0408.icu/post/329</link>
+      <guid>https://yurika0408.icu/post/329</guid>
+      <description>四人独立团队做出的单人版太空狼人杀——时间循环、社交推理与角色叙事的完美融合。Bangumi 7.5、Steam 特别好评 93.8%、Metacritic 85，2025 年改编为 TV 动画。</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>Luckyharness：上下文拼接模式</title>
+      <link>https://yurika0408.icu/post/328</link>
+      <guid>https://yurika0408.icu/post/328</guid>
+      <description>在研究`agent`是很有必要的，那就是对其本身上下文的组装的了解很有必要，这里来讲解一下`Luckyharnsess`的上下文拼接方式，并从中延伸找出几个优化的角度。</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>Luckyharness：如何通过打分器来提高上下文压缩时，语意的相关性</title>
+      <link>https://yurika0408.icu/post/327</link>
+      <guid>https://yurika0408.icu/post/327</guid>
+      <description>如何通过打分器来提高上下文压缩时，语意的相关性</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>中转搭建：易支付的绑定</title>
+      <link>https://yurika0408.icu/post/326</link>
+      <guid>https://yurika0408.icu/post/326</guid>
+      <description>在使用易支付的时候，会面临几个问题，首当其冲就是钱从哪里来，钱又要到哪里去，这个部分需要我们去深入思考。</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LuckyHarness：在开发`LuckyHarness`的过程中遇到的问题</title>
+      <link>https://yurika0408.icu/post/325</link>
+      <guid>https://yurika0408.icu/post/325</guid>
+      <description>在开发`LuckyHarness`的过程中，我发现了一些比较严重的问题，这些问题单独从代码的角度来讲，很难去发现它们的问题</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>每日八股：0425</title>
+      <link>https://yurika0408.icu/post/324</link>
+      <guid>https://yurika0408.icu/post/324</guid>
+      <description>每日八股 0425：操作系统进程管理、内存分配与 Go 并发模型高频面试题整理。</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LuckyHarness： v0.55.1 修复说明</title>
+      <link>https://yurika0408.icu/post/323</link>
+      <guid>https://yurika0408.icu/post/323</guid>
+      <description>LuckyHarness v0.55.1 修复说明：Bot 对话上下文丢失问题的根因分析与修复方案。</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LuckyHarness：Bot 对话问题复盘（2026-04-25）</title>
+      <link>https://yurika0408.icu/post/322</link>
+      <guid>https://yurika0408.icu/post/322</guid>
+      <description>在多轮对话、复杂任务和工具调用链路中，Bot 暴露出一批收敛与稳定性问题。   本文记录对话中出现的实际问题、根因分析、已完成修复和待办项。</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>《ACCA13 区监察课》：一部被低估的政治群像剧</title>
+      <link>https://yurika0408.icu/post/321</link>
+      <guid>https://yurika0408.icu/post/321</guid>
+      <description>用日常包裹的权力游戏，13 个自治区的微型社会实验，吉恩·奥塔斯的蹭烟日常背后隐藏着怎样的真相？</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>从零开始：多 Agent 协作建造游戏 AgentCraft 的技术选型与架构设计</title>
+      <link>https://yurika0408.icu/post/320</link>
+      <guid>https://yurika0408.icu/post/320</guid>
+      <description>当 AI Agent 们开始在虚拟世界里一起搬砖、盖房、建城市，会发生什么？本文记录了 AgentCraft 从 0 到 1 的架构设计与技术选型过程。</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>技术问题周报 | 2026-04-23 13:29</title>
+      <link>https://yurika0408.icu/post/319</link>
+      <guid>https://yurika0408.icu/post/319</guid>
+      <description>自动生成的技术问题总结，覆盖最近 6 小时内的技术问题</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>从工具文本到 OpenAI 协议：把 Agent 工具链路接到真实执行层</title>
+      <link>https://yurika0408.icu/post/318</link>
+      <guid>https://yurika0408.icu/post/318</guid>
+      <description>把运行时元数据、`&lt;tool_call&gt;`、`tool_calls` 和 OpenAI 工具协议串起来，给出 Telegram → OpenAI → 工具执行器的可落地实现。</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LuckyHarness 完整部署与 Telegram Bot 绑定操作手册</title>
+      <link>https://yurika0408.icu/post/317</link>
+      <guid>https://yurika0408.icu/post/317</guid>
+      <description>LuckyHarness v0.38.0 完整指南：从安装部署、配置详解到 Telegram/QQ 机器人绑定，包含故障排查与最佳实践</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LuckyHarness 记忆功能深度调查：从 5 个配置陷阱到核心设计缺陷</title>
+      <link>https://yurika0408.icu/post/316</link>
+      <guid>https://yurika0408.icu/post/316</guid>
+      <description>对 LuckyHarness v0.38.0 进行多轮对话记忆测试，发现并修复 5 个配置问题，但会话持久化功能疑似存在设计缺陷，导致多轮记忆完全失效。</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LuckyHarness 配置统一与 Telegram 网关调试深度总结</title>
+      <link>https://yurika0408.icu/post/315</link>
+      <guid>https://yurika0408.icu/post/315</guid>
+      <description>详细记录 LuckyHarness 配置从 JSON+YAML 双格式统一为单一 JSON 格式的全过程，以及 Telegram Bot 网关的调试经验</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>出包王女Darkness OVA</title>
+      <link>https://yurika0408.icu/post/314</link>
+      <guid>https://yurika0408.icu/post/314</guid>
+      <description>对《出包王女Darkness OVA》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：7.1</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>幽灵公主</title>
+      <link>https://yurika0408.icu/post/313</link>
+      <guid>https://yurika0408.icu/post/313</guid>
+      <description>对《幽灵公主》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：8.4</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>青春猪头少年不会梦到怀梦美少女</title>
+      <link>https://yurika0408.icu/post/312</link>
+      <guid>https://yurika0408.icu/post/312</guid>
+      <description>对《青春猪头少年不会梦到怀梦美少女》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：7.4</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>天空之城</title>
+      <link>https://yurika0408.icu/post/311</link>
+      <guid>https://yurika0408.icu/post/311</guid>
+      <description>对《天空之城》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：8.5</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>悠久之翼2Prologue</title>
+      <link>https://yurika0408.icu/post/310</link>
+      <guid>https://yurika0408.icu/post/310</guid>
+      <description>对《悠久之翼2Prologue》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：7.2</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>VERSEⁿ - Episodeⁿ | 空想</title>
+      <link>https://yurika0408.icu/post/309</link>
+      <guid>https://yurika0408.icu/post/309</guid>
+      <description>对《VERSEⁿ - Episodeⁿ | 空想》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：6.1</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>舒克和贝塔</title>
+      <link>https://yurika0408.icu/post/308</link>
+      <guid>https://yurika0408.icu/post/308</guid>
+      <description>对《舒克和贝塔》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：7.3</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>马达加斯加的企鹅</title>
+      <link>https://yurika0408.icu/post/307</link>
+      <guid>https://yurika0408.icu/post/307</guid>
+      <description>对《马达加斯加的企鹅》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：6.7</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>四叠半神话大系</title>
+      <link>https://yurika0408.icu/post/306</link>
+      <guid>https://yurika0408.icu/post/306</guid>
+      <description>对《四叠半神话大系》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：8.6</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>四月是你的谎言</title>
+      <link>https://yurika0408.icu/post/305</link>
+      <guid>https://yurika0408.icu/post/305</guid>
+      <description>对《四月是你的谎言》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：8</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>埃罗芒阿老师</title>
+      <link>https://yurika0408.icu/post/304</link>
+      <guid>https://yurika0408.icu/post/304</guid>
+      <description>对《埃罗芒阿老师》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：6.6</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>Rust 异步运行时对比：tokio vs async-std 的选型与实践</title>
+      <link>https://yurika0408.icu/post/303</link>
+      <guid>https://yurika0408.icu/post/303</guid>
+      <description>深入对比 Rust 两大异步运行时 tokio 和 async-std 的架构设计、性能表现和生态差异，给出选型建议</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>LLM Function Calling 的工程实践：从 API 调用到生产级 Agent</title>
+      <link>https://yurika0408.icu/post/302</link>
+      <guid>https://yurika0408.icu/post/302</guid>
+      <description>分享 Function Calling 从 Schema 设计到生产级 Agent Loop 的工程实践，涵盖错误处理、并行调用、安全边界等核心问题</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>AI Agent 的记忆系统设计：从短期上下文到长期知识库</title>
+      <link>https://yurika0408.icu/post/301</link>
+      <guid>https://yurika0408.icu/post/301</guid>
+      <description>探讨 AI Agent 记忆系统的分层架构设计，从短期上下文管理到长期知识持久化，以及检索策略的工程实践</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>Go 泛型实战：类型约束与设计模式的正确打开方式</title>
+      <link>https://yurika0408.icu/post/300</link>
+      <guid>https://yurika0408.icu/post/300</guid>
+      <description>从类型约束到设计模式，分享 Go 泛型在实际项目中的使用经验、踩坑记录和性能考量</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>从零搭建一个 MCP 服务器：Model Context Protocol 实战指南</title>
+      <link>https://yurika0408.icu/post/299</link>
+      <guid>https://yurika0408.icu/post/299</guid>
+      <description>手把手教你实现一个完整的 MCP 服务器，覆盖 tools、resources、prompts 三大接口，附完整代码与调试技巧</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+    <item>
+      <title>我的妹妹哪有这么可爱！</title>
+      <link>https://yurika0408.icu/post/298</link>
+      <guid>https://yurika0408.icu/post/298</guid>
+      <description>对《我的妹妹哪有这么可爱！》的多维度深度评论，涵盖叙事、角色、视听、主题等方面。Bangumi评分：7.1</description>
+      <pubDate>Tue, 05 May 2026 01:18:46 +0000</pubDate>
+    </item>
+  </channel>
+</rss>
