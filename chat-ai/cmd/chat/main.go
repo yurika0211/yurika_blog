@@ -9,6 +9,7 @@ import (
 	"chat-ai/routes"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func mustEnv(key string) string {
@@ -29,6 +30,8 @@ func getEnv(key, def string) string {
 }
 
 func main() {
+	_ = godotenv.Load("../.env", ".env")
+
 	apiKey := mustEnv("OPENAI_API_KEY")
 	apiURL := mustEnv("OPENAI_API_URL")
 	model := getEnv("OPENAI_MODEL", "deepseek-chat")

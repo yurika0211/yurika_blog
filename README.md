@@ -73,7 +73,7 @@ blog/
 
 ## 开发指令
 
-以下命令以当前仓库目录结构为准，推荐在项目根目录 `blog/` 下按服务分别启动。
+以下命令以当前仓库目录结构为准。根目录 `.env` 现在是整个仓库的统一配置入口，`docker compose`、`backend` 本地启动、`chat-ai` 本地启动都会优先读取它。
 
 ### 环境要求
 
@@ -86,12 +86,11 @@ blog/
 
 ```bash
 test -f .env || cp .env.example .env
-test -f frontend/.env.local || cp frontend/.env.example frontend/.env.local
-test -f chat-ai/.env || cp chat-ai/.env.example chat-ai/.env
 ```
 
 说明：
-- `backend/.env` 默认连接本地 `Postgres`：`postgres://admin:password123@localhost:5432/postgres`
+- 根目录 `.env` 是唯一主配置源，至少需要补齐 `POSTGRES_PASSWORD`、`DATABASE_URL`、`OPENAI_*`、`SYSTEM_CONTENT`
+- `frontend/.env.*` 和 `chat-ai/.env` 仅作为局部覆盖/兼容回退，不建议再作为主配置维护
 - 前端本地开发默认通过 `Vite proxy` 转发 `/api` 和 `/api/v1`
 
 ### 2. 启动数据库
@@ -102,30 +101,33 @@ docker compose up -d db
 docker compose ps
 ```
 
-数据库默认监听：`localhost:5432`
+数据库默认监听：`localhost:${DB_PORT:-5432}`
 
 ### 3. 启动 Rust 后端
 
 ```bash
 cd backend
-cargo run --bin blog_service
+cargo run -p webservice --bin blog_service
 ```
 
 后端地址：
 - API：`http://localhost:3001`
 - 健康检查：`http://localhost:3001/health`
 
+说明：
+- 程序会先尝试读取根目录 `../.env`，再回退到 `backend/.env`
+
 ### 4. 启动 chat-ai
 
 ```bash
 cd chat-ai
-set -a
-source .env
-set +a
 go run ./cmd/chat
 ```
 
 服务地址：`http://localhost:8080`
+
+说明：
+- 程序会先尝试读取根目录 `../.env`，再回退到 `chat-ai/.env`
 
 ### 5. 启动前端
 
