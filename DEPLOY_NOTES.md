@@ -5,7 +5,7 @@
 ### 1. OG Meta Tags + SEO Server (commit 253cc42, 3f2fef6)
 
 **What changed:**
-- New `og-server/` directory: Python HTTP server that injects Open Graph, Twitter Card, JSON-LD structured data, canonical URLs, and meta descriptions into the SPA's `index.html`
+- New `frontend/og-server/` directory: Python HTTP server that injects Open Graph and Twitter Card meta tags into the SPA's `index.html`
 - `frontend/Dockerfile`: Now installs Python 3 and runs the OG server alongside nginx
 - `frontend/nginx.conf`: Detects social media crawlers by User-Agent and proxies `/post/:id` requests to the OG server (port 8080)
 - `frontend/index.html`: Added default OG tags, meta description, and canonical link
@@ -55,9 +55,10 @@ The OG server uses these environment variables (set in docker-compose):
 | Variable | Default | Description |
 |---|---|---|
 | `BLOG_API_BASE` | `http://backend:3001` | Blog API base URL |
-| `OG_IMAGE` | Site avatar URL | Default OG image |
-| `OG_SITE_NAME` | Site name in Japanese | Site name |
-| `OG_SITE_URL` | Site canonical URL | Canonical site URL |
+| `HTML_ROOT` | `/usr/share/nginx/html` | Path to SPA static files |
+| `SITE_DEFAULT_IMAGE` | Site avatar URL | Default OG image |
+| `SITE_NAME` | Site name in Japanese | Site name |
+| `SITE_URL` | Site canonical URL | Canonical site URL |
 | `OG_SERVER_PORT` | `8080` | OG server port |
 
 ## Verification Checklist
