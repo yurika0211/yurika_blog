@@ -687,6 +687,7 @@ export const blog = {
   getPostsPaginated: (params: {
     page?: number;
     per_page?: number;
+    category?: string;
     tag?: string;
     search?: string;
   }) => {

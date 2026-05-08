@@ -47,15 +47,17 @@ pub async fn get_notes_paginated_db(
         SELECT COUNT(*) as count
         FROM articles
         WHERE ($1::bool OR COALESCE(is_login_required, FALSE) = FALSE)
-          AND ($2::text IS NULL OR $2 = ANY(tags))
+          AND ($2::text IS NULL OR COALESCE(category, 'Uncategorized') = $2)
+          AND ($3::text IS NULL OR $3 = ANY(tags))
           AND (
-            $3::text IS NULL
-            OR LOWER(title) LIKE $3
-            OR LOWER(summary) LIKE $3
+            $4::text IS NULL
+            OR LOWER(title) LIKE $4
+            OR LOWER(summary) LIKE $4
           )
         "#,
     )
     .bind(include_login_required)
+    .bind(params.category.as_deref())
     .bind(params.tag.as_deref())
     .bind(search_pattern.as_deref())
     .fetch_one(pool)
@@ -66,17 +68,19 @@ pub async fn get_notes_paginated_db(
         SELECT *
         FROM articles
         WHERE ($1::bool OR COALESCE(is_login_required, FALSE) = FALSE)
-          AND ($2::text IS NULL OR $2 = ANY(tags))
+          AND ($2::text IS NULL OR COALESCE(category, 'Uncategorized') = $2)
+          AND ($3::text IS NULL OR $3 = ANY(tags))
           AND (
-            $3::text IS NULL
-            OR LOWER(title) LIKE $3
-            OR LOWER(summary) LIKE $3
+            $4::text IS NULL
+            OR LOWER(title) LIKE $4
+            OR LOWER(summary) LIKE $4
           )
         ORDER BY is_pinned DESC NULLS LAST, date DESC NULLS LAST
-        LIMIT $4 OFFSET $5
+        LIMIT $5 OFFSET $6
         "#,
     )
     .bind(include_login_required)
+    .bind(params.category.as_deref())
     .bind(params.tag.as_deref())
     .bind(search_pattern.as_deref())
     .bind(per_page)
@@ -149,6 +153,14 @@ pub async fn update_article_by_id_db(
         current_article_row.summary.unwrap_or_default()
     };
 
+    let category: String = if let Some(category) = update_article.category {
+        category
+    } else {
+        current_article_row
+            .category
+            .unwrap_or_else(|| "Uncategorized".to_string())
+    };
+
     let tags: Vec<String> = if let Some(tags) = update_article.tags {
         tags
     } else {
@@ -171,13 +183,14 @@ pub async fn update_article_by_id_db(
     let updated_article_row = sqlx::query_as::<_, Article>(
         r#"
         UPDATE articles
-        SET title = $1, content = $2, summary = $3, tags = $4, is_pinned = $5, is_login_required = $6
-        WHERE id = $7
+        SET title = $1, content = $2, category = $3, summary = $4, tags = $5, is_pinned = $6, is_login_required = $7
+        WHERE id = $8
         RETURNING *
         "#,
     )
     .bind(title)
     .bind(content)
+    .bind(category)
     .bind(summary)
     .bind(tags)
     .bind(is_pinned)
@@ -205,17 +218,21 @@ pub async fn create_article_db(
     create_article: CreateArticle,
 ) -> Result<Article, MyError> {
     let now = Utc::now().naive_utc();
+    let category = create_article
+        .category
+        .unwrap_or_else(|| "Uncategorized".to_string());
     let is_pinned = create_article.is_pinned.unwrap_or(false);
     let is_login_required = create_article.is_login_required.unwrap_or(false);
     let new_article_row = sqlx::query_as::<_, Article>(
         r#"
-        INSERT INTO articles (title, content, summary, tags, date, is_pinned, is_login_required)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO articles (title, content, category, summary, tags, date, is_pinned, is_login_required)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
         "#,
     )
     .bind(create_article.title)
     .bind(create_article.content)
+    .bind(category)
     .bind(create_article.summary)
     .bind(create_article.tags)
     .bind(now)

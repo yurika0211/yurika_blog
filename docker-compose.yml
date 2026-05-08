@@ -16,7 +16,7 @@ services:
       - ./backend/db/db.sql:/docker-entrypoint-initdb.d/10_blog.sql:ro
       - ./chat-ai/dbaccess/db.sql:/docker-entrypoint-initdb.d/20_chat_ai.sql:ro
     ports:
-      - "5432:5432"
+      - "5433:5432"
     networks:
       - internal
       - frontend
@@ -45,7 +45,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@db:5432/${POSTGRES_DB:-postgres}}
+      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@db:5433/${POSTGRES_DB:-postgres}}
       NODE_ENV: production
     expose:
       - "3001"
@@ -77,7 +77,7 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
-      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@db:5432/${POSTGRES_DB:-postgres}?sslmode=disable}
+      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@db:5433/${POSTGRES_DB:-postgres}?sslmode=disable}
       OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY is required}
       OPENAI_API_URL: ${OPENAI_API_URL:?OPENAI_API_URL is required}
       OPENAI_MODEL: ${OPENAI_MODEL:-deepseek-chat}
