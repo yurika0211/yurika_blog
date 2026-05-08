@@ -119,7 +119,7 @@ export default function Sidebar() {
           {visibleTags.map(([tag, count]) => (
             <Link
               key={tag}
-              to={`/tag/${tag}`}
+              to={`/posts?tag=${encodeURIComponent(tag)}`}
               className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-sm bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900 hover:text-blue-600 dark:hover:text-blue-300 transition-colors"
             >
               #{tag}
@@ -130,10 +130,10 @@ export default function Sidebar() {
           ))}
         </div>
         <Link
-          to="/tags"
+          to="/posts"
           className="mt-3 inline-block text-xs text-blue-600 dark:text-blue-400 hover:underline"
         >
-          View all tags →
+          Browse tags in posts →
         </Link>
       </div>
 
