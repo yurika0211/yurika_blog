@@ -79,7 +79,7 @@ volumes:
     image: ${BACKEND_IMAGE:-shiokou/blog:backend}
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-postgres}
+      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-postgres}}
     networks:
       - internal
       - frontend
@@ -112,7 +112,17 @@ volumes:
     image: ${CHAT_AI_IMAGE:-shiokou/blog:chat-ai}
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-postgres}?sslmode=disable
+      DATABASE_URL: ${DATABASE_URL:-postgres://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-postgres}?sslmode=disable}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:?OPENAI_API_KEY is required}
+      OPENAI_API_URL: ${OPENAI_API_URL:?OPENAI_API_URL is required}
+      OPENAI_MODEL: ${OPENAI_MODEL:-deepseek-chat}
+      SYSTEM_CONTENT: ${SYSTEM_CONTENT:?SYSTEM_CONTENT is required}
+      CHAT_PORT: ${CHAT_PORT:-8080}
+      RAG_ENABLED: ${RAG_ENABLED:-false}
+      RAG_WRITE_ENABLED: ${RAG_WRITE_ENABLED:-true}
+      OPENAI_EMBEDDING_URL: ${OPENAI_EMBEDDING_URL:-https://api.openai.com/v1/embeddings}
+      OPENAI_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL:-text-embedding-3-small}
+      RAG_TOP_K: ${RAG_TOP_K:-6}
     networks:
       - internal
       - frontend

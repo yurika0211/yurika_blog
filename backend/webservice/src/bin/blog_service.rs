@@ -30,6 +30,7 @@ async fn main() -> io::Result<()> {
         .init();
 
     tracing::info!("🚀 博客后端服务正在启动...");
+    let _ = dotenv::from_filename("../.env");
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
