@@ -22,11 +22,11 @@ services:
     ports:
       - "80:80"
       - "443:443"
-volumes:
-    - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-    - ./nginx/static:/var/www/static:ro
-    - certbot-webroot:/var/www/certbot:ro
-    - certbot-certs:/etc/letsencrypt:ro
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/static:/var/www/static:ro
+      - certbot-webroot:/var/www/certbot:ro
+      - certbot-certs:/etc/letsencrypt:ro
     networks:
       - frontend
     depends_on:

@@ -172,8 +172,8 @@ jobs:
               exit 1
             fi
 
-            # 仅重启有改动的服务
-            docker compose -f docker-compose.prod.yml up -d --force-recreate $SERVICES
+            # 仅重启有改动的服务；避免前端单独发布时把 backend/chat-ai 依赖也拉起
+            docker compose -f docker-compose.prod.yml up -d --force-recreate --no-deps $SERVICES
 
             # 清理旧镜像
             docker image prune -f
