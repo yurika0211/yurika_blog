@@ -178,7 +178,6 @@ export default function Header() {
           <Link to="/friends" className={navLinkClass}>Friends</Link>
           <Link to="/moments" className={navLinkClass}>Moments</Link>
           <Link to="/guestbook" className={navLinkClass}>Guestbook</Link>
-          <Link to="/tags" className={navLinkClass}>Tags</Link>
           <Link to="/about" className={navLinkClass}>About</Link>
           <Link
             to={editorLink}
@@ -243,7 +242,6 @@ export default function Header() {
           <Link to="/friends" className={'py-1 ' + navLinkClass}>Friends</Link>
           <Link to="/moments" className={'py-1 ' + navLinkClass}>Moments</Link>
           <Link to="/guestbook" className={'py-1 ' + navLinkClass}>Guestbook</Link>
-          <Link to="/tags" className={'py-1 ' + navLinkClass}>Tags</Link>
           <Link to="/about" className={'py-1 ' + navLinkClass}>About</Link>
           <Link
             to={editorLink}

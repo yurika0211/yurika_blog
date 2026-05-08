@@ -377,7 +377,7 @@ export default function Home() {
                       {post.tags.slice(0, 2).map((t) => (
                         <Link
                           key={t}
-                          to={`/tag/${encodeURIComponent(t)}`}
+                          to={`/posts?tag=${encodeURIComponent(t)}`}
                           onClick={(e) => e.stopPropagation()}
                           className="bg-gray-100 dark:bg-gray-800 px-2 sm:px-2.5 py-0.5 rounded text-xs sm:text-sm text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 transition-colors truncate max-w-[5rem] sm:max-w-none"
                         >

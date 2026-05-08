@@ -15,15 +15,14 @@ interface YearGroup {
   total: number;
 }
 
-interface CategoryTagEntry {
-  tag: string;
-  count: number;
-}
-
 interface CategoryGroup {
   name: string;
   total: number;
-  tags: CategoryTagEntry[];
+}
+
+interface TagGroup {
+  name: string;
+  count: number;
 }
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -62,36 +61,39 @@ function buildArchive(posts: { date: string }[]): YearGroup[] {
 }
 
 function buildCategories(posts: BlogPost[]): CategoryGroup[] {
-  const map = new Map<string, { total: number; tags: Map<string, number> }>();
+  const map = new Map<string, number>();
 
   for (const post of posts) {
     const category = normalizeCategory(post.category);
-    if (!map.has(category)) {
-      map.set(category, { total: 0, tags: new Map() });
-    }
-
-    const group = map.get(category)!;
-    group.total += 1;
-    for (const tag of post.tags) {
-      const trimmedTag = tag.trim();
-      if (!trimmedTag) continue;
-      group.tags.set(trimmedTag, (group.tags.get(trimmedTag) || 0) + 1);
-    }
+    map.set(category, (map.get(category) || 0) + 1);
   }
 
   return Array.from(map.entries())
-    .map(([name, value]) => ({
+    .map(([name, total]) => ({
       name,
-      total: value.total,
-      tags: Array.from(value.tags.entries())
-        .map(([tag, count]) => ({ tag, count }))
-        .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag)),
+      total,
     }))
     .sort((a, b) => {
       if (a.name === UNCATEGORIZED_LABEL) return 1;
       if (b.name === UNCATEGORIZED_LABEL) return -1;
       return b.total - a.total || a.name.localeCompare(b.name);
     });
+}
+
+function buildTags(posts: BlogPost[]): TagGroup[] {
+  const map = new Map<string, number>();
+
+  for (const post of posts) {
+    for (const tag of post.tags) {
+      const normalized = tag.trim();
+      if (!normalized) continue;
+      map.set(normalized, (map.get(normalized) || 0) + 1);
+    }
+  }
+
+  return Array.from(map.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
 export default function ArchiveWidget() {
@@ -103,7 +105,6 @@ export default function ArchiveWidget() {
   const currentTag = tagFromRoute || searchParams.get('tag') || '';
 
   const [collapsedYears, setCollapsedYears] = useState<Set<number>>(new Set());
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     blog.getPosts().then(setPosts).catch(() => {});
@@ -111,6 +112,7 @@ export default function ArchiveWidget() {
 
   const archive = useMemo(() => buildArchive(posts), [posts]);
   const categories = useMemo(() => buildCategories(posts), [posts]);
+  const tags = useMemo(() => buildTags(posts), [posts]);
 
   const toggleYear = (year: number) => {
     setCollapsedYears((prev) => {
@@ -121,25 +123,16 @@ export default function ArchiveWidget() {
     });
   };
 
-  const toggleCategory = (category: string) => {
-    setCollapsedCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(category)) next.delete(category);
-      else next.add(category);
-      return next;
-    });
-  };
-
   const buildCategoryLink = (category: string) => {
     const params = new URLSearchParams();
     params.set('category', category);
     return `/posts?${params.toString()}`;
   };
 
-  const buildCategoryTagLink = (category: string, tag: string) => {
+  const buildTagLink = (tag: string) => {
     const params = new URLSearchParams();
-    params.set('category', category);
     params.set('tag', tag);
+    if (currentCategory) params.set('category', currentCategory);
     return `/posts?${params.toString()}`;
   };
 
@@ -151,7 +144,7 @@ export default function ArchiveWidget() {
     return `/posts?${params.toString()}`;
   };
 
-  if (archive.length === 0 && categories.length === 0) return null;
+  if (archive.length === 0 && categories.length === 0 && tags.length === 0) return null;
 
   return (
     <nav className="space-y-7">
@@ -174,63 +167,51 @@ export default function ArchiveWidget() {
               <span>All posts</span>
             </Link>
 
-            {categories.map(({ name, total, tags }) => {
-              const isCategoryCollapsed = collapsedCategories.has(name);
+            {categories.map(({ name, total }) => {
               const isCategoryActive = currentCategory === name && !currentTag;
               return (
                 <div key={name}>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => toggleCategory(name)}
-                      className="inline-flex h-8 w-8 items-center justify-center rounded text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                      aria-label={isCategoryCollapsed ? `Expand ${name}` : `Collapse ${name}`}
-                    >
-                      {isCategoryCollapsed ? (
-                        <ChevronRight className="h-4 w-4 shrink-0" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4 shrink-0" />
-                      )}
-                    </button>
-
-                    <Link
-                      to={buildCategoryLink(name)}
-                      className={`flex min-w-0 flex-1 items-center justify-between rounded px-2.5 py-1.5 text-sm font-semibold transition-colors ${
-                        isCategoryActive
-                          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                          : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-gray-100'
-                      }`}
-                    >
-                      <span className="truncate">{name}</span>
-                      <span className="ml-3 text-xs font-normal text-gray-400">{total}</span>
-                    </Link>
-                  </div>
-
-                  {!isCategoryCollapsed && tags.length > 0 ? (
-                    <div className="ml-9 mt-1 space-y-1">
-                      {tags.map(({ tag, count }) => {
-                        const isActive = currentCategory === name && currentTag === tag;
-                        return (
-                          <Link
-                            key={`${name}-${tag}`}
-                            to={buildCategoryTagLink(name, tag)}
-                            className={`flex items-center justify-between rounded px-2.5 py-1.5 text-sm transition-colors ${
-                              isActive
-                                ? 'bg-blue-100 font-medium text-blue-600 dark:bg-blue-900/40 dark:text-blue-300'
-                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
-                            }`}
-                          >
-                            <span className="flex min-w-0 items-center gap-2 truncate">
-                              <Hash className="h-3.5 w-3.5 shrink-0" />
-                              <span className="truncate">{tag}</span>
-                            </span>
-                            <span className="ml-3 text-xs text-gray-400">{count}</span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  ) : null}
+                  <Link
+                    to={buildCategoryLink(name)}
+                    className={`flex min-w-0 items-center justify-between rounded px-2.5 py-1.5 text-sm font-semibold transition-colors ${
+                      isCategoryActive
+                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
+                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-gray-100'
+                    }`}
+                  >
+                    <span className="truncate">{name}</span>
+                    <span className="ml-3 text-xs font-normal text-gray-400">{total}</span>
+                  </Link>
                 </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
+
+      {tags.length > 0 ? (
+        <section>
+          <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-gray-900 dark:text-white">
+            <Hash className="h-5 w-5 text-blue-500" />
+            Tags
+          </h3>
+
+          <div className="space-y-1.5">
+            {tags.map(({ name, count }) => {
+              const isActive = currentTag === name;
+              return (
+                <Link
+                  key={name}
+                  to={buildTagLink(name)}
+                  className={`flex items-center justify-between rounded px-2.5 py-1.5 text-sm transition-colors ${
+                    isActive
+                      ? 'bg-blue-100 font-medium text-blue-600 dark:bg-blue-900/40 dark:text-blue-300'
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
+                  }`}
+                >
+                  <span className="truncate">#{name}</span>
+                  <span className="ml-3 text-xs text-gray-400">{count}</span>
+                </Link>
               );
             })}
           </div>
