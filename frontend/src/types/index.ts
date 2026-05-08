@@ -5,6 +5,7 @@ export interface BlogPost {
   summary: string;
   content: string; // 暂时存 Markdown 文本
   date: string;
+  category?: string;
   tags: string[];
   is_pinned?: boolean;
   is_login_required?: boolean;

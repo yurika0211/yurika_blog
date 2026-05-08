@@ -10,6 +10,7 @@ pub struct Article {
     pub id: i32,
     pub title: String,
     pub date: Option<NaiveDateTime>,
+    pub category: Option<String>,
     pub summary: Option<String>,
     pub tags: Option<Vec<String>>,
     pub content: Option<String>,
@@ -22,6 +23,7 @@ pub struct PaginationParams {
     pub page: Option<i64>,
     pub per_page: Option<i64>,
     pub tag: Option<String>,
+    pub category: Option<String>,
     pub search: Option<String>,
 }
 
@@ -37,6 +39,7 @@ pub struct PaginatedArticles {
 pub struct CreateArticle {
     pub title: Option<String>,
     pub date: Option<NaiveDateTime>,
+    pub category: Option<String>,
     pub summary: Option<String>,
     pub tags: Option<Vec<String>>,
     pub content: Option<String>,
@@ -48,6 +51,7 @@ pub struct CreateArticle {
 pub struct UpdateArticle {
     pub title: Option<String>,
     pub date: Option<NaiveDateTime>,
+    pub category: Option<String>,
     pub summary: Option<String>,
     pub tags: Option<Vec<String>>,
     pub content: Option<String>,
@@ -61,6 +65,7 @@ impl From<web::Json<Article>> for Article {
             id: article.id,
             title: article.title.clone(),
             date: article.date.clone(),
+            category: article.category.clone(),
             summary: article.summary.clone(),
             tags: article.tags.clone(),
             content: article.content.clone(),
@@ -76,6 +81,7 @@ impl TryFrom<web::Json<CreateArticle>> for CreateArticle {
         Ok(CreateArticle {
             title: article.title.clone(),
             date: article.date.clone(),
+            category: article.category.clone(),
             summary: article.summary.clone(),
             tags: article.tags.clone(),
             content: article.content.clone(),
@@ -90,6 +96,7 @@ impl From<web::Json<UpdateArticle>> for UpdateArticle {
         UpdateArticle {
             title: article.title.clone(),
             date: article.date.clone(),
+            category: article.category.clone(),
             summary: article.summary.clone(),
             tags: article.tags.clone(),
             content: article.content.clone(),

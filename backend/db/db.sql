@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS articles;
 CREATE TABLE articles (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
+    category VARCHAR(128) NOT NULL DEFAULT 'Uncategorized',
     summary TEXT,
     content TEXT NOT NULL,
     tags TEXT[],                        -- Array of text
@@ -14,11 +15,11 @@ CREATE TABLE articles (
 );
 
 -- 3. Insert data (Corrected column name and Array formatting)
-INSERT INTO articles (date, summary, tags, title, content)
+INSERT INTO articles (date, category, summary, tags, title, content)
 VALUES
-    ('2023-01-01', 'Summary 1', '{Tag1}', 'Title 1', 'Content 1'),
-    ('2023-01-02', 'Summary 2', '{Tag2, TagA}', 'Title 2', 'Content 2'),
-    ('2023-01-03', 'Summary 3', ARRAY['Tag3'], 'Title 3', 'Content 3');
+    ('2023-01-01', 'General', 'Summary 1', '{Tag1}', 'Title 1', 'Content 1'),
+    ('2023-01-02', 'General', 'Summary 2', '{Tag2, TagA}', 'Title 2', 'Content 2'),
+    ('2023-01-03', 'General', 'Summary 3', ARRAY['Tag3'], 'Title 3', 'Content 3');
 
 -- 4. Create the table of comment
 create table comments (

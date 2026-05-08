@@ -16,6 +16,7 @@ import {
   BookOpen,
   Archive,
   Lock,
+  FolderTree,
 } from "lucide-react";
 import Pagination from "../components/Pagination";
 import SearchWidget from "../components/SearchWidget";
@@ -91,24 +92,32 @@ export default function Home() {
 
   const searchQuery = searchParams.get("search") || "";
   const archiveParam = searchParams.get("archive") || "";
+  const categoryParam = searchParams.get("category") || "";
+  const tagQueryParam = searchParams.get("tag") || "";
+  const activeTag = tag || tagQueryParam;
 
   // 筛选条件变化时重置到第 1 页（跳过首次挂载）
   const isFirstMount = useRef(true);
-  const prevFilters = useRef({ tag, searchQuery, archiveParam });
+  const prevFilters = useRef({ activeTag, searchQuery, archiveParam, categoryParam });
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
       return;
     }
     const prev = prevFilters.current;
-    prevFilters.current = { tag, searchQuery, archiveParam };
-    if (prev.tag !== tag || prev.searchQuery !== searchQuery || prev.archiveParam !== archiveParam) {
+    prevFilters.current = { activeTag, searchQuery, archiveParam, categoryParam };
+    if (
+      prev.activeTag !== activeTag ||
+      prev.searchQuery !== searchQuery ||
+      prev.archiveParam !== archiveParam ||
+      prev.categoryParam !== categoryParam
+    ) {
       const params = new URLSearchParams(searchParams);
       params.delete("page");
       navigate(`?${params.toString()}`, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tag, searchQuery, archiveParam]);
+  }, [activeTag, searchQuery, archiveParam, categoryParam]);
 
   useEffect(() => {
     let isCurrentRequest = true;
@@ -127,7 +136,11 @@ export default function Home() {
           const filtered = allPosts.filter((post) => {
             if (!post.date) return false;
             const d = new Date(post.date);
-            return d.getFullYear() === year && d.getMonth() + 1 === month;
+            const matchesArchive = d.getFullYear() === year && d.getMonth() + 1 === month;
+            const normalizedCategory = post.category?.trim() || "Uncategorized";
+            const matchesCategory = !categoryParam || normalizedCategory === categoryParam;
+            const matchesTag = !activeTag || post.tags.includes(activeTag);
+            return matchesArchive && matchesCategory && matchesTag;
           });
           const start = (currentPage - 1) * POSTS_PER_PAGE;
           if (!isCurrentRequest) {
@@ -139,7 +152,8 @@ export default function Home() {
           const result = await blog.getPostsPaginated({
             page: currentPage,
             per_page: POSTS_PER_PAGE,
-            tag: tag || undefined,
+            category: categoryParam || undefined,
+            tag: activeTag || undefined,
             search: searchQuery || undefined,
           });
           if (!isCurrentRequest) {
@@ -169,7 +183,7 @@ export default function Home() {
     return () => {
       isCurrentRequest = false;
     };
-  }, [currentPage, tag, searchQuery, archiveParam]);
+  }, [currentPage, activeTag, searchQuery, archiveParam, categoryParam]);
 
   const postCards = useMemo(
     () =>
@@ -235,10 +249,36 @@ export default function Home() {
                 "{searchQuery}"
               </span>
             </>
-          ) : tag ? (
+          ) : activeTag ? (
             <>
               <TagIcon className="w-7 h-7 text-blue-500" />
-              <span className="text-blue-600 dark:text-blue-400">#{tag}</span>{" "}
+              {categoryParam ? (
+                <span className="text-blue-600 dark:text-blue-400">
+                  {categoryParam} / #{activeTag}
+                </span>
+              ) : (
+                <span className="text-blue-600 dark:text-blue-400">#{activeTag}</span>
+              )}{" "}
+              posts
+            </>
+          ) : categoryParam && archiveParam ? (
+            <>
+              <FolderTree className="w-7 h-7 text-emerald-500" />
+              <span className="text-emerald-600 dark:text-emerald-400">
+                {categoryParam}
+              </span>
+              <span className="text-gray-500 text-lg font-normal">/</span>
+              <span className="text-orange-600 dark:text-orange-400">
+                {formatArchiveLabel(archiveParam)}
+              </span>{" "}
+              posts
+            </>
+          ) : categoryParam ? (
+            <>
+              <FolderTree className="w-7 h-7 text-emerald-500" />
+              <span className="text-emerald-600 dark:text-emerald-400">
+                {categoryParam}
+              </span>{" "}
               posts
             </>
           ) : archiveParam ? (

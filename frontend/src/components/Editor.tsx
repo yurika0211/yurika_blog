@@ -10,6 +10,8 @@ import 'katex/dist/katex.min.css';
 import { blog, type CreatePostPayload, type UpdatePostPayload } from '../services/api';
 import type { BlogPost } from '../types';
 
+const DEFAULT_CATEGORY = 'Uncategorized';
+
 type ApiLikeError = {
   message?: string;
   response?: {
@@ -37,6 +39,7 @@ export default function Editor() {
   const { id } = useParams<{ id?: string }>();
 
   const [title, setTitle] = useState('');
+  const [category, setCategory] = useState(DEFAULT_CATEGORY);
   const [summary, setSummary] = useState('');
   const [tags, setTags] = useState('');
   const [content, setContent] = useState('# Hello World');
@@ -76,6 +79,7 @@ export default function Editor() {
         }
 
         setTitle(post.title || '');
+        setCategory(post.category?.trim() || DEFAULT_CATEGORY);
         setSummary(post.summary || '');
         setTags(post.tags.join(', '));
         setContent(post.content || '');
@@ -111,6 +115,7 @@ export default function Editor() {
 
     const payload: CreatePostPayload = {
       title: title.trim(),
+      category: category.trim() || DEFAULT_CATEGORY,
       summary: summary.trim() || `${content.slice(0, 50)}...`,
       tags: tagsArray,
       content,
@@ -138,6 +143,7 @@ export default function Editor() {
         if (created && typeof created === 'object') {
           if ((created as BlogPost).date) setOriginalDate((created as BlogPost).date);
           if ((created as BlogPost).title) setTitle((created as BlogPost).title);
+          setCategory((created as BlogPost).category?.trim() || DEFAULT_CATEGORY);
           if ((created as BlogPost).summary) setSummary((created as BlogPost).summary);
           if (Array.isArray((created as BlogPost).tags)) setTags((created as BlogPost).tags.join(', '));
           if ((created as BlogPost).content) setContent((created as BlogPost).content);
@@ -207,7 +213,21 @@ export default function Editor() {
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+              Category
+            </label>
+            <input
+              type="text"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="For example: Tech, Notes, Galgame"
+              disabled={loading || saving}
+              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white"
+            />
+          </div>
+
           <div>
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
               <FileText className="w-3 h-3" /> Summary
@@ -222,7 +242,7 @@ export default function Editor() {
             />
           </div>
 
-          <div>
+          <div className="md:col-span-1">
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
               <Tag className="w-3 h-3" /> Tags (comma separated)
             </label>
