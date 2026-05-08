@@ -1,5 +1,7 @@
 # Stage 1: Build the React application
-FROM node:20.19.0-alpine AS build
+# Use the Debian-based Node image to avoid rolldown optional-native-binding
+# issues that can appear on musl/alpine in CI.
+FROM node:20.19.0 AS build
 
 # Set the working directory
 WORKDIR /app
