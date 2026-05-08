@@ -43,7 +43,7 @@ pub async fn login_handler(
     }
 
     let expiration = chrono::Utc::now()
-        .checked_add_signed(chrono::Duration::hours(2))
+        .checked_add_signed(chrono::Duration::days(30))
         .expect("valid timestamp")
         .timestamp() as usize;
 
