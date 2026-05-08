@@ -246,43 +246,45 @@ export default function Editor() {
             <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
               <Tag className="w-3 h-3" /> Tags (comma separated)
             </label>
-            <div className="flex gap-2">
+            <div className="space-y-2">
               <input
                 type="text"
                 value={tags}
                 onChange={(e) => setTags(e.target.value)}
                 placeholder="For example: Rust, React, Life"
                 disabled={loading || saving}
-                className="flex-1 px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white"
+                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white"
               />
-              <button
-                type="button"
-                onClick={() => setIsPinned(!isPinned)}
-                disabled={loading || saving}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                  isPinned
-                    ? 'bg-cyan-50 border-cyan-300 text-cyan-700 dark:bg-cyan-900/30 dark:border-cyan-600 dark:text-cyan-300'
-                    : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
-                }`}
-                title={isPinned ? 'Unpin article' : 'Pin article'}
-              >
-                <Pin className={`w-4 h-4 ${isPinned ? 'text-cyan-500' : ''}`} />
-                {isPinned ? 'Pinned' : 'Pin'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsLoginRequired(!isLoginRequired)}
-                disabled={loading || saving}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                  isLoginRequired
-                    ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-900/30 dark:border-amber-600 dark:text-amber-300'
-                    : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
-                }`}
-                title={isLoginRequired ? 'Remove login-only access' : 'Make this article login-only'}
-              >
-                <Lock className={`w-4 h-4 ${isLoginRequired ? 'text-amber-500' : ''}`} />
-                {isLoginRequired ? 'Login only' : 'Public'}
-              </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsPinned(!isPinned)}
+                  disabled={loading || saving}
+                  className={`inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                    isPinned
+                      ? 'bg-cyan-50 border-cyan-300 text-cyan-700 dark:bg-cyan-900/30 dark:border-cyan-600 dark:text-cyan-300'
+                      : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
+                  }`}
+                  title={isPinned ? 'Unpin article' : 'Pin article'}
+                >
+                  <Pin className={`w-4 h-4 ${isPinned ? 'text-cyan-500' : ''}`} />
+                  {isPinned ? 'Pinned' : 'Pin'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsLoginRequired(!isLoginRequired)}
+                  disabled={loading || saving}
+                  className={`inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                    isLoginRequired
+                      ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-900/30 dark:border-amber-600 dark:text-amber-300'
+                      : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
+                  }`}
+                  title={isLoginRequired ? 'Remove login-only access' : 'Make this article login-only'}
+                >
+                  <Lock className={`w-4 h-4 ${isLoginRequired ? 'text-amber-500' : ''}`} />
+                  {isLoginRequired ? 'Login only' : 'Public'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

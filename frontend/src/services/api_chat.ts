@@ -1,8 +1,9 @@
 import axios, { AxiosError, type AxiosInstance } from "axios";
-import { isAuthenticated } from "../utils/auth";
+import { getAuthToken, isAuthenticated } from "../utils/auth";
 
 export interface SendMessageRequest {
   content: string;
+  conversation_id: string;
 }
 
 export interface SendMessageResponse {
@@ -15,6 +16,7 @@ export interface ChatMessage {
 }
 
 const CHAT_ENDPOINTS = ["/message/", "/chat/"] as const;
+const DEFAULT_CONVERSATION_ID = "about-default";
 
 const normalizeBaseUrl = (raw: string) => raw.trim().replace(/\/+$/, "");
 
@@ -47,6 +49,15 @@ const createApiClient = (baseURL: string): AxiosInstance => {
     headers: {
       "Content-Type": "application/json",
     },
+  });
+
+  client.interceptors.request.use((config) => {
+    const token = getAuthToken();
+    if (token) {
+      config.headers = config.headers ?? {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
   });
 
   client.interceptors.response.use(
@@ -271,7 +282,10 @@ const ensureChatAuth = () => {
 export const ai_chat = {
   sendMessage: async (content: string): Promise<SendMessageResponse> => {
     ensureChatAuth();
-    const payload: SendMessageRequest = { content };
+    const payload: SendMessageRequest = {
+      content,
+      conversation_id: DEFAULT_CONVERSATION_ID,
+    };
     try {
       return await requestWithFallback(async (client, endpoint) => {
         const response = await client.post(endpoint, payload);
@@ -287,15 +301,16 @@ export const ai_chat = {
     ensureChatAuth();
     try {
       return await requestWithFallback(async (client, endpoint) => {
-        const response = await client.get(endpoint);
+        const response = await client.get(endpoint, {
+          params: {
+            conversation_id: DEFAULT_CONVERSATION_ID,
+            limit: 100,
+          },
+        });
         return parseHistory(response.data);
       });
     } catch (error) {
       const readable = toReadableError(error);
-      const lower = readable.message.toLowerCase();
-      if (lower.includes("id is required") || lower.includes("http 400")) {
-        return [];
-      }
       throw readable;
     }
   },
