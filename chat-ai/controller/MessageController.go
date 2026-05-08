@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"chat-ai/dbaccess"
+	"chat-ai/internal/auth"
 	"chat-ai/internal/client"
 	"chat-ai/internal/models"
 	"chat-ai/internal/service"
@@ -35,6 +36,21 @@ var missingMemoryTableWarnOnce sync.Once
 
 func NewMessageController() *MessageController {
 	return &MessageController{}
+}
+
+func requireAuthorizedUserID(c *gin.Context) (int64, error) {
+	token := auth.ExtractBearerToken(c.GetHeader("Authorization"))
+	sub, err := auth.ParseUserIDFromToken(token)
+	if err != nil {
+		return 0, err
+	}
+
+	userID, err := strconv.ParseInt(strings.TrimSpace(sub), 10, 64)
+	if err != nil || userID <= 0 {
+		return 0, fmt.Errorf("invalid user id in token")
+	}
+
+	return userID, nil
 }
 
 func isRAGEnabled() bool {
@@ -272,30 +288,45 @@ func buildMemoryNudgeMessage(userID int64, conversationID, currentInput string) 
 }
 
 func (mc *MessageController) GetMessages(c *gin.Context) {
-	// 逻辑：获取 ID -> 查询数据库 -> 返回
-	id := c.Query("id")
-
-	if id == "" {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "id is required",
-		})
+	userID, err := requireAuthorizedUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Please log in before viewing chat history"})
 		return
 	}
 
-	message, err := dbaccess.GetMessage_db(id)
+	conversationID := strings.TrimSpace(c.Query("conversation_id"))
+	if conversationID == "" {
+		conversationID = "default"
+	}
+
+	limit := 100
+	if rawLimit := strings.TrimSpace(c.Query("limit")); rawLimit != "" {
+		if parsed, parseErr := strconv.Atoi(rawLimit); parseErr == nil && parsed > 0 {
+			if parsed > 100 {
+				parsed = 100
+			}
+			limit = parsed
+		}
+	}
+
+	history, err := dbaccess.ListMessagesByConversation(userID, conversationID, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{
-		"id":   message.ID,
-		"text": message.Content,
-	})
+
+	c.JSON(http.StatusOK, gin.H{"messages": history})
 }
 
 func (mc *MessageController) CreateMessage(c *gin.Context) {
+	userID, err := requireAuthorizedUserID(c)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Please log in before chatting"})
+		return
+	}
+
 	var req models.ChatInput
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON 格式错误"})
@@ -309,9 +340,7 @@ func (mc *MessageController) CreateMessage(c *gin.Context) {
 	}
 
 	// 兼容旧前端请求体：未传 user_id / conversation_id 时使用默认值
-	if req.UserID == 0 {
-		req.UserID = 1
-	}
+	req.UserID = userID
 	req.ConversationID = strings.TrimSpace(req.ConversationID)
 	if req.ConversationID == "" {
 		req.ConversationID = "default"
@@ -357,7 +386,7 @@ func (mc *MessageController) CreateMessage(c *gin.Context) {
 
 	// 兼容路径：RAG 未开启 / 未命中 / 失败时回退到旧的最近消息逻辑
 	if !addedRAGContext {
-		todayMessage, err := dbaccess.GetRecentMessages_db()
+		todayMessage, err := dbaccess.GetRecentMessages_db(req.UserID, req.ConversationID)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error":  "failed to load recent messages",
@@ -376,7 +405,7 @@ func (mc *MessageController) CreateMessage(c *gin.Context) {
 	}
 	messages = append(messages, userMessage)
 
-	reply, err := client.DefaulClient.Chat(messages)
+	reply, err := client.DefaulClient.Chat(messages, req.ConversationID)
 	if err != nil {
 		c.JSON(http.StatusBadGateway, gin.H{
 			"error":  "upstream chat service unavailable",
@@ -385,6 +414,21 @@ func (mc *MessageController) CreateMessage(c *gin.Context) {
 		return
 	}
 
+	userRecord := models.Message{
+		Content:        content,
+		UserID:         req.UserID,
+		Role:           "user",
+		ConversationID: req.ConversationID,
+	}
+	if err := dbaccess.CreateMessage_db(&userRecord); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	reply.Role = "assistant"
+	reply.ConversationID = req.ConversationID
 	reply.UserID = req.UserID
 	if err := dbaccess.CreateMessage_db(&reply); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

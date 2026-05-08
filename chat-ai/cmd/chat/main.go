@@ -32,13 +32,23 @@ func getEnv(key, def string) string {
 func main() {
 	_ = godotenv.Load("../.env", ".env")
 
-	apiKey := mustEnv("OPENAI_API_KEY")
-	apiURL := mustEnv("OPENAI_API_URL")
+	provider := getEnv("CHAT_PROVIDER", "openai")
+	apiKey := ""
+	apiURL := ""
+
+	if provider == "luckyharness" {
+		apiKey = getEnv("LUCKYHARNESS_API_KEY", "")
+		apiURL = mustEnv("LUCKYHARNESS_API_URL")
+	} else {
+		apiKey = mustEnv("OPENAI_API_KEY")
+		apiURL = mustEnv("OPENAI_API_URL")
+	}
+
 	model := getEnv("OPENAI_MODEL", "deepseek-chat")
 	port := getEnv("CHAT_PORT", "8080")
 	systemContent := mustEnv("SYSTEM_CONTENT")
 
-	client.InitClient(apiKey, apiURL, model)
+	client.InitClient(provider, apiKey, apiURL, model)
 	client.SetSystemPrompt(systemContent)
 
 	// 初始化一个gin引擎，并绑定端口号

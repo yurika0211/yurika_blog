@@ -5,6 +5,10 @@ CREATE TABLE messages (
     -- 关联的用户 ID（假设也是数字）
     user_id BIGINT NOT NULL,
 
+    conversation_id TEXT NOT NULL DEFAULT 'default',
+
+    role TEXT NOT NULL DEFAULT 'assistant',
+
     -- 消息内容，使用 TEXT 适合存储长文本
     content TEXT NOT NULL,
 
@@ -14,6 +18,7 @@ CREATE TABLE messages (
 
 -- 为了加快根据 user_id 查询消息的速度，建议加一个索引
 CREATE INDEX idx_messages_user_id ON messages(user_id);
+CREATE INDEX idx_messages_user_conv_time ON messages(user_id, conversation_id, created_at DESC);
 
 -- 向量检索依赖 pgvector 扩展
 CREATE EXTENSION IF NOT EXISTS vector;
