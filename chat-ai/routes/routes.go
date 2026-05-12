@@ -15,6 +15,7 @@ func InitRouter(r *gin.Engine) *gin.Engine {
 		{
 			msgGroup.GET("/", msgCtrl.GetMessages)
 			msgGroup.POST("/", msgCtrl.CreateMessage)
+			msgGroup.POST("/stream/", msgCtrl.CreateMessageStream)
 		}
 	}
 	return r

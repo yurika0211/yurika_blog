@@ -35,9 +35,9 @@ const HERO_CARD_META = [
   {
     id: 'workspace',
     index: '01',
-    label: 'Live Board',
-    title: 'Workspace Snapshot',
-    description: 'Latest writing, release rhythm, and repo activity on one rotating surface.',
+    label: '最近的一些足迹',
+    title: '工作台概览',
+    description: '最新文章、发布节奏与代码库动态，尽在这一方轮播视界',
     glowClass: 'from-cyan-400/30 via-sky-300/12 to-transparent dark:from-cyan-500/24 dark:via-sky-400/10 dark:to-transparent',
     badgeClass: 'border-cyan-200/80 bg-cyan-50/80 text-cyan-800 dark:border-cyan-800/70 dark:bg-cyan-950/55 dark:text-cyan-100',
     surfaceClass: 'border-cyan-100/90 bg-cyan-50/75 dark:border-cyan-900/70 dark:bg-cyan-950/40',
@@ -45,9 +45,9 @@ const HERO_CARD_META = [
   {
     id: 'pinned',
     index: '02',
-    label: 'Pinned Shelf',
-    title: 'Pinned Articles On Deck',
-    description: 'A quick-access stack for the posts that define the front page right now.',
+    label: '置顶文章',
+    title: '首屏卡片组',
+    description: '快速直达当前主页的重磅焦点文章',
     glowClass: 'from-amber-400/28 via-orange-300/12 to-transparent dark:from-amber-500/24 dark:via-orange-400/10 dark:to-transparent',
     badgeClass: 'border-amber-200/80 bg-amber-50/80 text-amber-800 dark:border-amber-800/70 dark:bg-amber-950/50 dark:text-amber-100',
     surfaceClass: 'border-amber-100/90 bg-amber-50/80 dark:border-amber-900/70 dark:bg-amber-950/35',
@@ -55,9 +55,9 @@ const HERO_CARD_META = [
   {
     id: 'stack',
     index: '03',
-    label: 'Build Stack',
-    title: 'Current Tools And Momentum',
-    description: 'Languages, shipping habits, and the project pace behind the blog.',
+    label: '技术栈',
+    title: '技术栈与创作动力',
+    description: '支撑博客运行的语言偏好、发布频率及项目进展',
     glowClass: 'from-emerald-400/28 via-teal-300/12 to-transparent dark:from-emerald-500/22 dark:via-teal-400/10 dark:to-transparent',
     badgeClass: 'border-emerald-200/80 bg-emerald-50/80 text-emerald-800 dark:border-emerald-800/70 dark:bg-emerald-950/50 dark:text-emerald-100',
     surfaceClass: 'border-emerald-100/90 bg-emerald-50/80 dark:border-emerald-900/70 dark:bg-emerald-950/35',
@@ -220,18 +220,14 @@ export default function Entry() {
           <div className="absolute -right-24 top-16 h-64 w-64 rounded-full bg-teal-300/25 blur-3xl dark:bg-teal-500/20" />
         </div>
 
-        <div className="relative z-20 mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-7xl items-center px-4 py-8 md:py-10">
+        <div className="relative z-20 mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-7xl shadow-xl flex flex-col items-center px-2 py-2 md:px-12 overflow-hidden transition-all duration-500 ease-in-out">
           <div className="grid w-full items-center gap-10 lg:grid-cols-[minmax(0,1.02fr)_minmax(22rem,0.98fr)] lg:gap-12">
             <div className="max-w-2xl lg:-translate-y-4">
               <div>
                 <h1 className="mt-5 text-5xl font-black leading-[1.04] text-[#0f2f43] dark:text-[#f0eee6] [text-shadow:0_2px_16px_rgba(240,238,230,0.85)] dark:[text-shadow:0_2px_16px_rgba(20,20,19,0.55)] sm:text-6xl md:text-[3.8rem]">
                   嘘を信じさせるコツは
-                  <span aria-hidden="true">―――</span>
                   <span className="block text-[#0a6a89] dark:text-[#9fd7ea]">本当の話を混ぜることだよ</span>
                 </h1>
-                <p className="mt-4 max-w-xl text-base leading-8 font-medium text-cyan-950 [text-shadow:0_1px_10px_rgba(255,255,255,0.58)] dark:text-cyan-50 dark:[text-shadow:0_1px_12px_rgba(2,8,23,0.48)] md:text-lg">
-                  Built around Rust, React, TypeScript, and Golang, this is one place for development logs, learning notes, and project updates.
-                </p>
               </div>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -269,7 +265,7 @@ export default function Entry() {
                     <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700 dark:text-cyan-300">
                       Hero Deck
                     </p>
-                    <h2 className="mt-2 text-2xl font-black text-cyan-950 dark:text-cyan-50">
+                    <h2 className="text-3xl font-black tracking-tight text-cyan-950 dark:text-white md:text-5xl">
                       {activeHeroMeta.title}
                     </h2>
                   </div>
@@ -284,7 +280,7 @@ export default function Entry() {
                   <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3 py-1 dark:border-cyan-800/70 dark:bg-slate-900/60">
                     Manual deck switch
                   </span>
-                  <span className="rounded-full border border-cyan-200/80 bg-white/70 px-3 py-1 dark:border-cyan-800/70 dark:bg-slate-900/60">
+                  <span className="self-start rounded-full border border-cyan-300/50 bg-cyan-100/30 px-4 py-2 text-sm font-bold tabular-nums text-cyan-950 backdrop-blur-sm dark:border-cyan-700/50 dark:bg-cyan-900/30 dark:text-cyan-50 md:self-center">
                     Focused on cards, not panels
                   </span>
                 </div>

@@ -320,32 +320,32 @@ func (mc *MessageController) GetMessages(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"messages": history})
 }
 
-func (mc *MessageController) CreateMessage(c *gin.Context) {
+func normalizeChatInput(c *gin.Context) (models.ChatInput, string, int, error) {
 	userID, err := requireAuthorizedUserID(c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Please log in before chatting"})
-		return
+		return models.ChatInput{}, "", http.StatusUnauthorized, fmt.Errorf("Please log in before chatting")
 	}
 
 	var req models.ChatInput
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON 格式错误"})
-		return
+		return models.ChatInput{}, "", http.StatusBadRequest, fmt.Errorf("JSON 格式错误")
 	}
 
 	content := strings.TrimSpace(req.Content)
 	if content == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Content cannot be empty"})
-		return
+		return models.ChatInput{}, "", http.StatusBadRequest, fmt.Errorf("Content cannot be empty")
 	}
 
-	// 兼容旧前端请求体：未传 user_id / conversation_id 时使用默认值
 	req.UserID = userID
 	req.ConversationID = strings.TrimSpace(req.ConversationID)
 	if req.ConversationID == "" {
 		req.ConversationID = "default"
 	}
 
+	return req, content, 0, nil
+}
+
+func buildChatMessages(req models.ChatInput, content string) ([]models.AgentMessage, *service.MemoryService, int, error) {
 	userMessage := models.AgentMessage{
 		Role:    "user",
 		Content: content,
@@ -384,15 +384,10 @@ func (mc *MessageController) CreateMessage(c *gin.Context) {
 		}
 	}
 
-	// 兼容路径：RAG 未开启 / 未命中 / 失败时回退到旧的最近消息逻辑
 	if !addedRAGContext {
 		todayMessage, err := dbaccess.GetRecentMessages_db(req.UserID, req.ConversationID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{
-				"error":  "failed to load recent messages",
-				"detail": err.Error(),
-			})
-			return
+			return nil, memorySvc, http.StatusInternalServerError, fmt.Errorf("failed to load recent messages: %w", err)
 		}
 		slog.Info("Legacy memory context loaded", "content_len", len(todayMessage.Content))
 		if todayMessage.Content != "" {
@@ -405,15 +400,10 @@ func (mc *MessageController) CreateMessage(c *gin.Context) {
 	}
 	messages = append(messages, userMessage)
 
-	reply, err := client.DefaulClient.Chat(messages, req.ConversationID)
-	if err != nil {
-		c.JSON(http.StatusBadGateway, gin.H{
-			"error":  "upstream chat service unavailable",
-			"detail": err.Error(),
-		})
-		return
-	}
+	return messages, memorySvc, 0, nil
+}
 
+func persistChatExchange(req models.ChatInput, content string, reply *models.Message, memorySvc *service.MemoryService) (int, error) {
 	userRecord := models.Message{
 		Content:        content,
 		UserID:         req.UserID,
@@ -421,29 +411,106 @@ func (mc *MessageController) CreateMessage(c *gin.Context) {
 		ConversationID: req.ConversationID,
 	}
 	if err := dbaccess.CreateMessage_db(&userRecord); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": err.Error(),
-		})
-		return
+		return http.StatusInternalServerError, err
 	}
 
 	reply.Role = "assistant"
 	reply.ConversationID = req.ConversationID
 	reply.UserID = req.UserID
-	if err := dbaccess.CreateMessage_db(&reply); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
+	if err := dbaccess.CreateMessage_db(reply); err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	if isRAGWriteEnabled() && memorySvc != nil {
+		persistChunkWithEmbedding(memorySvc, req.UserID, req.ConversationID, "user", content)
+		persistChunkWithEmbedding(memorySvc, req.UserID, req.ConversationID, "assistant", reply.Content)
+	}
+
+	return 0, nil
+}
+
+func generateChatReply(req models.ChatInput, content string) (models.Message, int, error) {
+	messages, memorySvc, status, err := buildChatMessages(req, content)
+	if err != nil {
+		return models.Message{}, status, err
+	}
+
+	reply, err := client.DefaulClient.Chat(messages, req.ConversationID)
+	if err != nil {
+		return models.Message{}, http.StatusBadGateway, fmt.Errorf("upstream chat service unavailable: %w", err)
+	}
+	if status, err := persistChatExchange(req, content, &reply, memorySvc); err != nil {
+		return models.Message{}, status, err
+	}
+
+	return reply, 0, nil
+}
+
+func (mc *MessageController) CreateMessage(c *gin.Context) {
+	req, content, status, err := normalizeChatInput(c)
+	if err != nil {
+		c.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+
+	reply, status, err := generateChatReply(req, content)
+	if err != nil {
+		c.JSON(status, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	// RAG 路径下，best-effort 双写到新记忆表；失败不影响主流程
-	if ragWriteEnabled && memorySvc != nil {
-		persistChunkWithEmbedding(memorySvc, req.UserID, req.ConversationID, "user", content)
-		persistChunkWithEmbedding(memorySvc, req.UserID, req.ConversationID, "assistant", reply.Content)
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"text": reply.Content,
 	})
+}
+
+func (mc *MessageController) CreateMessageStream(c *gin.Context) {
+	req, content, status, err := normalizeChatInput(c)
+	if err != nil {
+		c.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Header("Content-Type", "text/event-stream")
+	c.Header("Cache-Control", "no-cache")
+	c.Header("Connection", "keep-alive")
+	c.Header("X-Accel-Buffering", "no")
+	c.SSEvent("start", gin.H{"conversation_id": req.ConversationID})
+	c.Writer.Flush()
+
+	messages, memorySvc, status, err := buildChatMessages(req, content)
+	if err != nil {
+		c.SSEvent("error", gin.H{"error": err.Error(), "status": status})
+		c.Writer.Flush()
+		return
+	}
+
+	var fullText strings.Builder
+	reply, err := client.DefaulClient.StreamChat(messages, req.ConversationID, func(delta string) error {
+		fullText.WriteString(delta)
+		c.SSEvent("delta", gin.H{
+			"delta": delta,
+			"text":  fullText.String(),
+		})
+		c.Writer.Flush()
+		return nil
+	})
+	if err != nil {
+		c.SSEvent("error", gin.H{"error": err.Error(), "status": http.StatusBadGateway})
+		c.Writer.Flush()
+		return
+	}
+	if strings.TrimSpace(reply.Content) == "" {
+		reply.Content = fullText.String()
+	}
+	if status, err := persistChatExchange(req, content, &reply, memorySvc); err != nil {
+		c.SSEvent("error", gin.H{"error": err.Error(), "status": status})
+		c.Writer.Flush()
+		return
+	}
+
+	c.SSEvent("done", gin.H{"text": reply.Content})
+	c.Writer.Flush()
 }
