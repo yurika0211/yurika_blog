@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type Dispatch,
+  type FormEvent,
+  type SetStateAction,
+} from "react";
 import { Send, MoreVertical, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { APP_AVATAR_SRC } from "../constants/avatar";
@@ -10,6 +17,8 @@ type UiMessage = {
   role: "user" | "assistant";
   content: string;
 };
+
+const STREAMING_CURSOR = "▋";
 
 const initialMessages: UiMessage[] = [
   {
@@ -54,11 +63,6 @@ const mergeMessages = (base: UiMessage[], incoming: UiMessage[]) => {
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const assistantCount = (messages: UiMessage[]) =>
-  messages.filter((msg) => msg.role === "assistant").length;
-
-const HISTORY_POLL_INTERVAL_MS = 900;
-const HISTORY_POLL_MAX_TIMES = 8;
 const ABOUT_CHAT_DRAFT_KEY = "about.chat.draft";
 
 const getPendingDraft = () => {
@@ -82,6 +86,61 @@ const clearPendingDraft = () => {
   window.sessionStorage.removeItem(ABOUT_CHAT_DRAFT_KEY);
 };
 
+const upsertAssistantDraft = (
+  draftId: string,
+  content: string,
+  prev: UiMessage[]
+) => {
+  const exists = prev.some((msg) => msg.id === draftId);
+  if (!exists) {
+    return [
+      ...prev,
+      {
+        id: draftId,
+        role: "assistant" as const,
+        content,
+      },
+    ];
+  }
+
+  return prev.map((msg) =>
+    msg.id === draftId
+      ? {
+          ...msg,
+          content,
+        }
+      : msg
+  );
+};
+
+const animateAssistantReply = async (
+  fullText: string,
+  draftId: string,
+  setMessages: Dispatch<SetStateAction<UiMessage[]>>
+) => {
+  const trimmed = fullText.trim();
+  if (!trimmed) {
+    setMessages((prev) =>
+      upsertAssistantDraft(
+        draftId,
+        "I received your message, but no reply is available right now.",
+        prev
+      )
+    );
+    return;
+  }
+
+  const runes = Array.from(trimmed);
+  let current = "";
+  const chunkSize = runes.length > 360 ? 8 : runes.length > 180 ? 5 : 3;
+
+  for (let i = 0; i < runes.length; i += chunkSize) {
+    current += runes.slice(i, i + chunkSize).join("");
+    setMessages((prev) => upsertAssistantDraft(draftId, current, prev));
+    await sleep(22);
+  }
+};
+
 const toUiMessages = (history: ChatMessage[]): UiMessage[] =>
   history
     .filter(
@@ -103,6 +162,7 @@ export default function ChatProfile() {
   const [isTyping, setIsTyping] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [messages, setMessages] = useState<UiMessage[]>(initialMessages);
+  const [streamingMessageId, setStreamingMessageId] = useState<string | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasUserInteractedRef = useRef(false);
 
@@ -179,68 +239,83 @@ export default function ChatProfile() {
     };
 
     const baseMessages = [...messages, userMsg];
-    const baseAssistantTotal = assistantCount(baseMessages);
+    const draftAssistantId = createMessageId();
 
     setMessages(baseMessages);
     setInput("");
     setIsTyping(true);
 
     try {
-      const reply = await ai_chat.sendMessage(trimmedInput);
-      const replyText = reply.text?.trim() || "";
+      let streamStarted = false;
+      let streamCompleted = false;
 
-      if (replyText) {
-        const botMsg: UiMessage = {
-          id: createMessageId(),
-          role: "assistant",
-          content: replyText,
-        };
-        setMessages((prev) => [...prev, botMsg]);
-        return;
-      }
-
-      let hasAssistantReplyFromHistory = false;
-      let workingMessages = baseMessages;
-      let historyUnavailable = false;
-      for (let i = 0; i < HISTORY_POLL_MAX_TIMES; i += 1) {
-        try {
-          const latestHistory = await ai_chat.getHistory();
-          const latestHistoryUi = toUiMessages(latestHistory);
-          if (latestHistoryUi.length > 0) {
-            workingMessages = mergeMessages(workingMessages, latestHistoryUi);
-            setMessages(workingMessages);
-
-            hasAssistantReplyFromHistory =
-              assistantCount(workingMessages) > baseAssistantTotal;
-
-            if (hasAssistantReplyFromHistory) {
-              break;
-            }
-          }
-        } catch (syncError) {
-          console.error("Sync latest chat history failed:", syncError);
-          const msg =
-            syncError instanceof Error ? syncError.message.toLowerCase() : "";
-          if (msg.includes("id is required") || msg.includes("http 400")) {
-            historyUnavailable = true;
-            break;
-          }
+      try {
+        await ai_chat.streamMessage(trimmedInput, {
+          onStart: () => {
+            streamStarted = true;
+            setIsTyping(false);
+            setStreamingMessageId(draftAssistantId);
+            setMessages((prev) =>
+              upsertAssistantDraft(draftAssistantId, "", prev)
+            );
+          },
+          onDelta: (_delta, fullText) => {
+            streamStarted = true;
+            setIsTyping(false);
+            setStreamingMessageId(draftAssistantId);
+            setMessages((prev) =>
+              upsertAssistantDraft(draftAssistantId, fullText, prev)
+            );
+          },
+          onDone: (text) => {
+            streamCompleted = true;
+            setIsTyping(false);
+            setStreamingMessageId((current) =>
+              current === draftAssistantId ? null : current
+            );
+            setMessages((prev) =>
+              upsertAssistantDraft(
+                draftAssistantId,
+                text.trim() ||
+                  "I received your message, but no reply is available right now.",
+                prev
+              )
+            );
+          },
+        });
+      } catch (streamError) {
+        if (streamStarted) {
+          throw streamError;
         }
 
-        if (!historyUnavailable && i < HISTORY_POLL_MAX_TIMES - 1) {
-          await sleep(HISTORY_POLL_INTERVAL_MS);
-        }
+        console.warn("Stream chat failed, fallback to one-shot reply:", streamError);
+        const reply = await ai_chat.sendMessage(trimmedInput);
+        setIsTyping(false);
+        setStreamingMessageId(draftAssistantId);
+        setMessages((prev) =>
+          upsertAssistantDraft(draftAssistantId, "", prev)
+        );
+        await animateAssistantReply(reply.text || "", draftAssistantId, setMessages);
+        setStreamingMessageId((current) =>
+          current === draftAssistantId ? null : current
+        );
+        streamCompleted = true;
       }
 
-      if (!hasAssistantReplyFromHistory) {
-        const botMsg: UiMessage = {
-          id: createMessageId(),
-          role: "assistant",
-          content: "I received your message, but no reply is available right now.",
-        };
-        setMessages((prev) => [...prev, botMsg]);
+      if (!streamCompleted) {
+        setStreamingMessageId((current) =>
+          current === draftAssistantId ? null : current
+        );
+        setMessages((prev) =>
+          upsertAssistantDraft(
+            draftAssistantId,
+            "I received your message, but no reply is available right now.",
+            prev
+          )
+        );
       }
     } catch (error) {
+      setStreamingMessageId(null);
       const errorMessage =
         error instanceof Error ? error.message : "Failed to send the message. Please try again later.";
       setMessages((prev) => [
@@ -311,7 +386,17 @@ export default function ChatProfile() {
                   : "rounded-bl-none border border-white/30 bg-white/50 text-gray-700 backdrop-blur-sm dark:border-gray-700/30 dark:bg-gray-800/50 dark:text-gray-200"
               }`}
             >
-              <div className="whitespace-pre-wrap">{msg.content}</div>
+              <div className="whitespace-pre-wrap">
+                {msg.content}
+                {msg.id === streamingMessageId && (
+                  <span
+                    aria-hidden="true"
+                    className="ml-0.5 inline-block animate-pulse text-blue-500 dark:text-blue-300"
+                  >
+                    {STREAMING_CURSOR}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         ))}

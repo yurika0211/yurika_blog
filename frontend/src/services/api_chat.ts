@@ -10,12 +10,19 @@ export interface SendMessageResponse {
   text: string;
 }
 
+export interface StreamMessageCallbacks {
+  onStart?: () => void;
+  onDelta?: (delta: string, fullText: string) => void;
+  onDone?: (text: string) => void;
+}
+
 export interface ChatMessage {
   role: "user" | "assistant" | "system";
   content: string;
 }
 
 const CHAT_ENDPOINTS = ["/message/", "/chat/"] as const;
+const CHAT_STREAM_ENDPOINT = "/message/stream/";
 const DEFAULT_CONVERSATION_ID = "about-default";
 
 const normalizeBaseUrl = (raw: string) => raw.trim().replace(/\/+$/, "");
@@ -76,6 +83,17 @@ const createApiClient = (baseURL: string): AxiosInstance => {
   );
 
   return client;
+};
+
+const buildAuthHeaders = () => {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  const token = getAuthToken();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
 };
 
 const normalizeRole = (role: unknown): ChatMessage["role"] => {
@@ -273,6 +291,139 @@ const toReadableError = (error: unknown): Error => {
   );
 };
 
+const isResponseUnavailable = (response: Response) =>
+  response.status === 404 || response.status === 405;
+
+const parseSseEvent = (rawEvent: string) => {
+  const lines = rawEvent
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  let event = "message";
+  const dataParts: string[] = [];
+
+  for (const line of lines) {
+    if (line.startsWith("event:")) {
+      event = line.slice(6).trim() || "message";
+      continue;
+    }
+    if (line.startsWith("data:")) {
+      dataParts.push(line.slice(5).trim());
+    }
+  }
+
+  if (dataParts.length === 0) {
+    return null;
+  }
+
+  return {
+    event,
+    data: dataParts.join("\n"),
+  };
+};
+
+const streamMessageWithBase = async (
+  baseURL: string,
+  payload: SendMessageRequest,
+  callbacks: StreamMessageCallbacks
+): Promise<SendMessageResponse> => {
+  const response = await fetch(`${baseURL}${CHAT_STREAM_ENDPOINT}`, {
+    method: "POST",
+    headers: buildAuthHeaders(),
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    if (isResponseUnavailable(response)) {
+      const error = new Error(`HTTP ${response.status}`);
+      throw error;
+    }
+
+    const responseText = await response.text();
+    throw new Error(responseText.trim() || `HTTP ${response.status}`);
+  }
+
+  if (!response.body) {
+    throw new Error("Streaming response body is unavailable");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let fullText = "";
+  let started = false;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value, { stream: !done });
+
+    const chunks = buffer.split("\n\n");
+    buffer = chunks.pop() ?? "";
+
+    for (const chunk of chunks) {
+      const parsed = parseSseEvent(chunk);
+      if (!parsed) {
+        continue;
+      }
+
+      let payloadData: Record<string, unknown> = {};
+      try {
+        payloadData = JSON.parse(parsed.data) as Record<string, unknown>;
+      } catch {
+        payloadData = {};
+      }
+
+      if (parsed.event === "start") {
+        started = true;
+        callbacks.onStart?.();
+        continue;
+      }
+
+      if (parsed.event === "delta") {
+        if (!started) {
+          started = true;
+          callbacks.onStart?.();
+        }
+        const delta =
+          typeof payloadData.delta === "string" ? payloadData.delta : "";
+        const text =
+          typeof payloadData.text === "string"
+            ? payloadData.text
+            : fullText + delta;
+        fullText = text;
+        if (delta || text) {
+          callbacks.onDelta?.(delta, fullText);
+        }
+        continue;
+      }
+
+      if (parsed.event === "done") {
+        const text =
+          typeof payloadData.text === "string" ? payloadData.text : fullText;
+        fullText = text;
+        callbacks.onDone?.(fullText);
+        return { text: fullText };
+      }
+
+      if (parsed.event === "error") {
+        const message =
+          typeof payloadData.error === "string"
+            ? payloadData.error
+            : "Stream request failed";
+        throw new Error(message);
+      }
+    }
+
+    if (done) {
+      break;
+    }
+  }
+
+  callbacks.onDone?.(fullText);
+  return { text: fullText };
+};
+
 const ensureChatAuth = () => {
   if (!isAuthenticated()) {
     throw new Error("Please log in before chatting.");
@@ -313,6 +464,37 @@ export const ai_chat = {
       const readable = toReadableError(error);
       throw readable;
     }
+  },
+
+  streamMessage: async (
+    content: string,
+    callbacks: StreamMessageCallbacks = {}
+  ): Promise<SendMessageResponse> => {
+    ensureChatAuth();
+    const payload: SendMessageRequest = {
+      content,
+      conversation_id: DEFAULT_CONVERSATION_ID,
+    };
+
+    let lastError: unknown;
+    for (const baseURL of CHAT_BASE_URL_CANDIDATES) {
+      try {
+        return await streamMessageWithBase(baseURL, payload, callbacks);
+      } catch (error) {
+        lastError = error;
+        if (
+          error instanceof Error &&
+          (error.message.startsWith("HTTP 404") ||
+            error.message.startsWith("HTTP 405") ||
+            error.message.includes("Failed to fetch"))
+        ) {
+          continue;
+        }
+        throw error;
+      }
+    }
+
+    throw toReadableError(lastError);
   },
 
   // 兼容旧调用方式

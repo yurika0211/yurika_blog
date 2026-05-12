@@ -1,9 +1,11 @@
 package client
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -15,11 +17,24 @@ import (
 type ChatRequest struct {
 	Model    string                `json:"model"`
 	Messages []models.AgentMessage `json:"messages"`
+	Stream   bool                  `json:"stream,omitempty"`
 }
 
 type ChatResponse struct {
 	Choices []struct {
 		Message models.Message `json:"message"`
+	} `json:"choices"`
+}
+
+type streamChatResponse struct {
+	Choices []struct {
+		Delta struct {
+			Content string `json:"content"`
+		} `json:"delta"`
+		Message struct {
+			Content string `json:"content"`
+		} `json:"message"`
+		Text string `json:"text"`
 	} `json:"choices"`
 }
 
@@ -71,10 +86,10 @@ func NewClient(provider, apiKey, url, model string) *Client {
 		provider = "openai"
 	}
 	return &Client{
-		Provider:          provider,
-		APIKey:            apiKey,
-		URL:               url,
-		Model:             model,
+		Provider:           provider,
+		APIKey:             apiKey,
+		URL:                url,
+		Model:              model,
 		luckySessionByConv: make(map[string]string),
 	}
 }
@@ -85,6 +100,22 @@ func (c *Client) Chat(am []models.AgentMessage, conversationID string) (models.M
 		return c.chatWithLuckyHarness(am, conversationID)
 	}
 	return c.chatWithOpenAI(am)
+}
+
+func (c *Client) StreamChat(am []models.AgentMessage, conversationID string, onDelta func(string) error) (models.Message, error) {
+	if strings.EqualFold(strings.TrimSpace(c.Provider), "luckyharness") {
+		reply, err := c.chatWithLuckyHarness(am, conversationID)
+		if err != nil {
+			return models.Message{}, err
+		}
+		if strings.TrimSpace(reply.Content) != "" && onDelta != nil {
+			if err := onDelta(reply.Content); err != nil {
+				return models.Message{}, err
+			}
+		}
+		return reply, nil
+	}
+	return c.chatWithOpenAIStream(am, onDelta)
 }
 
 func (c *Client) chatWithOpenAI(am []models.AgentMessage) (models.Message, error) {
@@ -117,6 +148,86 @@ func (c *Client) chatWithOpenAI(am []models.AgentMessage) (models.Message, error
 	}
 
 	return res.Choices[0].Message, nil
+}
+
+func (c *Client) chatWithOpenAIStream(am []models.AgentMessage, onDelta func(string) error) (models.Message, error) {
+	reqBody := ChatRequest{
+		Model:    c.Model,
+		Messages: am,
+		Stream:   true,
+	}
+	data, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest("POST", c.URL, bytes.NewBuffer(data))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+c.APIKey)
+	req.Header.Set("Accept", "text/event-stream")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return models.Message{}, err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		message := strings.TrimSpace(string(body))
+		if message == "" {
+			message = fmt.Sprintf("HTTP %d", resp.StatusCode)
+		}
+		return models.Message{}, fmt.Errorf("%s", message)
+	}
+
+	scanner := bufio.NewScanner(resp.Body)
+	scanner.Buffer(make([]byte, 0, 64*1024), 1024*1024)
+
+	var fullText strings.Builder
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" || !strings.HasPrefix(line, "data:") {
+			continue
+		}
+
+		payload := strings.TrimSpace(strings.TrimPrefix(line, "data:"))
+		if payload == "" {
+			continue
+		}
+		if payload == "[DONE]" {
+			break
+		}
+
+		var chunk streamChatResponse
+		if err := json.Unmarshal([]byte(payload), &chunk); err != nil {
+			continue
+		}
+		if len(chunk.Choices) == 0 {
+			continue
+		}
+
+		delta := strings.TrimSpace(chunk.Choices[0].Delta.Content)
+		if delta == "" {
+			delta = strings.TrimSpace(chunk.Choices[0].Message.Content)
+		}
+		if delta == "" {
+			delta = strings.TrimSpace(chunk.Choices[0].Text)
+		}
+		if delta == "" {
+			continue
+		}
+
+		fullText.WriteString(delta)
+		if onDelta != nil {
+			if err := onDelta(delta); err != nil {
+				return models.Message{}, err
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return models.Message{}, err
+	}
+
+	return models.Message{Content: fullText.String()}, nil
 }
 
 func (c *Client) chatWithLuckyHarness(am []models.AgentMessage, conversationID string) (models.Message, error) {
