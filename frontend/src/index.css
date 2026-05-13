@@ -12,6 +12,10 @@
 :root {
     --app-font-sans: "LXGW WenKai", "Noto Sans CJK SC",
         "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    --app-font-serif: "Source Han Serif SC", "Noto Serif CJK SC",
+        "Songti SC", "STSong", "SimSun", serif;
+    --app-font-kana: "Hiragino Sans GB", "PingFang SC", "Noto Sans CJK SC",
+        "Microsoft YaHei", sans-serif;
 }
 
 html,
@@ -519,6 +523,281 @@ html.dark .hero-fog-bridge {
         rgba(162, 199, 219, 0.18) 0%,
         rgba(162, 199, 219, 0.06) 48%,
         rgba(162, 199, 219, 0) 74%);
+}
+
+/* 首页阅读墙 Hero */
+.reading-wall-rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: max-content;
+    gap: 1rem;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 0.5rem;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+}
+
+.reading-wall-rail::-webkit-scrollbar {
+    display: none;
+}
+
+.reading-wall-rail-full {
+    width: 100%;
+    padding-right: 8vw;
+}
+
+.reading-wall-panel {
+    scroll-snap-align: start;
+    transition:
+        transform 220ms ease,
+        opacity 220ms ease,
+        filter 220ms ease;
+}
+
+.reading-wall-panel-narrow {
+    width: clamp(12rem, 13vw, 14.5rem);
+    min-width: 12rem;
+}
+
+.reading-wall-panel-medium {
+    width: clamp(17rem, 19vw, 20rem);
+    min-width: 17rem;
+}
+
+.reading-wall-panel-wide {
+    width: clamp(21rem, 24vw, 24rem);
+    min-width: 21rem;
+}
+
+.reading-wall-panel-surface {
+    position: relative;
+    height: min(82svh, 54rem);
+    overflow: hidden;
+    border: 1px solid rgba(91, 130, 136, 0.18);
+    border-radius: 1.75rem;
+    background:
+        linear-gradient(180deg, rgba(249, 253, 253, 0.92), rgba(237, 248, 249, 0.82)),
+        linear-gradient(180deg, rgba(188, 224, 229, 0.1), rgba(188, 224, 229, 0.02));
+    box-shadow:
+        0 18px 36px rgba(44, 91, 96, 0.09),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+}
+
+.reading-wall-panel-surface::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0.08)),
+        linear-gradient(to right, rgba(102, 145, 150, 0.08) 1px, transparent 1px);
+    background-size: auto, 100% 100%;
+    pointer-events: none;
+}
+
+html.dark .reading-wall-panel-surface {
+    border-color: rgba(128, 192, 202, 0.14);
+    background:
+        linear-gradient(180deg, rgba(9, 28, 40, 0.9), rgba(7, 21, 33, 0.82)),
+        linear-gradient(180deg, rgba(45, 105, 119, 0.16), rgba(45, 105, 119, 0.04));
+    box-shadow:
+        0 18px 36px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(180, 234, 242, 0.06);
+}
+
+html.dark .reading-wall-panel-surface::after {
+    background:
+        linear-gradient(180deg, rgba(22, 45, 58, 0.18), rgba(5, 16, 27, 0.05)),
+        linear-gradient(to right, rgba(124, 198, 210, 0.06) 1px, transparent 1px);
+}
+
+.reading-wall-panel-shell {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    height: 100%;
+    gap: 1rem;
+    padding: 1.5rem 1.1rem 1.5rem 1.25rem;
+}
+
+.reading-wall-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    min-width: 0;
+}
+
+.reading-wall-title-column {
+    width: 3.4rem;
+}
+
+.reading-wall-copy-column {
+    flex: 1 1 auto;
+    width: auto;
+    overflow: hidden;
+}
+
+.reading-wall-meta-column {
+    width: 2.3rem;
+}
+
+.reading-wall-rule {
+    width: 1px;
+    align-self: stretch;
+    background: rgba(88, 124, 127, 0.18);
+}
+
+.reading-wall-rule-muted {
+    background: rgba(88, 124, 127, 0.1);
+}
+
+html.dark .reading-wall-rule,
+html.dark .reading-wall-rule-muted {
+    background: rgba(125, 197, 207, 0.12);
+}
+
+.reading-wall-kicker,
+.reading-wall-vertical-title,
+.reading-wall-vertical-copy,
+.reading-wall-vertical-meta {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+}
+
+.reading-wall-kicker {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: rgba(52, 101, 108, 0.52);
+}
+
+html.dark .reading-wall-kicker {
+    color: rgba(153, 214, 223, 0.46);
+}
+
+.reading-wall-vertical-title {
+    margin-top: 0.75rem;
+    font-size: clamp(2rem, 2.3vw, 3rem);
+    font-weight: 900;
+    line-height: 0.92;
+    letter-spacing: 0.06em;
+    font-family: var(--app-font-sans);
+    color: #14343a;
+}
+
+.reading-wall-vertical-copy {
+    font-size: clamp(1rem, 1.22vw, 1.3rem);
+    line-height: 1.92;
+    letter-spacing: 0.08em;
+    font-family: var(--app-font-serif);
+    font-weight: 600;
+    color: rgba(20, 44, 48, 0.92);
+}
+
+.reading-wall-copy-stack {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    height: 100%;
+    align-items: flex-start;
+}
+
+.reading-wall-ruby {
+    ruby-position: inter-character;
+    ruby-align: center;
+}
+
+.reading-wall-ruby rt {
+    font-size: 0.46em;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    font-family: var(--app-font-kana);
+    font-weight: 500;
+    color: rgba(73, 145, 160, 0.96);
+}
+
+.reading-wall-kaeri {
+    display: inline-flex;
+    font-size: 0.48em;
+    line-height: 1;
+    transform: translateY(-0.18em);
+    margin-inline-start: 0.04em;
+    font-family: var(--app-font-kana);
+    font-weight: 700;
+    color: rgba(54, 135, 150, 0.96);
+}
+
+.reading-wall-vertical-meta {
+    font-size: 0.78rem;
+    line-height: 1.8;
+    letter-spacing: 0.12em;
+    color: rgba(60, 46, 30, 0.56);
+}
+
+html.dark .reading-wall-vertical-title {
+    color: rgba(228, 247, 250, 0.95);
+}
+
+html.dark .reading-wall-vertical-copy {
+    color: rgba(211, 236, 240, 0.88);
+}
+
+html.dark .reading-wall-ruby rt,
+html.dark .reading-wall-kaeri {
+    color: rgba(126, 226, 242, 0.95);
+}
+
+@media (max-width: 1023px) {
+    .reading-wall-panel-surface {
+        height: 32rem;
+    }
+
+    .reading-wall-panel-narrow,
+    .reading-wall-panel-medium,
+    .reading-wall-panel-wide {
+        width: min(76vw, 24rem);
+        min-width: min(76vw, 24rem);
+    }
+}
+
+@media (max-width: 767px) {
+    .reading-wall-panel-narrow,
+    .reading-wall-panel-medium,
+    .reading-wall-panel-wide {
+        width: 88vw;
+        min-width: 88vw;
+    }
+
+    .reading-wall-panel-shell {
+        gap: 0.75rem;
+        padding: 1.1rem 0.95rem;
+    }
+
+    .reading-wall-title-column {
+        width: 2.5rem;
+    }
+
+    .reading-wall-copy-column {
+        width: 4.2rem;
+    }
+
+    .reading-wall-meta-column {
+        width: 1.8rem;
+    }
+
+    .reading-wall-vertical-title {
+        font-size: 1.7rem;
+    }
+
+    .reading-wall-vertical-copy {
+        font-size: 0.95rem;
+        line-height: 1.82;
+    }
+
+    .reading-wall-ruby rt {
+        font-size: 0.5em;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
