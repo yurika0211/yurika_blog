@@ -4,6 +4,9 @@ import { matchPath, useLocation } from 'react-router-dom';
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const location = useLocation();
+  if (location.pathname === '/') {
+    return null;
+  }
   const isPostPage = Boolean(matchPath('/post/:id', location.pathname));
   const footerClass = isPostPage
     ? 'post-paper-wall py-8 mt-0 border-t border-[#b0aea5]/60 dark:border-[#a1a0a0]/70 transition-colors duration-300'

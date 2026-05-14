@@ -1078,6 +1078,52 @@ html.dark .reading-wall-kicker {
     color: rgba(91, 67, 40, 0.76);
 }
 
+.reading-wall-home-footer {
+    display: flex;
+    height: 100%;
+    width: 100%;
+    align-items: stretch;
+    justify-content: space-between;
+    gap: 0.75rem;
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+}
+
+.reading-wall-home-footer-copy {
+    flex: 1 1 auto;
+    min-width: 0;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 0.88rem;
+    line-height: 1.9;
+    letter-spacing: 0.08em;
+    color: rgba(53, 35, 18, 0.88);
+    font-family: var(--app-font-serif);
+}
+
+.reading-wall-home-footer-icons {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    border-right: 1px solid rgba(122, 88, 47, 0.14);
+    padding-right: 0.45rem;
+}
+
+.reading-wall-home-footer-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(86, 67, 44, 0.7);
+    transition: color 180ms ease, transform 180ms ease;
+}
+
+.reading-wall-home-footer-icon:hover {
+    color: #0f766e;
+    transform: translateY(-1px);
+}
+
 html.dark .reading-wall-vertical-title {
     color: rgba(232, 214, 182, 0.94);
 }
@@ -1151,6 +1197,22 @@ html.dark .reading-wall-rich-card-summary {
 
 html.dark .reading-wall-rich-card-footer {
     color: rgba(188, 160, 123, 0.76);
+}
+
+html.dark .reading-wall-home-footer-copy {
+    color: rgba(220, 202, 170, 0.9);
+}
+
+html.dark .reading-wall-home-footer-icons {
+    border-right-color: rgba(170, 138, 94, 0.14);
+}
+
+html.dark .reading-wall-home-footer-icon {
+    color: rgba(194, 165, 124, 0.72);
+}
+
+html.dark .reading-wall-home-footer-icon:hover {
+    color: #67e8f9;
 }
 
 html.dark .reading-wall-title-column {
@@ -1286,6 +1348,13 @@ html.dark .reading-wall-title-column::after {
         padding-top: 0.8rem;
     }
 
+    .reading-wall-home-footer {
+        gap: 0.55rem;
+    }
+
+    .reading-wall-home-footer-copy {
+        font-size: 0.8rem;
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {

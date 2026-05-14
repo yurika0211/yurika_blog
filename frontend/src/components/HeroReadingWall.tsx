@@ -6,10 +6,13 @@ import {
   BookOpen,
   Clock3,
   ExternalLink,
+  Github,
   Loader,
+  Mail,
   Newspaper,
   Pin,
   Star,
+  Twitter,
   Workflow,
 } from 'lucide-react';
 import { formatDate } from '../utils/date';
@@ -220,6 +223,44 @@ function RichPanel({
   );
 }
 
+function HomeFooterRoll({ year }: { year: number }) {
+  return (
+    <div className="reading-wall-home-footer">
+      <div className="reading-wall-home-footer-copy">
+        <p>Copyright © {year} My DevBlog. All rights reserved.</p>
+      </div>
+
+      <div className="reading-wall-home-footer-icons" aria-label="Social links">
+        <a
+          href="https://github.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="reading-wall-home-footer-icon"
+          title="GitHub"
+        >
+          <Github className="h-4 w-4" />
+        </a>
+        <a
+          href="https://twitter.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="reading-wall-home-footer-icon"
+          title="Twitter"
+        >
+          <Twitter className="h-4 w-4" />
+        </a>
+        <a
+          href="mailto:your.email@example.com"
+          className="reading-wall-home-footer-icon"
+          title="Email"
+        >
+          <Mail className="h-4 w-4" />
+        </a>
+      </div>
+    </div>
+  );
+}
+
 export default function HeroReadingWall({
   featuredPosts,
   recentPosts,
@@ -240,6 +281,7 @@ export default function HeroReadingWall({
   reposError: string | null;
 }) {
   const railRef = useRef<HTMLDivElement | null>(null);
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     const rail = railRef.current;
@@ -461,8 +503,15 @@ export default function HeroReadingWall({
           </Paragraph>
         ),
       },
+      {
+        id: 'home-footer-roll',
+        widthClass: 'reading-wall-panel-narrow',
+        layoutClass: 'reading-wall-panel-colophon',
+        title: '页尾',
+        body: <HomeFooterRoll year={currentYear} />,
+      },
     ],
-    [featuredPosts, latestPostDate, postsError, postsLoading, projects, recentPosts, reposError, reposLoading],
+    [currentYear, featuredPosts, latestPostDate, postsError, postsLoading, projects, recentPosts, reposError, reposLoading],
   );
 
   return (
