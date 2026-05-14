@@ -3,6 +3,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 type ReadingWallPanel = {
   id: string;
   widthClass: string;
+  layoutClass: string;
   title?: string;
   body: ReactNode;
 };
@@ -30,82 +31,80 @@ function CopyStack({ children }: { children: ReactNode }) {
 
 const READING_WALL_PANELS: ReadingWallPanel[] = [
   {
-    id: 'quote-liubei',
+    id: 'water-fairy-intro',
     widthClass: 'reading-wall-panel-narrow',
+    layoutClass: 'reading-wall-panel-plaque',
+    title: '水仙女',
     body: (
       <Paragraph>
-        孤之有
-        <Ruby base="孔明" note="こうめい" />
-        ，猶
-        <Ruby base="魚" note="ぎょ" />
-        之有
-        <Ruby base="水" note="みず" />
-        也。
+        凌波照影，素袖生香。
       </Paragraph>
     ),
   },
   {
-    id: 'complex-layout',
+    id: 'water-fairy-prologue',
     widthClass: 'reading-wall-panel-medium',
-    title: '复杂情况测试',
+    layoutClass: 'reading-wall-panel-folio-tall',
+    title: '临波序',
     body: (
       <Paragraph>
-        这类内容会比普通段落更占横向空间，所以页面应当保持向左展开的余地。手机上则重点确认两件事：一是行长不要超出屏幕高度太多，二是横向滚动时不要被外层容器截断。
+        晨雾初开，水面像一封刚被揭开的信。她自浅汀回眸，白瓣拢着月色，金盏藏着微光，连风也只敢轻轻掠过裙角。
       </Paragraph>
     ),
   },
   {
-    id: 'spring-view-poem',
+    id: 'water-fairy-poem',
     widthClass: 'reading-wall-panel-wide',
+    layoutClass: 'reading-wall-panel-scroll',
     body: (
       <CopyStack>
         <Paragraph>
-          国<Kaeri mark="レ" />破山河在，城春草木深。
+          清波涵曉月，素影立寒汀。
         </Paragraph>
         <Paragraph>
-          感<Kaeri mark="二" />
-          時<Kaeri mark="一" />
-          花
-          <Ruby base="濺" note="ゲン" />
-          淚，恨<Kaeri mark="二" />別鳥驚心。
+          金盞盛<Kaeri mark="レ" />
+          春色，香痕
+          <Ruby base="著" note="ちゃく" />
+          水青。
         </Paragraph>
         <Paragraph>
-          烽火連<Kaeri mark="二" />三月，家書抵<Kaeri mark="二" />萬金。
+          風來衣袂動，露落佩聲輕。
         </Paragraph>
         <Paragraph>
-          白頭
-          <Ruby base="搔" note="ハ" />
-          更<Kaeri mark="二" />短，渾欲<Kaeri mark="レ" />不勝簪。
+          若問芳名處，人間喚水靈。
         </Paragraph>
       </CopyStack>
     ),
   },
   {
-    id: 'material-guide',
+    id: 'water-fairy-scent',
     widthClass: 'reading-wall-panel-medium',
-    title: '训点材料',
+    layoutClass: 'reading-wall-panel-folio-mid',
+    title: '香雾',
     body: (
       <Paragraph>
-        下面放一首稍长一点的古诗作为测试材料。这里不追求训读的严格校勘，只用于观察句子换行、返点位置、送假名密度，以及长篇训点材料在纯直排页面中的横向展开效果。每一联都单独写成一个段落，避免五言半句被拆成两行。
+        她不是浓烈的花神，更像一缕被清水养大的气息。靠近时先闻见冷香，再看见雪白花瓣层层展开，像把春天折成一支细长的灯。
       </Paragraph>
     ),
   },
   {
-    id: 'spring-view-note',
+    id: 'water-fairy-note',
     widthClass: 'reading-wall-panel-medium',
-    title: '春望训点',
+    layoutClass: 'reading-wall-panel-folio-low',
+    title: '晓岸小札',
     body: (
       <Paragraph>
-        这里测试返点、送假名和正文列距是否能共存。返点应嵌入汉字基字与下一个汉字之间的左侧空隙，送假名则贴近对应汉字并保持较小字号。
+        若把清晨的池岸写成一封情书，第一句该是薄雾，第二句该是花影，第三句便是她停在水边时，整片天空都安静下来。
       </Paragraph>
     ),
   },
   {
-    id: 'quote-liji',
+    id: 'water-fairy-epilogue',
     widthClass: 'reading-wall-panel-narrow',
+    layoutClass: 'reading-wall-panel-colophon',
     body: (
       <Paragraph>
-        故人不<Kaeri mark="レ" />獨親其親，不<Kaeri mark="レ" />獨子其子。
+        一泓秋水，照見芳魂。
       </Paragraph>
     ),
   },
@@ -131,7 +130,7 @@ export default function HeroReadingWall() {
       event.preventDefault();
       rail.scrollBy({
         left: event.deltaY,
-        behavior: 'smooth',
+        behavior: 'auto',
       });
     };
 
@@ -140,16 +139,20 @@ export default function HeroReadingWall() {
   }, []);
 
   return (
-    <section className="reading-wall-section relative overflow-hidden">
-      <div className="hero-grid absolute inset-0 opacity-55 dark:opacity-22" />
+    <section className="reading-wall-section relative min-h-screen overflow-hidden bg-[#f5efe2] dark:bg-[#16110c]">
+      <div className="hero-grid absolute inset-0 opacity-[0.14] mix-blend-multiply dark:opacity-[0.08]" />
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(232,246,248,0.97)_0%,rgba(220,240,243,0.84)_42%,rgba(228,244,247,0.95)_100%)] dark:bg-[linear-gradient(180deg,rgba(4,18,28,0.96)_0%,rgba(5,24,36,0.88)_44%,rgba(3,14,24,0.94)_100%)]" />
-        <div className="absolute left-[-8rem] top-[14%] h-52 w-80 rounded-full bg-cyan-200/34 blur-3xl dark:bg-cyan-400/16" />
-        <div className="absolute right-[-6rem] top-[18%] h-56 w-72 rounded-full bg-sky-200/28 blur-3xl dark:bg-sky-500/14" />
-        <div className="absolute bottom-[-8rem] left-[18%] h-56 w-80 rounded-full bg-teal-100/32 blur-3xl dark:bg-teal-500/12" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,242,231,0.98)_0%,rgba(242,234,219,0.95)_46%,rgba(238,229,211,0.98)_100%)] dark:bg-[linear-gradient(180deg,rgba(24,18,13,0.98)_0%,rgba(20,15,11,0.95)_48%,rgba(16,12,9,0.98)_100%)]" />
+        <div className="absolute inset-x-[6%] top-[6%] h-px bg-[linear-gradient(90deg,transparent,rgba(120,88,49,0.16),transparent)] dark:bg-[linear-gradient(90deg,transparent,rgba(180,145,98,0.14),transparent)]" />
+        <div className="absolute inset-x-[8%] bottom-[8%] h-px bg-[linear-gradient(90deg,transparent,rgba(120,88,49,0.1),transparent)] dark:bg-[linear-gradient(90deg,transparent,rgba(180,145,98,0.1),transparent)]" />
+        <div className="absolute left-[-7rem] top-[10%] h-64 w-96 rounded-full bg-[radial-gradient(circle,rgba(84,61,34,0.12)_0%,rgba(84,61,34,0.06)_26%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(164,130,82,0.08)_0%,rgba(164,130,82,0.04)_22%,transparent_66%)]" />
+        <div className="absolute right-[-5rem] top-[18%] h-72 w-80 rounded-full bg-[radial-gradient(circle,rgba(126,94,52,0.1)_0%,rgba(126,94,52,0.04)_24%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(150,118,73,0.08)_0%,rgba(150,118,73,0.04)_24%,transparent_68%)]" />
+        <div className="absolute bottom-[-8rem] left-[24%] h-72 w-[34rem] bg-[radial-gradient(ellipse_at_center,rgba(109,80,42,0.08)_0%,rgba(109,80,42,0.04)_32%,transparent_72%)] blur-3xl dark:bg-[radial-gradient(ellipse_at_center,rgba(145,112,70,0.07)_0%,rgba(145,112,70,0.03)_28%,transparent_72%)]" />
+        <div className="absolute left-[12%] top-[22%] h-40 w-24 rotate-[-16deg] rounded-full border border-[rgba(126,90,48,0.08)] opacity-60 dark:border-[rgba(176,140,92,0.08)]" />
+        <div className="absolute right-[14%] top-[14%] h-52 w-28 rotate-[12deg] rounded-full border border-[rgba(126,90,48,0.06)] opacity-50 dark:border-[rgba(176,140,92,0.06)]" />
       </div>
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100vh-3.5rem)] w-full max-w-[120rem] items-stretch px-3 py-4 md:px-5 md:py-6 xl:px-8">
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[120rem] items-stretch px-3 py-4 md:px-5 md:py-6 xl:px-8">
         <div
           ref={railRef}
           className="reading-wall-rail reading-wall-rail-full min-w-0"
@@ -158,7 +161,7 @@ export default function HeroReadingWall() {
           {READING_WALL_PANELS.map((panel) => (
             <article
               key={panel.id}
-              className={`reading-wall-panel ${panel.widthClass}`}
+              className={`reading-wall-panel ${panel.widthClass} ${panel.layoutClass}`}
             >
               <div className="reading-wall-panel-surface">
                 <div className="reading-wall-panel-shell">
