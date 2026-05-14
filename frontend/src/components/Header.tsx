@@ -47,11 +47,15 @@ export default function Header() {
 
   useEffect(() => {
     lastScrollYRef.current = window.scrollY;
-    setIsHeaderVisible(true);
+    setIsHeaderVisible(!isLanding);
     setIsShattering(false);
-  }, [location.pathname]);
+  }, [location.pathname, isLanding]);
 
   useEffect(() => {
+    if (isLanding) {
+      return;
+    }
+
     const onScroll = () => {
       const currentY = window.scrollY;
       const delta = currentY - lastScrollYRef.current;
@@ -81,7 +85,34 @@ export default function Header() {
 
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [menuOpen, isHeaderVisible]);
+  }, [isLanding, menuOpen, isHeaderVisible]);
+
+  useEffect(() => {
+    if (!isLanding) {
+      return;
+    }
+
+    const canHoverToReveal = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (!canHoverToReveal) {
+      setIsHeaderVisible(true);
+      return;
+    }
+
+    const revealZone = 72;
+    const onMouseMove = (event: MouseEvent) => {
+      if (menuOpen) {
+        setIsHeaderVisible(true);
+        return;
+      }
+
+      setIsHeaderVisible(event.clientY <= revealZone);
+    };
+
+    setIsHeaderVisible(menuOpen);
+    window.addEventListener('mousemove', onMouseMove);
+
+    return () => window.removeEventListener('mousemove', onMouseMove);
+  }, [isLanding, menuOpen]);
 
   useEffect(() => {
     if (menuOpen) {
@@ -111,8 +142,9 @@ export default function Header() {
   const btnClass = (base: string) =>
     'flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ' + base;
 
+  const headerPositionClass = isLanding ? 'fixed inset-x-0 top-0' : 'sticky top-0';
   const headerClass =
-    `sticky top-0 z-50 border-b transition-[transform,opacity,background-color,border-color] duration-300 will-change-transform ${
+    `${headerPositionClass} z-50 border-b transition-[transform,opacity,background-color,border-color] duration-300 will-change-transform ${
       isHeaderVisible ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
     } ` +
     (useLandingTexture
