@@ -5,6 +5,7 @@ import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { Save, Eye, PenLine, Tag, FileText, Pin, Lock } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { blog, type CreatePostPayload, type UpdatePostPayload } from '../services/api';
@@ -310,9 +311,9 @@ export default function Editor() {
             <Eye className="w-4 h-4" /> Live Preview
           </div>
 
-          <div className="grow p-6 overflow-y-auto prose prose-blue dark:prose-invert max-w-none">
+          <div className="post-markdown grow p-6 overflow-y-auto prose prose-blue dark:prose-invert max-w-none">
             <ReactMarkdown
-              remarkPlugins={[remarkMath]}
+              remarkPlugins={[remarkGfm, remarkMath]}
               rehypePlugins={[rehypeKatex]}
               components={{
                 code({ inline, className, children }: MarkdownCodeProps) {
@@ -323,6 +324,15 @@ export default function Editor() {
                     </SyntaxHighlighter>
                   ) : (
                     <code className={className}>{children}</code>
+                  );
+                },
+                table({ children, ...props }) {
+                  return (
+                    <div className="post-markdown-table my-6 overflow-x-auto rounded-2xl border border-[#d6d2c8] bg-[#faf8f1] shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
+                      <table className="w-full min-w-[32rem] border-collapse text-sm md:text-base" {...props}>
+                        {children}
+                      </table>
+                    </div>
                   );
                 },
               }}

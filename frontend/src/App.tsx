@@ -39,8 +39,10 @@ function AppLayout() {
   const location = useLocation();
   useScrollRestore();
   const isLanding = location.pathname === '/';
+  const isMomentsPage = location.pathname === '/moments';
   const isPostPage = Boolean(matchPath('/post/:id', location.pathname));
-  const useFullBleedShell = isLanding || isPostPage;
+  const isGuestbookPage = location.pathname === '/guestbook';
+  const useFullBleedShell = isLanding || isMomentsPage || isPostPage || isGuestbookPage;
   const showSidebar = Boolean(
     location.pathname === '/about',
   );
@@ -139,7 +141,7 @@ function AppLayout() {
           {showArchive && (
             <aside
               className="hidden lg:block w-80 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-sm overflow-y-auto sticky"
-              style={{ top: 'var(--header-offset, 3.5rem)', height: 'calc(100vh - var(--header-offset, 3.5rem))' }}
+              style={{ top: '1.5rem', height: 'calc(100vh - 3rem)' }}
             >
               <div className="pt-4 px-6 pb-8">
                 <ArchiveWidget />

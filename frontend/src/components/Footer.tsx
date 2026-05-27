@@ -4,7 +4,7 @@ import { matchPath, useLocation } from 'react-router-dom';
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const location = useLocation();
-  if (location.pathname === '/') {
+  if (location.pathname === '/' || location.pathname === '/moments' || location.pathname === '/guestbook') {
     return null;
   }
   const isPostPage = Boolean(matchPath('/post/:id', location.pathname));

@@ -42,6 +42,7 @@ type ReadingWallPanel = {
   widthClass: string;
   layoutClass: string;
   title?: string;
+  titleKun?: string;
   body: ReactNode;
 };
 
@@ -64,6 +65,21 @@ function Paragraph({ children }: { children: ReactNode }) {
 
 function CopyStack({ children }: { children: ReactNode }) {
   return <div className="reading-wall-copy-stack">{children}</div>;
+}
+
+function VerticalTitle({ title }: { title: string }) {
+  return (
+    <h2 className="reading-wall-vertical-title" aria-label={title}>
+      {Array.from(title).map((char, index) => (
+        <span
+          key={`${title}-${index}`}
+          className="reading-wall-title-char"
+        >
+          {char}
+        </span>
+      ))}
+    </h2>
+  );
 }
 
 function RichStatus({
@@ -315,6 +331,7 @@ export default function HeroReadingWall({
         widthClass: 'reading-wall-panel-narrow',
         layoutClass: 'reading-wall-panel-plaque',
         title: '水仙女',
+        titleKun: 'スイセンジョ',
         body: (
           <Paragraph>
             凌波照影，素袖生香。
@@ -326,6 +343,7 @@ export default function HeroReadingWall({
         widthClass: 'reading-wall-panel-medium',
         layoutClass: 'reading-wall-panel-folio-tall',
         title: '临波序',
+        titleKun: 'リンパノジョ',
         body: (
           <CopyStack>
             <Paragraph>
@@ -349,7 +367,7 @@ export default function HeroReadingWall({
             <Paragraph>
               金盞盛<Kaeri mark="レ" />
               春色，香痕
-              <Ruby base="著" note="ちゃく" />
+              <Ruby base="著" note="チャク" />
               水青。
             </Paragraph>
             <Paragraph>
@@ -366,6 +384,7 @@ export default function HeroReadingWall({
         widthClass: 'reading-wall-panel-medium',
         layoutClass: 'reading-wall-panel-folio-mid',
         title: '香雾',
+        titleKun: 'コウム',
         body: (
           <Paragraph>
             她不是浓烈的花神，更像一缕被清水养大的气息。靠近时先闻见冷香，再看见雪白花瓣层层展开，像把春天折成一支细长的灯。
@@ -377,6 +396,7 @@ export default function HeroReadingWall({
         widthClass: 'reading-wall-panel-medium',
         layoutClass: 'reading-wall-panel-folio-low',
         title: '晓岸小札',
+        titleKun: 'ギョウガンショウサツ',
         body: (
           <Paragraph>
             若把清晨的池岸写成一封情书，第一句该是薄雾，第二句该是花影，第三句便是她停在水边时，整片天空都安静下来。
@@ -398,6 +418,7 @@ export default function HeroReadingWall({
         widthClass: 'reading-wall-panel-medium',
         layoutClass: 'reading-wall-panel-folio-tall',
         title: '别卷',
+        titleKun: 'ベッカン',
         body: (
           <CopyStack>
             <Paragraph>
@@ -414,9 +435,10 @@ export default function HeroReadingWall({
         widthClass: 'reading-wall-panel-scroll',
         layoutClass: 'reading-wall-panel-scroll',
         title: '置顶',
+        titleKun: 'チョウカン',
         body: (
           <RichPanel
-            kicker="Featured"
+            kicker="置顶"
             title="卷中置顶文章"
             action={(
               <Link to="/posts" className="reading-wall-rich-link">
@@ -440,9 +462,10 @@ export default function HeroReadingWall({
         widthClass: 'reading-wall-panel-scroll',
         layoutClass: 'reading-wall-panel-scroll',
         title: '新稿',
+        titleKun: 'シンコウ',
         body: (
           <RichPanel
-            kicker="Latest"
+            kicker="更新"
             title="卷中新近更新"
             action={(
               <Link to="/posts" className="reading-wall-rich-link">
@@ -466,9 +489,10 @@ export default function HeroReadingWall({
         widthClass: 'reading-wall-panel-scroll',
         layoutClass: 'reading-wall-panel-scroll',
         title: '项目',
+        titleKun: 'コウモク',
         body: (
           <RichPanel
-            kicker="Projects"
+            kicker="项目"
             title="卷中项目札记"
             action={(
               <a
@@ -477,7 +501,7 @@ export default function HeroReadingWall({
                 rel="noopener noreferrer"
                 className="reading-wall-rich-link"
               >
-                GitHub
+                仓库
                 <ExternalLink className="h-4 w-4" />
               </a>
             )}
@@ -497,6 +521,7 @@ export default function HeroReadingWall({
         widthClass: 'reading-wall-panel-narrow',
         layoutClass: 'reading-wall-panel-colophon',
         title: '余波',
+        titleKun: 'ヨハ',
         body: (
           <Paragraph>
             卷尽向东，灯影未央。
@@ -508,6 +533,7 @@ export default function HeroReadingWall({
         widthClass: 'reading-wall-panel-narrow',
         layoutClass: 'reading-wall-panel-colophon',
         title: '页尾',
+        titleKun: 'ケツビ',
         body: <HomeFooterRoll year={currentYear} />,
       },
     ],
@@ -544,7 +570,12 @@ export default function HeroReadingWall({
                   {panel.title ? (
                     <>
                       <div className="reading-wall-column reading-wall-title-column">
-                        <h2 className="reading-wall-vertical-title">{panel.title}</h2>
+                        <div className="reading-wall-title-stack">
+                          <VerticalTitle title={panel.title} />
+                          {panel.titleKun ? (
+                            <p className="reading-wall-title-kun">{panel.titleKun}</p>
+                          ) : null}
+                        </div>
                       </div>
                       <div className="reading-wall-rule" />
                     </>
