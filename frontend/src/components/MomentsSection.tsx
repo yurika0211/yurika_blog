@@ -1,10 +1,11 @@
 import {
   Camera,
+  ChevronLeft,
+  ChevronRight,
   Heart,
   ImagePlus,
   Loader2,
   MessageCircle,
-  MoreHorizontal,
   SendHorizontal,
   Trash2,
   X,
@@ -151,9 +152,39 @@ const getImageGridClass = (count: number) => {
   return "grid-cols-2 md:grid-cols-3";
 };
 
-const getMomentHandle = (author: string, momentId: number) => {
-  const normalized = author.trim().replace(/\s+/g, "_").slice(0, 20);
-  return `@${normalized || `moment_${momentId}`}`;
+const getMomentParagraphs = (content?: string | null) =>
+  (content ?? "")
+    .split(/\n+/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+const MOMENT_PANEL_TITLES = ["片羽", "短札", "留痕", "潮声", "水纹", "小记"];
+
+const getMomentPanelConfig = (moment: BlogMoment, index: number) => {
+  if (moment.images.length > 0) {
+    return {
+      widthClass: "reading-wall-panel-scroll",
+      layoutClass: "reading-wall-panel-scroll",
+      title: MOMENT_PANEL_TITLES[index % MOMENT_PANEL_TITLES.length],
+      titleKun: "モーメント",
+    };
+  }
+
+  if ((moment.content?.length ?? 0) > 110) {
+    return {
+      widthClass: "reading-wall-panel-wide",
+      layoutClass: "reading-wall-panel-scroll",
+      title: MOMENT_PANEL_TITLES[index % MOMENT_PANEL_TITLES.length],
+      titleKun: "モーメント",
+    };
+  }
+
+  return {
+    widthClass: "reading-wall-panel-medium",
+    layoutClass: index % 2 === 0 ? "reading-wall-panel-folio-mid" : "reading-wall-panel-folio-low",
+    title: MOMENT_PANEL_TITLES[index % MOMENT_PANEL_TITLES.length],
+    titleKun: "モーメント",
+  };
 };
 
 export default function MomentsSection() {
@@ -161,6 +192,7 @@ export default function MomentsSection() {
   const { isLoggedIn, username } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const composerTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const railRef = useRef<HTMLDivElement | null>(null);
 
   const [moments, setMoments] = useState<BlogMoment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -175,6 +207,7 @@ export default function MomentsSection() {
   const [submissionState, setSubmissionState] = useState<SubmissionState>(null);
   const [previewImage, setPreviewImage] = useState<PreviewImage>(null);
   const [expandedComments, setExpandedComments] = useState<Record<number, boolean>>({});
+  const [expandedBodies, setExpandedBodies] = useState<Record<number, boolean>>({});
   const [commentDrafts, setCommentDrafts] = useState<Record<number, string>>({});
   const [submittingCommentId, setSubmittingCommentId] = useState<number | null>(null);
   const [deletingCommentKey, setDeletingCommentKey] = useState<string | null>(null);
@@ -213,6 +246,31 @@ export default function MomentsSection() {
       composerTextareaRef.current?.focus();
     }
   }, [showComposer]);
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) {
+      return;
+    }
+
+    const handleWheel = (event: WheelEvent) => {
+      if (window.innerWidth < 1024) {
+        return;
+      }
+      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
+        return;
+      }
+
+      event.preventDefault();
+      rail.scrollBy({
+        left: event.deltaY,
+        behavior: "auto",
+      });
+    };
+
+    rail.addEventListener("wheel", handleWheel, { passive: false });
+    return () => rail.removeEventListener("wheel", handleWheel);
+  }, []);
 
   useEffect(() => {
     if (!previewImage) {
@@ -424,457 +482,586 @@ export default function MomentsSection() {
     }
   };
 
+  const toggleBodyFold = (momentId: number) => {
+    setExpandedBodies((current) => ({
+      ...current,
+      [momentId]: !(current[momentId] ?? true),
+    }));
+  };
+
   return (
-    <section className="space-y-6">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h2 className="mt-3 text-3xl font-bold text-gray-900 dark:text-white">
-            Moments
-          </h2>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          {!isLoggedIn && (
-            <Link
-              to={`/login?redirect=${encodeURIComponent("/moments")}`}
-              className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700"
-            >
-              Log in to post
-            </Link>
-          )}
-          <div className="rounded-full border border-gray-200 bg-white/80 px-4 py-2 text-sm text-gray-500 shadow-sm dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400">
-            {moments.length} moments
-          </div>
-        </div>
+    <section className="reading-wall-section relative min-h-screen overflow-hidden bg-[#f5efe2] dark:bg-[#16110c]">
+      <div className="hero-grid absolute inset-0 opacity-[0.14] mix-blend-multiply dark:opacity-[0.08]" />
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,242,231,0.98)_0%,rgba(242,234,219,0.95)_46%,rgba(238,229,211,0.98)_100%)] dark:bg-[linear-gradient(180deg,rgba(24,18,13,0.98)_0%,rgba(20,15,11,0.95)_48%,rgba(16,12,9,0.98)_100%)]" />
+        <div className="absolute inset-x-[6%] top-[6%] h-px bg-[linear-gradient(90deg,transparent,rgba(120,88,49,0.16),transparent)] dark:bg-[linear-gradient(90deg,transparent,rgba(180,145,98,0.14),transparent)]" />
+        <div className="absolute inset-x-[8%] bottom-[8%] h-px bg-[linear-gradient(90deg,transparent,rgba(120,88,49,0.1),transparent)] dark:bg-[linear-gradient(90deg,transparent,rgba(180,145,98,0.1),transparent)]" />
+        <div className="absolute left-[-7rem] top-[10%] h-64 w-96 rounded-full bg-[radial-gradient(circle,rgba(84,61,34,0.12)_0%,rgba(84,61,34,0.06)_26%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(164,130,82,0.08)_0%,rgba(164,130,82,0.04)_22%,transparent_66%)]" />
+        <div className="absolute right-[-5rem] top-[18%] h-72 w-80 rounded-full bg-[radial-gradient(circle,rgba(126,94,52,0.1)_0%,rgba(126,94,52,0.04)_24%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(150,118,73,0.08)_0%,rgba(150,118,73,0.04)_24%,transparent_68%)]" />
       </div>
 
-      {feedError && (
-        <div className="rounded-[1.5rem] border border-red-200 bg-red-50/90 px-5 py-4 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
-          {feedError}
-        </div>
-      )}
-
-      <div className={`grid gap-6 ${showComposer ? "xl:grid-cols-[1.02fr_0.98fr]" : "grid-cols-1"}`}>
-        {isLoggedIn &&
-          (showComposer ? (
-            <form
-              id="moments-composer"
-              onSubmit={handleSubmit}
-              className="overflow-hidden rounded-[1.75rem] border border-gray-200/80 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-[#0f1419]/70"
-            >
-              <div className="border-b border-gray-200/70 px-6 py-5 dark:border-gray-800">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={APP_AVATAR_SRC}
-                      alt="Moment author"
-                      className="h-12 w-12 rounded-full border border-white/80 object-cover shadow-sm dark:border-gray-800"
-                    />
-                    <div>
-                      <p className="text-base font-semibold text-gray-900 dark:text-white">
-                        {username || "Yurika"}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Share a short post with photos.
-                      </p>
-                    </div>
+      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[120rem] items-stretch px-3 py-4 md:px-5 md:py-6 xl:px-8">
+        <div
+          ref={railRef}
+          className="reading-wall-rail reading-wall-rail-full moments-reading-wall-rail"
+          aria-label="Moments reading wall"
+        >
+          <article className="reading-wall-panel reading-wall-panel-narrow reading-wall-panel-plaque">
+            <div className="reading-wall-panel-surface">
+              <div className="reading-wall-panel-shell">
+                <div className="reading-wall-column reading-wall-title-column">
+                  <div className="reading-wall-title-stack">
+                    <h2 className="reading-wall-vertical-title">
+                      <span className="reading-wall-title-char">近</span>
+                      <span className="reading-wall-title-char">札</span>
+                    </h2>
+                    <p className="reading-wall-title-kun">モーメント</p>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsComposerOpen(false)}
-                    className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-300 dark:hover:bg-gray-950"
-                  >
-                    <X className="h-4 w-4" />
-                    Hide
-                  </button>
+                </div>
+                <div className="reading-wall-rule" />
+                <div className="reading-wall-column reading-wall-copy-column">
+                  <div className="moments-reading-wall-intro">
+                    <p className="reading-wall-vertical-copy">
+                      这里收起的是零碎的短句、片刻的心情与顺手记下的日常。沿着长卷向右翻，每一则动态便是一页小札。
+                    </p>
+                  </div>
                 </div>
               </div>
+            </div>
+          </article>
 
-              <div className="space-y-5 px-6 py-6">
-                <textarea
-                  ref={composerTextareaRef}
-                  value={content}
-                  onChange={(event) => setContent(event.target.value)}
-                  placeholder="What's happening today?"
-                  rows={5}
-                  className="w-full resize-none rounded-3xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-sky-400 dark:border-gray-700 dark:bg-gray-950/70 dark:text-gray-100"
-                />
+          <article className="reading-wall-panel reading-wall-panel-medium reading-wall-panel-folio-tall">
+            <div className="reading-wall-panel-surface">
+              <div className="reading-wall-panel-shell">
+                <div className="reading-wall-column reading-wall-title-column">
+                  <div className="reading-wall-title-stack">
+                    <h2 className="reading-wall-vertical-title">
+                      <span className="reading-wall-title-char">卷</span>
+                      <span className="reading-wall-title-char">览</span>
+                    </h2>
+                    <p className="reading-wall-title-kun">インデックス</p>
+                  </div>
+                </div>
+                <div className="reading-wall-rule" />
+                <div className="reading-wall-column reading-wall-copy-column">
+                  <div className="moments-reading-wall-overview">
+                    <div className="rounded-full border border-gray-200 bg-white/80 px-4 py-2 text-sm text-gray-500 shadow-sm dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400">
+                      {moments.length} moments
+                    </div>
 
-                <div className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={handlePickImages}
-                    />
-                    <button
-                      type="button"
-                      disabled={processingImages}
-                      onClick={() => fileInputRef.current?.click()}
-                      className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-200 dark:hover:bg-gray-950"
-                    >
-                      {processingImages ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
+                    {feedError && (
+                      <div className="rounded-[1.25rem] border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+                        {feedError}
+                      </div>
+                    )}
+
+                    {!isLoggedIn ? (
+                      <Link
+                        to={`/login?redirect=${encodeURIComponent("/moments")}`}
+                        className="inline-flex w-fit items-center gap-2 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700"
+                      >
+                        Log in to post
+                      </Link>
+                    ) : showComposer ? (
+                      <button
+                        type="button"
+                        onClick={() => setIsComposerOpen(false)}
+                        className="inline-flex w-fit items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-300 dark:hover:bg-gray-950"
+                      >
+                        <X className="h-4 w-4" />
+                        Hide composer
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsComposerOpen(true)}
+                        aria-expanded={false}
+                        aria-controls="moments-composer"
+                        className="inline-flex w-fit items-center gap-2 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700"
+                      >
                         <ImagePlus className="h-4 w-4" />
-                      )}
-                      {processingImages ? "Processing images..." : "Add Photos"}
-                    </button>
+                        {hasDraft ? "Resume draft" : "Post a moment"}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
 
-                    <div className="inline-flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                      <Camera className="h-4 w-4" />
-                      Up to {MAX_IMAGES} images per moment
+          {isLoggedIn && showComposer && (
+            <article className="reading-wall-panel reading-wall-panel-scroll reading-wall-panel-scroll">
+              <div className="reading-wall-panel-surface">
+                <div className="reading-wall-panel-shell">
+                  <div className="reading-wall-column reading-wall-title-column">
+                    <div className="reading-wall-title-stack">
+                      <h2 className="reading-wall-vertical-title">
+                        <span className="reading-wall-title-char">发</span>
+                        <span className="reading-wall-title-char">札</span>
+                      </h2>
+                      <p className="reading-wall-title-kun">エディタ</p>
                     </div>
                   </div>
+                  <div className="reading-wall-rule" />
+                  <div className="reading-wall-column reading-wall-copy-column">
+                    <form
+                      id="moments-composer"
+                      onSubmit={handleSubmit}
+                      className="moments-reading-wall-composer"
+                    >
+                      <textarea
+                        ref={composerTextareaRef}
+                        value={content}
+                        onChange={(event) => setContent(event.target.value)}
+                        placeholder="What's happening today?"
+                        rows={5}
+                        className="w-full resize-none rounded-3xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-sky-400 dark:border-gray-700 dark:bg-gray-950/70 dark:text-gray-100"
+                      />
 
-                  {pendingImages.length > 0 && (
-                    <div className={`grid gap-3 ${getImageGridClass(pendingImages.length)}`}>
-                      {pendingImages.map((image, index) => (
-                        <div
-                          key={`${image.slice(0, 32)}-${index}`}
-                          className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-950/60"
-                        >
-                          <img
-                            src={image}
-                            alt={`Selected moment image ${index + 1}`}
-                            onClick={() =>
-                              setPreviewImage({
-                                src: image,
-                                alt: `Selected moment image ${index + 1}`,
-                              })
-                            }
-                            className="max-h-72 w-full cursor-zoom-in object-contain bg-gray-50 dark:bg-gray-950/60"
+                      <div className="space-y-3">
+                        <div className="flex flex-wrap items-center gap-3">
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            className="hidden"
+                            onChange={handlePickImages}
                           />
                           <button
                             type="button"
-                            onClick={() =>
-                              setPendingImages((prev) =>
-                                prev.filter((_, currentIndex) => currentIndex !== index),
-                              )
-                            }
-                            className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/70"
-                            aria-label={`Remove image ${index + 1}`}
+                            disabled={processingImages}
+                            onClick={() => fileInputRef.current?.click()}
+                            className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-200 dark:hover:bg-gray-950"
                           >
-                            <X className="h-4 w-4" />
+                            {processingImages ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <ImagePlus className="h-4 w-4" />
+                            )}
+                            {processingImages ? "Processing images..." : "Add Photos"}
                           </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
 
-                {submissionState && (
-                  <div
-                    className={`rounded-2xl border px-4 py-3 text-sm ${
-                      submissionState.status === "success"
-                        ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
-                        : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
-                    }`}
-                  >
-                    {submissionState.message}
-                  </div>
-                )}
-
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
-                    Images are compressed in the browser before posting.
-                  </p>
-
-                  <button
-                    type="submit"
-                    disabled={!canSubmit}
-                    className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {submitting ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <SendHorizontal className="h-4 w-4" />
-                    )}
-                    {submitting ? "Posting..." : "Post Moment"}
-                  </button>
-                </div>
-              </div>
-            </form>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setIsComposerOpen(true)}
-              aria-expanded={false}
-              aria-controls="moments-composer"
-              className="flex w-full items-center justify-between gap-4 rounded-[1.75rem] border border-gray-200/80 bg-white/60 px-6 py-5 text-left shadow-sm backdrop-blur-sm transition-colors hover:border-sky-200 hover:bg-white/80 dark:border-gray-800 dark:bg-[#0f1419]/70 dark:hover:border-sky-900 dark:hover:bg-[#0f1419]/80"
-            >
-              <div className="flex min-w-0 items-center gap-4">
-                <img
-                  src={APP_AVATAR_SRC}
-                  alt="Moment author"
-                  className="h-12 w-12 rounded-full border border-white/80 object-cover shadow-sm dark:border-gray-800"
-                />
-                <div className="min-w-0">
-                  <p className="text-base font-semibold text-gray-900 dark:text-white">
-                    {username || "Yurika"}
-                  </p>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {hasDraft
-                      ? `Resume your draft${pendingImages.length > 0 ? ` with ${pendingImages.length} photo${pendingImages.length > 1 ? "s" : ""}` : ""}.`
-                      : "Open the composer to publish a new moment."}
-                  </p>
-                </div>
-              </div>
-
-              <span className="inline-flex shrink-0 items-center gap-2 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700">
-                <ImagePlus className="h-4 w-4" />
-                {hasDraft ? "Resume draft" : "Post a moment"}
-              </span>
-            </button>
-          ))}
-
-        <div className={`w-full space-y-4 ${showComposer ? "" : "max-w-4xl"}`}>
-          {loading ? (
-            <div className="flex items-center justify-center gap-3 rounded-[1.75rem] border border-gray-200/80 bg-white/60 px-6 py-10 text-gray-600 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-[#0f1419]/70 dark:text-gray-300">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Loading moments...
-            </div>
-          ) : moments.length === 0 ? (
-            <div className="rounded-[1.75rem] border border-dashed border-gray-300 bg-white/60 px-6 py-14 text-center text-gray-500 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-[#0f1419]/70 dark:text-gray-400">
-              No moments yet. The first photo post will appear here.
-            </div>
-          ) : (
-            moments.map((moment) => {
-              const commentsOpen = Boolean(expandedComments[moment.id]);
-              const likeBusy = togglingLikeId === moment.id;
-              const commentDraft = commentDrafts[moment.id] ?? "";
-
-              return (
-                <article
-                  key={moment.id}
-                  className="overflow-hidden rounded-[1.9rem] border border-gray-200/80 bg-white/60 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-[#0f1419]/70"
-                >
-                  <div className="flex gap-4 px-5 py-5 sm:px-6">
-                    <img
-                      src={APP_AVATAR_SRC}
-                      alt={moment.author}
-                      className="h-12 w-12 rounded-full border border-white/80 object-cover shadow-sm dark:border-gray-800"
-                    />
-
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
-                            <span className="truncate font-semibold text-gray-900 dark:text-white">
-                              {moment.author}
-                            </span>
-                            <span className="text-gray-500 dark:text-gray-400">
-                              {getMomentHandle(moment.author, moment.id)}
-                            </span>
-                            <span className="text-gray-300 dark:text-gray-600">·</span>
-                            <time className="text-gray-500 dark:text-gray-400">
-                              {formatMomentTime(moment.created_at)}
-                            </time>
+                          <div className="inline-flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                            <Camera className="h-4 w-4" />
+                            Up to {MAX_IMAGES} images per moment
                           </div>
                         </div>
 
-                        {isLoggedIn ? (
-                          <button
-                            type="button"
-                            onClick={() => void handleDelete(moment.id)}
-                            disabled={deletingId === moment.id}
-                            className="inline-flex items-center gap-2 rounded-full px-2 py-2 text-sm text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
-                            aria-label="Delete moment"
-                          >
-                            {deletingId === moment.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="h-4 w-4" />
-                            )}
-                          </button>
-                        ) : (
-                          <div className="rounded-full p-2 text-gray-400 dark:text-gray-500">
-                            <MoreHorizontal className="h-4 w-4" />
+                        {pendingImages.length > 0 && (
+                          <div className={`grid gap-3 ${getImageGridClass(pendingImages.length)}`}>
+                            {pendingImages.map((image, index) => (
+                              <div
+                                key={`${image.slice(0, 32)}-${index}`}
+                                className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-950/60"
+                              >
+                                <img
+                                  src={image}
+                                  alt={`Selected moment image ${index + 1}`}
+                                  onClick={() =>
+                                    setPreviewImage({
+                                      src: image,
+                                      alt: `Selected moment image ${index + 1}`,
+                                    })
+                                  }
+                                  className="max-h-72 w-full cursor-zoom-in object-contain bg-gray-50 dark:bg-gray-950/60"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setPendingImages((prev) =>
+                                      prev.filter((_, currentIndex) => currentIndex !== index),
+                                    )
+                                  }
+                                  className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/70"
+                                  aria-label={`Remove image ${index + 1}`}
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>
 
-                      {moment.content && (
-                        <p className="mt-2 whitespace-pre-wrap text-[15px] leading-7 text-gray-900 dark:text-gray-100">
-                          {moment.content}
+                      {submissionState && (
+                        <div
+                          className={`rounded-2xl border px-4 py-3 text-sm ${
+                            submissionState.status === "success"
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
+                              : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
+                          }`}
+                        >
+                          {submissionState.message}
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          Images are compressed in the browser before posting.
                         </p>
-                      )}
 
-                      {moment.images.length > 0 && (
-                        <div className={`mt-4 grid gap-3 ${getImageGridClass(moment.images.length)}`}>
-                          {moment.images.map((image, index) => (
-                            <button
-                              key={`${moment.id}-${index}`}
-                              type="button"
-                              onClick={() =>
-                                setPreviewImage({
-                                  src: image,
-                                  alt: `Moment ${moment.id} image ${index + 1}`,
-                                })
-                              }
-                              className="overflow-hidden rounded-[1.5rem] border border-gray-200 bg-gray-50 text-left transition-transform hover:scale-[1.01] dark:border-gray-700 dark:bg-gray-950/60"
-                            >
-                              <img
-                                src={image}
-                                alt={`Moment ${moment.id} image ${index + 1}`}
-                                loading="lazy"
-                                className="max-h-[32rem] w-full cursor-zoom-in object-contain bg-gray-50 dark:bg-gray-950/60"
-                              />
-                            </button>
-                          ))}
+                        <button
+                          type="submit"
+                          disabled={!canSubmit}
+                          className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          {submitting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <SendHorizontal className="h-4 w-4" />
+                          )}
+                          {submitting ? "Posting..." : "Post Moment"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </article>
+          )}
+
+          {loading ? (
+            <article className="reading-wall-panel reading-wall-panel-medium reading-wall-panel-folio-mid">
+              <div className="reading-wall-panel-surface">
+                <div className="reading-wall-panel-shell">
+                  <div className="reading-wall-column reading-wall-title-column">
+                    <div className="reading-wall-title-stack">
+                      <h2 className="reading-wall-vertical-title">
+                        <span className="reading-wall-title-char">待</span>
+                        <span className="reading-wall-title-char">载</span>
+                      </h2>
+                      <p className="reading-wall-title-kun">ロード</p>
+                    </div>
+                  </div>
+                  <div className="reading-wall-rule" />
+                  <div className="reading-wall-column reading-wall-copy-column">
+                    <div className="flex h-full items-center justify-center text-gray-600 dark:text-gray-300">
+                      <div className="inline-flex items-center gap-3 rounded-[1.75rem] border border-gray-200/80 bg-white/60 px-6 py-10 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-[#0f1419]/70">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        Loading moments...
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ) : moments.length === 0 ? (
+            <article className="reading-wall-panel reading-wall-panel-medium reading-wall-panel-folio-mid">
+              <div className="reading-wall-panel-surface">
+                <div className="reading-wall-panel-shell">
+                  <div className="reading-wall-column reading-wall-title-column">
+                    <div className="reading-wall-title-stack">
+                      <h2 className="reading-wall-vertical-title">
+                        <span className="reading-wall-title-char">空</span>
+                        <span className="reading-wall-title-char">卷</span>
+                      </h2>
+                      <p className="reading-wall-title-kun">ブランク</p>
+                    </div>
+                  </div>
+                  <div className="reading-wall-rule" />
+                  <div className="reading-wall-column reading-wall-copy-column">
+                    <div className="flex h-full items-center justify-center rounded-[1.75rem] border border-dashed border-gray-300 bg-white/60 px-6 py-14 text-center text-gray-500 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-[#0f1419]/70 dark:text-gray-400">
+                      No moments yet. The first photo post will appear here.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ) : (
+            moments.map((moment, index) => {
+              const commentsOpen = Boolean(expandedComments[moment.id]);
+              const bodyExpanded = expandedBodies[moment.id] ?? false;
+              const likeBusy = togglingLikeId === moment.id;
+              const commentDraft = commentDrafts[moment.id] ?? "";
+              const panelConfig = getMomentPanelConfig(moment, index);
+              const paragraphs = getMomentParagraphs(moment.content);
+              const previewComments = moment.comments.slice(0, 2);
+              const bookmarkLead =
+                paragraphs[0]?.replace(/\s+/g, "").slice(0, 4) || panelConfig.title;
+              const collapsedExcerpt =
+                paragraphs[0]?.slice(0, 30) ||
+                (moment.images.length > 0 ? `${moment.images.length} 张附图` : "展开阅读这则小札。");
+
+              return (
+                <article
+                  key={moment.id}
+                  className={`reading-wall-panel moments-bookmark-panel ${
+                    bodyExpanded ? "moments-bookmark-panel-open" : "moments-bookmark-panel-closed"
+                  }`}
+                >
+                  <div className="reading-wall-panel-surface">
+                    <div className="moments-bookmark-stage">
+                      <div className="moments-bookmark-assembly">
+                        <div className="moments-bookmark-strip">
+                          <h2 className="moments-bookmark-title" aria-label={panelConfig.title}>
+                            {Array.from(panelConfig.title).map((char, charIndex) => (
+                              <span
+                                key={`${panelConfig.title}-${charIndex}`}
+                                className="moments-bookmark-title-char"
+                              >
+                                {char}
+                              </span>
+                            ))}
+                          </h2>
+                          <p className="moments-bookmark-kana">{panelConfig.titleKun}</p>
                         </div>
-                      )}
-
-                      <div className="mt-4 flex items-center justify-between border-t border-gray-100 pt-3 dark:border-gray-800">
-                        <div className="flex items-center gap-2 sm:gap-4">
-                          <button
-                            type="button"
-                            onClick={() => toggleCommentPanel(moment.id)}
-                            className="group inline-flex items-center gap-2 rounded-full px-2 py-1.5 text-sm text-gray-500 transition-colors hover:text-sky-600 dark:text-gray-400 dark:hover:text-sky-400"
-                          >
-                            <span className="inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors group-hover:bg-sky-50 dark:group-hover:bg-sky-950/30">
-                              <MessageCircle className="h-4 w-4" />
-                            </span>
-                            <span>{formatCompactCount(moment.comments_count)}</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => void handleToggleLike(moment)}
-                            disabled={likeBusy}
-                            className={`group inline-flex items-center gap-2 rounded-full px-2 py-1.5 text-sm transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
-                              moment.liked_by_device
-                                ? "text-rose-600 dark:text-rose-400"
-                                : "text-gray-500 hover:text-rose-600 dark:text-gray-400 dark:hover:text-rose-400"
-                            }`}
-                          >
-                            <span
-                              className={`inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors ${
-                                moment.liked_by_device
-                                  ? "bg-rose-50 dark:bg-rose-950/30"
-                                  : "group-hover:bg-rose-50 dark:group-hover:bg-rose-950/30"
-                              }`}
-                            >
-                              {likeBusy ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Heart
-                                  className={`h-4 w-4 ${moment.liked_by_device ? "fill-current" : ""}`}
-                                />
-                              )}
-                            </span>
-                            <span>{formatCompactCount(moment.likes_count)}</span>
-                          </button>
-                        </div>
-
-                        <div className="text-xs text-gray-400 dark:text-gray-500">
-                          {moment.images.length > 0
-                            ? `${moment.images.length} photo${moment.images.length > 1 ? "s" : ""}`
-                            : "Text update"}
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => toggleBodyFold(moment.id)}
+                          className="moments-bookmark-toggle"
+                          aria-expanded={bodyExpanded}
+                          aria-label={bodyExpanded ? "收起这则 moments" : "展开这则 moments"}
+                        >
+                          {bodyExpanded ? (
+                            <ChevronLeft className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </button>
                       </div>
 
-                      {commentsOpen && (
-                        <div className="mt-4 space-y-4 border-t border-gray-100 pt-4 dark:border-gray-800">
-                          {isLoggedIn ? (
-                            <div className="rounded-[1.5rem] border border-gray-200 bg-gray-50/80 p-4 dark:border-gray-800 dark:bg-gray-950/40">
-                              <textarea
-                                value={commentDraft}
-                                onChange={(event) =>
-                                  setCommentDrafts((prev) => ({
-                                    ...prev,
-                                    [moment.id]: event.target.value,
-                                  }))
-                                }
-                                placeholder={`Reply as ${username || "Yurika"}...`}
-                                rows={3}
-                                className="w-full resize-none rounded-2xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-sky-400 dark:border-gray-700 dark:bg-gray-950/80 dark:text-gray-100"
-                              />
-                              <div className="mt-3 flex justify-end">
-                                <button
-                                  type="button"
-                                  onClick={() => void handleAddComment(moment.id)}
-                                  disabled={!commentDraft.trim() || submittingCommentId === moment.id}
-                                  className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
-                                >
-                                  {submittingCommentId === moment.id ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <SendHorizontal className="h-4 w-4" />
-                                  )}
-                                  {submittingCommentId === moment.id ? "Replying..." : "Reply"}
-                                </button>
+                      {bodyExpanded ? (
+                        <div className="moments-bookmark-open-shell">
+                          <div className="moments-bookmark-open-panel">
+                            <section className="moments-bookmark-content">
+                              <div className="moments-bookmark-meta">
+                                <div className="moments-bookmark-meta-left">
+                                  <span className="moments-bookmark-time-chip">
+                                    {formatMomentTime(moment.created_at)}
+                                  </span>
+                                  <span className="moments-bookmark-time-chip">展开阅读</span>
+                                </div>
+                                <div className="moments-bookmark-meta-right">
+                                  <span className="moments-bookmark-time-chip">正文与评论均为竖排</span>
+                                  {isLoggedIn ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => void handleDelete(moment.id)}
+                                      disabled={deletingId === moment.id}
+                                      className="moments-bookmark-icon-button"
+                                      aria-label="Delete moment"
+                                    >
+                                      {deletingId === moment.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        <Trash2 className="h-4 w-4" />
+                                      )}
+                                    </button>
+                                  ) : null}
+                                </div>
                               </div>
-                            </div>
-                          ) : (
-                            <div className="rounded-[1.5rem] border border-dashed border-gray-300 bg-gray-50/80 px-4 py-4 text-sm text-gray-600 dark:border-gray-700 dark:bg-gray-950/40 dark:text-gray-300">
-                              Log in to reply in this thread.
-                              <Link
-                                to={`/login?redirect=${encodeURIComponent("/moments")}`}
-                                className="ml-2 text-sky-600 hover:underline dark:text-sky-400"
-                              >
-                                Log in
-                              </Link>
-                            </div>
-                          )}
 
-                          {moment.comments.length > 0 ? (
-                            <div className="space-y-3">
-                              {moment.comments.map((comment) => {
-                                const commentDeleteKey = `${moment.id}-${comment.id}`;
-                                return (
-                                  <div key={comment.id} className="flex gap-3">
-                                    <img
-                                      src={APP_AVATAR_SRC}
-                                      alt={comment.author}
-                                      className="mt-1 h-9 w-9 shrink-0 rounded-full border border-white/80 object-cover shadow-sm dark:border-gray-800"
-                                    />
+                              <div className="moments-bookmark-reader-body">
+                                <div className="moments-bookmark-reader-flow moments-bookmark-reader-support">
+                                  <h3 className="moments-bookmark-reader-title">{bookmarkLead}</h3>
+                                  <section className="moments-bookmark-comments">
+                                    <h4 className="moments-bookmark-comments-title">评论</h4>
+                                    {previewComments.length > 0 ? (
+                                      previewComments.map((comment) => (
+                                        <article key={comment.id} className="moments-bookmark-comment">
+                                          <div className="moments-bookmark-avatar" />
+                                          <p className="moments-bookmark-comment-name">{comment.author}</p>
+                                          <p className="moments-bookmark-comment-text">{comment.content}</p>
+                                        </article>
+                                      ))
+                                    ) : (
+                                      <article className="moments-bookmark-comment">
+                                        <div className="moments-bookmark-avatar moments-bookmark-avatar-muted" />
+                                        <p className="moments-bookmark-comment-text">暂无评论，等你写下第一句回应。</p>
+                                      </article>
+                                    )}
+                                  </section>
+                                </div>
 
-                                    <div className="min-w-0 flex-1 rounded-[1.25rem] bg-gray-50 px-4 py-3 dark:bg-gray-950/40">
-                                      <div className="flex items-start justify-between gap-3">
-                                        <div className="min-w-0">
-                                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
-                                              {comment.author}
-                                            </span>
-                                            <span className="text-xs text-gray-500 dark:text-gray-400">
-                                              {formatMomentTime(comment.created_at)}
-                                            </span>
-                                          </div>
-                                        </div>
+                                <div className="moments-bookmark-reader-shell">
+                                  <div className="moments-bookmark-reader-flow moments-bookmark-reader-main">
+                                    {moment.images.map((image, imageIndex) => (
+                                      <figure key={`${moment.id}-image-${imageIndex}`} className="moments-bookmark-figure">
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setPreviewImage({
+                                              src: image,
+                                              alt: `Moment ${moment.id} image ${imageIndex + 1}`,
+                                            })
+                                          }
+                                          className="moments-bookmark-figure-trigger"
+                                        >
+                                          <img
+                                            src={image}
+                                            alt={`Moment ${moment.id} image ${imageIndex + 1}`}
+                                            loading="lazy"
+                                            className="moments-bookmark-figure-image"
+                                          />
+                                        </button>
+                                        <figcaption className="moments-bookmark-figure-caption">
+                                          附图自然嵌进文章中。
+                                        </figcaption>
+                                      </figure>
+                                    ))}
 
-                                        {isLoggedIn && (
-                                          <button
-                                            type="button"
-                                            onClick={() => void handleDeleteComment(moment.id, comment)}
-                                            disabled={deletingCommentKey === commentDeleteKey}
-                                            className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
-                                          >
-                                            {deletingCommentKey === commentDeleteKey ? (
-                                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                            ) : (
-                                              <Trash2 className="h-3.5 w-3.5" />
-                                            )}
-                                          </button>
-                                        )}
-                                      </div>
-
-                                      <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700 dark:text-gray-200">
-                                        {comment.content}
+                                    {paragraphs.length > 0 ? (
+                                      paragraphs.map((paragraph, paragraphIndex) => (
+                                        <p key={`${moment.id}-paragraph-${paragraphIndex}`} className="moments-bookmark-paragraph">
+                                          {paragraph}
+                                        </p>
+                                      ))
+                                    ) : (
+                                      <p className="moments-bookmark-paragraph">
+                                        这则 moments 只保留了图像与留白。
                                       </p>
-                                    </div>
+                                    )}
                                   </div>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <p className="text-sm text-gray-500 dark:text-gray-400">
-                              No replies yet.
-                            </p>
-                          )}
+                                </div>
+                              </div>
+
+                              <div className="moments-bookmark-toolbar">
+                                <div className="moments-bookmark-toolbar-left">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleCommentPanel(moment.id)}
+                                    className="moments-bookmark-pill"
+                                  >
+                                    <MessageCircle className="h-4 w-4" />
+                                    <span>{formatCompactCount(moment.comments_count)} 条评论</span>
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => void handleToggleLike(moment)}
+                                    disabled={likeBusy}
+                                    className={`moments-bookmark-pill ${
+                                      moment.liked_by_device ? "moments-bookmark-pill-liked" : ""
+                                    }`}
+                                  >
+                                    {likeBusy ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <Heart className={`h-4 w-4 ${moment.liked_by_device ? "fill-current" : ""}`} />
+                                    )}
+                                    <span>{formatCompactCount(moment.likes_count)} 赞</span>
+                                  </button>
+                                </div>
+
+                                <div className="moments-bookmark-toolbar-right">
+                                  <span className="moments-bookmark-toolbar-note">
+                                    {moment.images.length > 0
+                                      ? `${moment.images.length} 张附图`
+                                      : "纯文字片段"}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {commentsOpen && (
+                                <div className="moments-bookmark-replies">
+                                  {isLoggedIn ? (
+                                    <div className="moments-bookmark-reply-editor">
+                                      <textarea
+                                        value={commentDraft}
+                                        onChange={(event) =>
+                                          setCommentDrafts((prev) => ({
+                                            ...prev,
+                                            [moment.id]: event.target.value,
+                                          }))
+                                        }
+                                        placeholder={`Reply as ${username || "Yurika"}...`}
+                                        rows={3}
+                                        className="moments-bookmark-reply-input"
+                                      />
+                                      <div className="mt-3 flex justify-end">
+                                        <button
+                                          type="button"
+                                          onClick={() => void handleAddComment(moment.id)}
+                                          disabled={!commentDraft.trim() || submittingCommentId === moment.id}
+                                          className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                        >
+                                          {submittingCommentId === moment.id ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                          ) : (
+                                            <SendHorizontal className="h-4 w-4" />
+                                          )}
+                                          {submittingCommentId === moment.id ? "Replying..." : "Reply"}
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ) : (
+                                    <div className="moments-bookmark-login-hint">
+                                      Log in to reply in this thread.
+                                      <Link
+                                        to={`/login?redirect=${encodeURIComponent("/moments")}`}
+                                        className="ml-2 text-sky-600 hover:underline dark:text-sky-400"
+                                      >
+                                        Log in
+                                      </Link>
+                                    </div>
+                                  )}
+
+                                  {moment.comments.length > 0 ? (
+                                    <div className="space-y-3">
+                                      {moment.comments.map((comment) => {
+                                        const commentDeleteKey = `${moment.id}-${comment.id}`;
+                                        return (
+                                          <div key={comment.id} className="flex gap-3">
+                                            <img
+                                              src={APP_AVATAR_SRC}
+                                              alt={comment.author}
+                                              className="mt-1 h-9 w-9 shrink-0 rounded-full border border-white/80 object-cover shadow-sm dark:border-gray-800"
+                                            />
+
+                                            <div className="min-w-0 flex-1 rounded-[1.25rem] bg-gray-50 px-4 py-3 dark:bg-gray-950/40">
+                                              <div className="flex items-start justify-between gap-3">
+                                                <div className="min-w-0">
+                                                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                                                      {comment.author}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                      {formatMomentTime(comment.created_at)}
+                                                    </span>
+                                                  </div>
+                                                </div>
+
+                                                {isLoggedIn && (
+                                                  <button
+                                                    type="button"
+                                                    onClick={() => void handleDeleteComment(moment.id, comment)}
+                                                    disabled={deletingCommentKey === commentDeleteKey}
+                                                    className="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs text-gray-500 transition-colors hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-400 dark:hover:bg-red-900/20 dark:hover:text-red-300"
+                                                  >
+                                                    {deletingCommentKey === commentDeleteKey ? (
+                                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                    ) : (
+                                                      <Trash2 className="h-3.5 w-3.5" />
+                                                    )}
+                                                  </button>
+                                                )}
+                                              </div>
+
+                                              <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700 dark:text-gray-200">
+                                                {comment.content}
+                                              </p>
+                                            </div>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  ) : (
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                      No replies yet.
+                                    </p>
+                                  )}
+                                </div>
+                              )}
+                            </section>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="moments-bookmark-collapsed">
+                          <div className="moments-bookmark-collapsed-time">
+                            {formatMomentTime(moment.created_at)}
+                          </div>
+                          <p className="moments-bookmark-collapsed-copy">{collapsedExcerpt}</p>
                         </div>
                       )}
                     </div>

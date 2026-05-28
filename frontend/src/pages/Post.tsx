@@ -11,6 +11,7 @@ import { formatDate } from '../utils/date';
 import { useAuth } from '../hooks/useAuth';
 
 import remarkMath from 'remark-math';
+import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
 import 'katex/dist/katex.min.css';
@@ -558,9 +559,9 @@ export default function Post() {
               </span>
             </div>
 
-            <div ref={articleRef} className="prose prose-base md:prose-lg prose-slate dark:prose-invert max-w-none prose-h2:!text-[1.18rem] prose-h3:!text-[1.02rem] prose-h4:!text-[0.95rem] prose-h2:!leading-7 prose-h3:!leading-6 prose-h4:!leading-6 prose-pre:!p-0 prose-pre:!m-0 prose-pre:!bg-transparent prose-pre:!border-0 prose-pre:!rounded-none">
+            <div ref={articleRef} className="post-markdown prose prose-base md:prose-lg prose-slate dark:prose-invert max-w-none prose-h2:!text-[1.18rem] prose-h3:!text-[1.02rem] prose-h4:!text-[0.95rem] prose-h2:!leading-7 prose-h3:!leading-6 prose-h4:!leading-6 prose-pre:!p-0 prose-pre:!m-0 prose-pre:!bg-transparent prose-pre:!border-0 prose-pre:!rounded-none">
               <ReactMarkdown
-                remarkPlugins={[remarkMath]}
+                remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeRaw, rehypeKatex]}
                 components={{
                   code({ inline, className, children, ...props }: MarkdownCodeProps) {
@@ -603,6 +604,15 @@ export default function Post() {
                           loading="lazy"
                           {...props}
                         />
+                      </div>
+                    );
+                  },
+                  table({ children, ...props }) {
+                    return (
+                      <div className="post-markdown-table my-6 overflow-x-auto rounded-2xl border border-[#d6d2c8] bg-[#faf8f1] shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
+                        <table className="w-full min-w-[32rem] border-collapse text-sm md:text-base" {...props}>
+                          {children}
+                        </table>
                       </div>
                     );
                   },
