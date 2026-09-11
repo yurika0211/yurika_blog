@@ -1,4 +1,4 @@
-use crate::auth::require_authorized;
+use crate::auth::require_admin;
 use crate::db_access::moments::*;
 use crate::errors::MyError;
 use crate::models::moments::{CreateMoment, CreateMomentComment, normalize_device_id};
@@ -39,7 +39,7 @@ pub async fn create_moment(
     payload: web::Json<CreateMoment>,
     req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
-    require_authorized(&req)?;
+    require_admin(&req)?;
 
     create_moment_db(&app_state.db, payload.into_inner())
         .await
@@ -51,7 +51,7 @@ pub async fn delete_moment(
     path: web::Path<i32>,
     req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
-    require_authorized(&req)?;
+    require_admin(&req)?;
 
     delete_moment_db(&app_state.db, path.into_inner())
         .await
@@ -64,7 +64,7 @@ pub async fn create_moment_comment(
     payload: web::Json<CreateMomentComment>,
     req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
-    require_authorized(&req)?;
+    require_admin(&req)?;
 
     create_moment_comment_db(&app_state.db, path.into_inner(), payload.into_inner())
         .await
@@ -76,7 +76,7 @@ pub async fn delete_moment_comment(
     path: web::Path<(i32, i32)>,
     req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
-    require_authorized(&req)?;
+    require_admin(&req)?;
 
     let (moment_id, comment_id) = path.into_inner();
     delete_moment_comment_db(&app_state.db, moment_id, comment_id)

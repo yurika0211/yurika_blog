@@ -1,4 +1,4 @@
-use crate::auth::require_authorized;
+use crate::auth::require_admin;
 use crate::db_access::friend_links::*;
 use crate::errors::MyError;
 use crate::models::friends::{
@@ -27,7 +27,7 @@ pub async fn list_friend_link_applications(
     query: web::Query<FriendLinkListParams>,
     req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
-    require_authorized(&req)?;
+    require_admin(&req)?;
 
     list_friend_link_applications_db(&app_state.db, query.into_inner().status)
         .await
@@ -40,7 +40,7 @@ pub async fn review_friend_link_application(
     payload: web::Json<ReviewFriendLinkApplication>,
     req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
-    require_authorized(&req)?;
+    require_admin(&req)?;
 
     review_friend_link_application_db(&app_state.db, path.into_inner(), payload.into_inner())
         .await

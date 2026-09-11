@@ -1,6 +1,19 @@
 -- 1. Clean up the misspelled table
 DROP TABLE IF EXISTS articles;
 
+-- Authentication schema. The first admin is bootstrapped from ADMIN_PASSWORD;
+-- no default credentials are stored in the repository.
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(32) NOT NULL DEFAULT 'user',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_lower
+ON users (LOWER(username));
+
 -- 2. Create the table with the correct name
 CREATE TABLE articles (
     id SERIAL PRIMARY KEY,

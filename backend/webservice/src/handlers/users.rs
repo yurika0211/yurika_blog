@@ -1,15 +1,21 @@
-use crate::{auth::JWT_SECRET, db_access::user::get_user_by_username, errors::MyError, state::*};
+use crate::{
+    auth::{self, Claims, JWT_AUDIENCE, JWT_ISSUER},
+    db_access::user::get_user_by_username,
+    errors::MyError,
+    state::*,
+};
 use actix_web::web;
 use argon2::{
-    Argon2,
-    password_hash::{PasswordHash, PasswordVerifier},
+    Argon2, PasswordVerifier,
+    password_hash::{PasswordHash, PasswordHasher, SaltString, rand_core::OsRng},
 };
-use jsonwebtoken::{EncodingKey, Header, encode};
-use serde::{Deserialize, Serialize};
-use tracing::debug; // 引入日志宏
+use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
+use serde::Deserialize;
+use std::sync::OnceLock;
+use tracing::debug;
 
-#[cfg(test)]
-use argon2::password_hash::{PasswordHasher, SaltString, rand_core::OsRng};
+const MAX_USERNAME_CHARS: usize = 128;
+const MAX_PASSWORD_CHARS: usize = 1024;
 
 #[derive(Deserialize)]
 pub struct LoginRequest {
@@ -17,15 +23,9 @@ pub struct LoginRequest {
     pub password: String,
 }
 
-#[derive(Serialize)]
+#[derive(serde::Serialize)]
 pub struct LoginResponse {
     pub token: String,
-}
-
-#[derive(Serialize)]
-struct Claims {
-    sub: String,
-    exp: usize,
 }
 
 pub async fn login_handler(
@@ -34,32 +34,59 @@ pub async fn login_handler(
 ) -> Result<web::Json<LoginResponse>, MyError> {
     debug!(">>> 开始执行数据库查询<<<");
     let payload = payload.into_inner();
-    let user = get_user_by_username(&app_state.db, payload.username).await?;
+    let username = payload.username.trim();
+    if username.is_empty() || username.chars().count() > MAX_USERNAME_CHARS {
+        return Err(MyError::BadRequest("Invalid username".into()));
+    }
+    if payload.password.chars().count() > MAX_PASSWORD_CHARS {
+        return Err(MyError::BadRequest("Invalid password".into()));
+    }
+
+    let user = get_user_by_username(&app_state.db, username).await?;
+    let Some(user) = user else {
+        verify_password(&payload.password, dummy_password_hash());
+        return Err(MyError::Unauthorized("用户名或密码错误".into()));
+    };
 
     let is_valid = verify_password(&payload.password, &user.password_hash);
 
-    if !is_valid {
+    if !is_valid || !user.is_active {
         return Err(MyError::Unauthorized("用户名或密码错误".into()));
     }
 
     let expiration = chrono::Utc::now()
-        .checked_add_signed(chrono::Duration::days(30))
+        .checked_add_signed(chrono::Duration::minutes(15))
         .expect("valid timestamp")
         .timestamp() as usize;
 
     let claims = Claims {
         sub: user.id.to_string(),
+        role: user.role,
         exp: expiration,
+        iss: JWT_ISSUER.into(),
+        aud: JWT_AUDIENCE.into(),
     };
 
+    let secret = auth::jwt_secret()?;
     let token = encode(
-        &Header::default(),
+        &Header::new(Algorithm::HS256),
         &claims,
-        &EncodingKey::from_secret(JWT_SECRET.as_ref()),
+        &EncodingKey::from_secret(secret.as_bytes()),
     )
     .map_err(|err| MyError::ActixError(format!("Token generation failed: {err}")))?;
 
     Ok(web::Json(LoginResponse { token }))
+}
+
+fn dummy_password_hash() -> &'static str {
+    static HASH: OnceLock<String> = OnceLock::new();
+    HASH.get_or_init(|| {
+        let salt = SaltString::generate(&mut OsRng);
+        Argon2::default()
+            .hash_password(b"invalid-login", &salt)
+            .expect("dummy password hash must be generated")
+            .to_string()
+    })
 }
 
 fn verify_password(password: &str, password_hash: &str) -> bool {
@@ -71,17 +98,4 @@ fn verify_password(password: &str, password_hash: &str) -> bool {
     Argon2::default()
         .verify_password(password.as_bytes(), &parsed_hash)
         .is_ok()
-}
-
-#[test]
-fn generate_real_hash_for_admin() {
-    let password = b"shiokou0408";
-    // 随机生成盐值
-    let salt = SaltString::generate(&mut OsRng);
-    // 生成真实的 Argon2 哈希
-    let argon2 = Argon2::default();
-    let password_hash = argon2.hash_password(password, &salt).unwrap().to_string();
-
-    println!(">>> 请把下面这串真实的哈希值复制到数据库里替换掉假的 <<<");
-    println!("{}", password_hash);
 }

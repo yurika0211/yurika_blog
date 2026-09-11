@@ -89,7 +89,7 @@ test -f .env || cp .env.example .env
 ```
 
 说明：
-- 根目录 `.env` 是唯一主配置源，至少需要补齐 `POSTGRES_PASSWORD`、`DATABASE_URL`、`OPENAI_*`、`SYSTEM_CONTENT`
+- 根目录 `.env` 是唯一主配置源，至少需要补齐 `POSTGRES_PASSWORD`、`DATABASE_URL`、`JWT_SECRET`、`OPENAI_*`、`SYSTEM_CONTENT`
 - `frontend/.env.*` 和 `chat-ai/.env` 仅作为局部覆盖/兼容回退，不建议再作为主配置维护
 - 前端本地开发默认通过 `Vite proxy` 转发 `/api` 和 `/api/v1`
 
@@ -101,7 +101,7 @@ docker compose up -d db
 docker compose ps
 ```
 
-数据库默认监听：`localhost:${DB_PORT:-5432}`
+数据库默认监听：`localhost:${DB_PORT:-5433}`
 
 ### 3. 启动 Rust 后端
 

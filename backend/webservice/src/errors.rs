@@ -10,6 +10,7 @@ pub enum MyError {
     NotFound(String),
     BadRequest(String),
     Unauthorized(String),
+    Forbidden(String),
 }
 
 #[derive(Debug, Serialize)]
@@ -41,6 +42,10 @@ impl MyError {
                 println!("Unauthorized error occurred: {:?}", msg);
                 msg.clone()
             }
+            MyError::Forbidden(msg) => {
+                println!("Forbidden error occurred: {:?}", msg);
+                msg.clone()
+            }
         }
     }
 }
@@ -53,6 +58,7 @@ impl error::ResponseError for MyError {
             MyError::NotFound(_msg) => StatusCode::NOT_FOUND,
             MyError::BadRequest(_msg) => StatusCode::BAD_REQUEST,
             MyError::Unauthorized(_msg) => StatusCode::UNAUTHORIZED,
+            MyError::Forbidden(_msg) => StatusCode::FORBIDDEN,
         }
     }
     // 错误返回

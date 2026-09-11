@@ -45,7 +45,9 @@ docker images | grep -E 'blog-frontend|blog-backend|blog-chat-ai|postgres'
 
 ## 4. 启动服务
 
-确保服务器目录存在项目的 `docker-compose.yml`，然后执行：
+确保服务器目录存在项目的 `docker-compose.yml`，并在 `/opt/blog/.env` 中配置至少
+`POSTGRES_PASSWORD`、`JWT_SECRET`、`OPENAI_API_KEY`、`OPENAI_API_URL` 和
+`SYSTEM_CONTENT`，然后执行：
 
 ```bash
 cd /opt/blog
@@ -92,4 +94,3 @@ docker compose up -d
 ```bash
 docker compose up -d --force-recreate
 ```
-

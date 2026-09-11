@@ -33,8 +33,15 @@ async fn main() -> io::Result<()> {
     let _ = dotenv::from_filename("../.env");
     dotenv().ok();
 
+    auth::jwt_secret().expect("JWT_SECRET must be configured with at least 32 bytes");
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
     let db_pool = PgPool::connect(&database_url).await.unwrap();
+    db_access::user::ensure_users_schema_db(&db_pool)
+        .await
+        .unwrap();
+    db_access::user::bootstrap_admin_user_db(&db_pool)
+        .await
+        .unwrap();
     db_access::moments::ensure_moments_schema_db(&db_pool)
         .await
         .unwrap();

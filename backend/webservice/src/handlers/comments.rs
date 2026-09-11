@@ -1,4 +1,4 @@
-use crate::auth::require_authorized;
+use crate::auth::require_admin;
 use crate::db_access::comment::*;
 use crate::errors::MyError;
 use crate::models::comments::CreateComment;
@@ -20,7 +20,7 @@ pub async fn delete_comment_by_id(
     id: web::Path<i32>,
     req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
-    require_authorized(&req)?;
+    require_admin(&req)?;
     let article_id = id.into_inner();
     delete_comment_by_id_db(&app_state.db, article_id)
         .await
@@ -32,7 +32,7 @@ pub async fn post_new_comment(
     create_comment: web::Json<CreateComment>,
     req: HttpRequest,
 ) -> Result<HttpResponse, MyError> {
-    require_authorized(&req)?;
+    require_admin(&req)?;
     post_new_comment_db(&app_state.db, create_comment.into_inner())
         .await
         .map(|article| HttpResponse::Ok().json(article))

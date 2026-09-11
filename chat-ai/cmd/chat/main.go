@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"chat-ai/dbaccess"
+	"chat-ai/internal/auth"
 	"chat-ai/internal/client"
 	"chat-ai/routes"
 
@@ -31,6 +32,10 @@ func getEnv(key, def string) string {
 
 func main() {
 	_ = godotenv.Load("../.env", ".env")
+	if err := auth.ValidateConfiguration(); err != nil {
+		slog.Error("Invalid JWT configuration", "err", err)
+		os.Exit(1)
+	}
 
 	provider := getEnv("CHAT_PROVIDER", "openai")
 	apiKey := ""
