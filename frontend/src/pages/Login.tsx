@@ -21,7 +21,10 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<LoginResult | null>(null);
   const redirect = searchParams.get("redirect");
-  const redirectPath = redirect && redirect.startsWith("/") ? redirect : "/posts";
+  const redirectPath =
+    redirect && redirect.startsWith("/") && !redirect.startsWith("//")
+      ? redirect
+      : "/posts";
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

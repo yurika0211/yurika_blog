@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, matchPath, useLocation, type To } from 'react-router-dom';
 import {
   BookOpen,
@@ -20,6 +20,9 @@ import {
 } from 'lucide-react';
 import { useTheme } from '../hooks/useTheme';
 import { useAuth } from '../hooks/useAuth';
+import { lockDocumentScroll } from '../utils/scroll';
+
+const HOVER_NAV_QUERY = '(min-width: 1280px) and (hover: hover) and (pointer: fine)';
 
 type NavItem = {
   to: To;
@@ -86,8 +89,9 @@ export default function Header() {
     if (typeof window === 'undefined') {
       return false;
     }
-    return window.matchMedia('(min-width: 1280px) and (hover: hover) and (pointer: fine)').matches;
+    return window.matchMedia(HOVER_NAV_QUERY).matches;
   });
+  const edgeTabPinnedClosedRef = useRef(false);
 
   const editorLink = isLoggedIn ? '/editor' : '/login?redirect=%2Feditor';
   const pathname = location.pathname;
@@ -98,10 +102,8 @@ export default function Header() {
 
   useEffect(() => {
     setMenuOpen(false);
-  }, [location.pathname, location.search, location.hash]);
-
-  useEffect(() => {
     setDesktopSidebarVisible(false);
+    edgeTabPinnedClosedRef.current = false;
   }, [location.pathname, location.search, location.hash]);
 
   useEffect(() => {
@@ -109,18 +111,17 @@ export default function Header() {
       return;
     }
 
-    const originalOverflow = document.body.style.overflow;
+    const unlockScroll = lockDocumentScroll();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setMenuOpen(false);
       }
     };
 
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKeyDown);
 
     return () => {
-      document.body.style.overflow = originalOverflow;
+      unlockScroll();
       window.removeEventListener('keydown', onKeyDown);
     };
   }, [menuOpen]);
@@ -130,57 +131,71 @@ export default function Header() {
       return;
     }
 
-    const mediaQuery = window.matchMedia('(min-width: 1280px) and (hover: hover) and (pointer: fine)');
-    if (!mediaQuery.matches) {
-      setDesktopSidebarVisible(false);
-      return;
-    }
-
+    const mediaQuery = window.matchMedia(HOVER_NAV_QUERY);
     const revealZone = 28;
     const keepZone = 156;
+    let listenersAttached = false;
 
     const syncVisibility = (clientX: number) => {
+      if (edgeTabPinnedClosedRef.current) {
+        return;
+      }
       const edge = window.innerWidth - clientX;
       setDesktopSidebarVisible((current) => (current ? edge <= keepZone : edge <= revealZone));
     };
 
     const handleMouseMove = (event: MouseEvent) => {
+      const edge = window.innerWidth - event.clientX;
+      if (edgeTabPinnedClosedRef.current && edge > revealZone) {
+        edgeTabPinnedClosedRef.current = false;
+      }
       syncVisibility(event.clientX);
     };
 
-    const handleMouseLeave = () => {
-      setDesktopSidebarVisible(false);
-    };
-
-    const handleMediaChange = () => {
-      if (!mediaQuery.matches) {
+    const handleDocumentMouseLeave = (event: MouseEvent) => {
+      if (event.relatedTarget === null) {
         setDesktopSidebarVisible(false);
       }
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseleave', handleMouseLeave);
+    const attachHoverListeners = () => {
+      if (listenersAttached) {
+        return;
+      }
+      window.addEventListener('mousemove', handleMouseMove);
+      document.documentElement.addEventListener('mouseleave', handleDocumentMouseLeave);
+      listenersAttached = true;
+    };
+
+    const detachHoverListeners = () => {
+      if (!listenersAttached) {
+        return;
+      }
+      window.removeEventListener('mousemove', handleMouseMove);
+      document.documentElement.removeEventListener('mouseleave', handleDocumentMouseLeave);
+      listenersAttached = false;
+    };
+
+    const syncHoverNavMode = (matches: boolean) => {
+      setHoverNavAvailable(matches);
+      if (matches) {
+        setMenuOpen(false);
+        attachHoverListeners();
+        return;
+      }
+
+      detachHoverListeners();
+      setDesktopSidebarVisible(false);
+      edgeTabPinnedClosedRef.current = false;
+    };
+
+    syncHoverNavMode(mediaQuery.matches);
+    const handleMediaChange = () => syncHoverNavMode(mediaQuery.matches);
     mediaQuery.addEventListener('change', handleMediaChange);
 
     return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseleave', handleMouseLeave);
+      detachHoverListeners();
       mediaQuery.removeEventListener('change', handleMediaChange);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const mediaQuery = window.matchMedia('(min-width: 1280px) and (hover: hover) and (pointer: fine)');
-
-    const handleChange = () => setHoverNavAvailable(mediaQuery.matches);
-    mediaQuery.addEventListener('change', handleChange);
-
-    return () => {
-      mediaQuery.removeEventListener('change', handleChange);
     };
   }, []);
 
@@ -229,6 +244,8 @@ export default function Header() {
         id="right-scroll-sidebar"
         className={`right-scroll-sidebar hidden xl:block ${desktopSidebarVisible ? 'is-visible' : ''}`}
         aria-label="Primary navigation"
+        aria-hidden={desktopSidebarVisible ? undefined : true}
+        inert={desktopSidebarVisible ? undefined : true}
       >
         <div className="right-scroll-sidebar__panel">
           <Link to="/" className="right-scroll-sidebar__brand" title="ユリカのブログ">
@@ -294,7 +311,13 @@ export default function Header() {
       <button
         type="button"
         className={`right-scroll-edge-tab fixed right-0 top-1/2 z-[71] ${hoverNavAvailable ? 'inline-flex' : 'hidden'} ${desktopSidebarVisible ? 'is-active' : ''}`}
-        onClick={() => setDesktopSidebarVisible((current) => !current)}
+        onClick={() => {
+          setDesktopSidebarVisible((current) => {
+            const next = !current;
+            edgeTabPinnedClosedRef.current = !next;
+            return next;
+          });
+        }}
         aria-expanded={desktopSidebarVisible}
         aria-controls="right-scroll-sidebar"
         aria-label={desktopSidebarVisible ? 'Hide navigation' : 'Show navigation'}

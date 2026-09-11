@@ -23,6 +23,7 @@ import { APP_AVATAR_SRC } from "../constants/avatar";
 import { useAuth } from "../hooks/useAuth";
 import { getApiErrorMessage, moments as momentsApi } from "../services/api";
 import type { BlogMoment, MomentComment } from "../types";
+import { attachHorizontalWheel, lockDocumentScroll } from "../utils/scroll";
 
 const MAX_IMAGES = 6;
 const MAX_IMAGE_SIDE = 1600;
@@ -248,28 +249,17 @@ export default function MomentsSection() {
   }, [showComposer]);
 
   useEffect(() => {
+    window.scrollTo({ left: 0, top: 0, behavior: "auto" });
+    return lockDocumentScroll();
+  }, []);
+
+  useEffect(() => {
     const rail = railRef.current;
     if (!rail) {
       return;
     }
 
-    const handleWheel = (event: WheelEvent) => {
-      if (window.innerWidth < 1024) {
-        return;
-      }
-      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
-        return;
-      }
-
-      event.preventDefault();
-      rail.scrollBy({
-        left: event.deltaY,
-        behavior: "auto",
-      });
-    };
-
-    rail.addEventListener("wheel", handleWheel, { passive: false });
-    return () => rail.removeEventListener("wheel", handleWheel);
+    return attachHorizontalWheel(rail);
   }, []);
 
   useEffect(() => {
@@ -277,6 +267,7 @@ export default function MomentsSection() {
       return;
     }
 
+    const unlockScroll = lockDocumentScroll();
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setPreviewImage(null);
@@ -284,7 +275,10 @@ export default function MomentsSection() {
     };
 
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    return () => {
+      unlockScroll();
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, [previewImage]);
 
   const updateMomentInState = (
@@ -485,7 +479,7 @@ export default function MomentsSection() {
   const toggleBodyFold = (momentId: number) => {
     setExpandedBodies((current) => ({
       ...current,
-      [momentId]: !(current[momentId] ?? true),
+      [momentId]: !(current[momentId] ?? false),
     }));
   };
 
@@ -1075,7 +1069,7 @@ export default function MomentsSection() {
 
       {previewImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 py-6 backdrop-blur-sm"
+          className="fixed inset-0 z-[90] flex items-center justify-center bg-black/80 px-4 py-6 backdrop-blur-sm"
           onClick={() => setPreviewImage(null)}
           role="dialog"
           aria-modal="true"

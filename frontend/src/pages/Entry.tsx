@@ -43,15 +43,18 @@ const getPostTimestamp = (dateInput: string): number => {
   return Number.isNaN(timestamp) ? 0 : timestamp;
 };
 
-const isGitHubRepo = (value: unknown): value is ReadingWallRepoCard => {
+type GitHubRepoCandidate = ReadingWallRepoCard & { fork?: boolean };
+
+const isGitHubRepo = (value: unknown): value is GitHubRepoCandidate => {
   if (typeof value !== 'object' || value === null) return false;
-  const repo = value as Partial<ReadingWallRepoCard>;
+  const repo = value as Partial<GitHubRepoCandidate>;
   return (
     typeof repo.name === 'string'
     && (typeof repo.description === 'string' || repo.description === null || repo.description === undefined)
     && (typeof repo.language === 'string' || repo.language === null || repo.language === undefined)
     && typeof repo.html_url === 'string'
     && typeof repo.stargazers_count === 'number'
+    && (typeof repo.fork === 'boolean' || repo.fork === undefined)
   );
 };
 
@@ -91,14 +94,22 @@ export default function Entry() {
         setReposLoading(true);
         setReposError(null);
 
-        const cached = localStorage.getItem(CACHE_KEY);
-        if (cached) {
-          const { data, ts } = JSON.parse(cached) as { data?: unknown; ts?: unknown };
-          if (Date.now() - Number(ts) < CACHE_TTL && Array.isArray(data)) {
-            setRepos(data.filter(isGitHubRepo));
-            setReposLoading(false);
-            return;
+        try {
+          const cached = localStorage.getItem(CACHE_KEY);
+          if (cached) {
+            const { data, ts } = JSON.parse(cached) as { data?: unknown; ts?: unknown };
+            if (Date.now() - Number(ts) < CACHE_TTL && Array.isArray(data)) {
+              const cachedRepos = data
+                .filter(isGitHubRepo)
+                .filter((repo) => !repo.fork)
+                .map(({ fork: _fork, ...repo }) => repo);
+              setRepos(cachedRepos);
+              setReposLoading(false);
+              return;
+            }
           }
+        } catch {
+          localStorage.removeItem(CACHE_KEY);
         }
 
         const response = await fetch(`${API_BASE_URL}/github/repos`);
@@ -111,9 +122,16 @@ export default function Entry() {
           throw new Error('Repository payload was invalid.');
         }
 
-        const nextRepos = data.filter(isGitHubRepo);
+        const nextRepos = data
+          .filter(isGitHubRepo)
+          .filter((repo) => !repo.fork)
+          .map(({ fork: _fork, ...repo }) => repo);
         setRepos(nextRepos);
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ data: nextRepos, ts: Date.now() }));
+        try {
+          localStorage.setItem(CACHE_KEY, JSON.stringify({ data: nextRepos, ts: Date.now() }));
+        } catch {
+          // Ignore quota / private-mode write failures after a successful fetch.
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to load repositories';
         setReposError(message);
@@ -135,7 +153,7 @@ export default function Entry() {
           summary: post.summary,
           date: post.date,
           category: post.category,
-          tags: post.tags,
+          tags: Array.isArray(post.tags) ? post.tags : [],
           is_pinned: post.is_pinned,
           cover: getFirstCoverImage(post.content || ''),
           coverBg: getCoverBackground(post.id),
@@ -143,19 +161,20 @@ export default function Entry() {
     [posts],
   );
 
-  const featuredPosts = useMemo(() => {
-    const pinned = postCards.filter((post) => post.is_pinned);
-    return (pinned.length > 0 ? pinned : postCards).slice(0, 4);
-  }, [postCards]);
+  const featuredPosts = useMemo(
+    () => postCards.filter((post) => post.is_pinned).slice(0, 4),
+    [postCards],
+  );
 
   const recentPosts = useMemo(() => postCards.slice(0, 4), [postCards]);
+  const projects = useMemo(() => repos.slice(0, 4), [repos]);
   const latestPostDate = postCards.length > 0 ? formatDate(postCards[0].date) : '--';
 
   return (
     <HeroReadingWall
       featuredPosts={featuredPosts}
       recentPosts={recentPosts}
-      projects={repos.slice(0, 4)}
+      projects={projects}
       latestPostDate={latestPostDate}
       postsLoading={postsLoading}
       postsError={postsError}

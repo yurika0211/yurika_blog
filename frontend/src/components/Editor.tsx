@@ -326,10 +326,10 @@ export default function Editor() {
                     <code className={className}>{children}</code>
                   );
                 },
-                table({ children, ...props }) {
+                table({ children }) {
                   return (
                     <div className="post-markdown-table my-6 overflow-x-auto rounded-2xl border border-[#d6d2c8] bg-[#faf8f1] shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
-                      <table className="w-full min-w-[32rem] border-collapse text-sm md:text-base" {...props}>
+                      <table className="w-full min-w-full border-collapse text-sm md:text-base">
                         {children}
                       </table>
                     </div>

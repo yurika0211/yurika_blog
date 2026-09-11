@@ -14,7 +14,36 @@ import remarkMath from 'remark-math';
 import remarkGfm from 'remark-gfm';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
+import rehypeSanitize, { defaultSchema } from 'rehype-sanitize';
 import 'katex/dist/katex.min.css';
+
+const markdownSanitizeSchema = {
+  ...defaultSchema,
+  tagNames: [
+    ...(defaultSchema.tagNames || []),
+    'iframe',
+    'video',
+    'source',
+  ],
+  attributes: {
+    ...defaultSchema.attributes,
+    iframe: [
+      'src',
+      'allow',
+      'allowFullScreen',
+      'allowfullscreen',
+      'frameBorder',
+      'loading',
+      'referrerPolicy',
+      'title',
+      'className',
+    ],
+    video: ['controls', 'preload', 'src', 'className'],
+    source: ['src', 'type'],
+    code: [...(defaultSchema.attributes?.code || []), 'className'],
+    span: [...(defaultSchema.attributes?.span || []), 'className', 'style'],
+  },
+};
 
 type TocHeading = {
   id: string;
@@ -280,7 +309,7 @@ export default function Post() {
     const target = headings[tocIndex];
     if (!target) return;
 
-    const headerOffset = 96;
+    const headerOffset = 16;
     const y = target.getBoundingClientRect().top + window.scrollY - headerOffset;
     window.scrollTo({ top: y, behavior: smooth ? 'smooth' : 'auto' });
     const headingId = tocHeadings[tocIndex]?.id ?? '';
@@ -466,7 +495,7 @@ export default function Post() {
           id={headingId}
           data-toc-index={idx}
           {...props}
-          className={`scroll-mt-24 font-semibold ${headingClassMap[level]} ${className}`.trim()}
+          className={`scroll-mt-4 font-semibold ${headingClassMap[level]} ${className}`.trim()}
         >
           {children}
         </Tag>
@@ -475,7 +504,7 @@ export default function Post() {
 
   return (
     <div className="w-full">
-      <section className="relative -mt-16 left-1/2 -translate-x-1/2 w-screen h-[430px] min-h-[430px] max-h-[70vh] overflow-hidden bg-slate-900">
+      <section className="relative left-1/2 -translate-x-1/2 w-screen h-[430px] min-h-[430px] max-h-[70vh] overflow-hidden bg-slate-900">
         <img src={coverSrc} alt={post.title} className="absolute inset-0 h-full w-full object-cover" />
 
         <div className="absolute inset-0 bg-slate-950/55" />
@@ -562,7 +591,7 @@ export default function Post() {
             <div ref={articleRef} className="post-markdown prose prose-base md:prose-lg prose-slate dark:prose-invert max-w-none prose-h2:!text-[1.18rem] prose-h3:!text-[1.02rem] prose-h4:!text-[0.95rem] prose-h2:!leading-7 prose-h3:!leading-6 prose-h4:!leading-6 prose-pre:!p-0 prose-pre:!m-0 prose-pre:!bg-transparent prose-pre:!border-0 prose-pre:!rounded-none">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[rehypeRaw, rehypeKatex]}
+                rehypePlugins={[rehypeRaw, [rehypeSanitize, markdownSanitizeSchema], rehypeKatex]}
                 components={{
                   code({ inline, className, children, ...props }: MarkdownCodeProps) {
                     const match = /language-(\w+)/.exec(className || '');
@@ -595,22 +624,32 @@ export default function Post() {
                       />
                     );
                   },
-                  iframe(props: MarkdownIframeProps) {
+                  iframe({ node: _node, ...props }: MarkdownIframeProps & { node?: unknown }) {
+                    const src = typeof props.src === 'string' ? props.src : '';
+                    const allowed =
+                      /^https:\/\/(www\.youtube\.com\/embed\/|player\.bilibili\.com\/player\.html)/.test(src);
+                    if (!allowed) {
+                      return null;
+                    }
+
                     return (
                       <div className="relative w-full aspect-video my-4 rounded-lg overflow-hidden">
                         <iframe
                           className="absolute inset-0 w-full h-full"
                           allowFullScreen
                           loading="lazy"
+                          sandbox="allow-scripts allow-same-origin allow-presentation"
+                          referrerPolicy="strict-origin-when-cross-origin"
                           {...props}
+                          src={src}
                         />
                       </div>
                     );
                   },
-                  table({ children, ...props }) {
+                  table({ children }) {
                     return (
                       <div className="post-markdown-table my-6 overflow-x-auto rounded-2xl border border-[#d6d2c8] bg-[#faf8f1] shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
-                        <table className="w-full min-w-[32rem] border-collapse text-sm md:text-base" {...props}>
+                        <table className="w-full min-w-full border-collapse text-sm md:text-base">
                           {children}
                         </table>
                       </div>

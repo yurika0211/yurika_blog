@@ -14,6 +14,7 @@ import {
   Workflow,
 } from 'lucide-react';
 import { formatDate } from '../utils/date';
+import { attachHorizontalWheel, lockDocumentScroll } from '../utils/scroll';
 
 export type ReadingWallPostCard = {
   id: string;
@@ -208,7 +209,8 @@ function RichPanel({
   emptyLabel: string;
   children: ReactNode;
 }) {
-  const hasChildren = Boolean(children);
+  const childItems = Array.isArray(children) ? children : children == null ? [] : [children];
+  const hasChildren = childItems.length > 0;
 
   return (
     <div className="reading-wall-rich-column">
@@ -282,28 +284,17 @@ export default function HeroReadingWall({
   const currentYear = new Date().getFullYear();
 
   useEffect(() => {
+    window.scrollTo({ left: 0, top: 0, behavior: 'auto' });
+    return lockDocumentScroll();
+  }, []);
+
+  useEffect(() => {
     const rail = railRef.current;
     if (!rail) {
       return;
     }
 
-    const handleWheel = (event: WheelEvent) => {
-      if (window.innerWidth < 1024) {
-        return;
-      }
-      if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) {
-        return;
-      }
-
-      event.preventDefault();
-      rail.scrollBy({
-        left: event.deltaY,
-        behavior: 'auto',
-      });
-    };
-
-    rail.addEventListener('wheel', handleWheel, { passive: false });
-    return () => rail.removeEventListener('wheel', handleWheel);
+    return attachHorizontalWheel(rail);
   }, []);
 
   const panels = useMemo<ReadingWallPanel[]>(
