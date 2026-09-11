@@ -332,7 +332,7 @@ export default function ChatProfile() {
   };
 
   return (
-    <div className="my-4 mx-auto flex h-[calc(100vh-7rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-white/20 shadow-2xl backdrop-blur-md dark:border-gray-700/30 dark:bg-gray-900/20 animate-fade-in">
+    <div className="my-4 mx-auto flex h-[calc(100vh-3rem)] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-white/20 bg-white/20 shadow-2xl backdrop-blur-md dark:border-gray-700/30 dark:bg-gray-900/20 animate-fade-in">
       <div className="z-10 flex items-center justify-between border-b border-white/20 bg-white/30 backdrop-blur-sm p-4 dark:border-gray-700/30 dark:bg-gray-800/30">
         <div className="flex items-center gap-3">
           <div className="relative">

@@ -10,6 +10,7 @@ import {
 import { APP_AVATAR_SRC } from "../constants/avatar";
 import { getApiErrorMessage, guestbook as guestbookApi } from "../services/api";
 import type { GuestbookMessage } from "../types";
+import { attachHorizontalWheel, lockDocumentScroll } from "../utils/scroll";
 
 const formatMessageTime = (value?: string | null) => {
   if (!value) {
@@ -39,17 +40,8 @@ export default function Guestbook() {
   const [composerCollapsed, setComposerCollapsed] = useState(false);
 
   useEffect(() => {
-    const previousBodyOverflow = document.body.style.overflow;
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-
-    document.body.style.overflow = "hidden";
-    document.documentElement.style.overflow = "hidden";
     window.scrollTo({ left: 0, top: 0, behavior: "auto" });
-
-    return () => {
-      document.body.style.overflow = previousBodyOverflow;
-      document.documentElement.style.overflow = previousHtmlOverflow;
-    };
+    return lockDocumentScroll();
   }, []);
 
   useEffect(() => {
@@ -117,27 +109,10 @@ export default function Guestbook() {
       return;
     }
 
-    const handleWheel = (event: WheelEvent) => {
-      if (event.ctrlKey) {
-        return;
-      }
-
-      const primaryDelta =
-        Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
-
-      if (!primaryDelta) {
-        return;
-      }
-
-      event.preventDefault();
-      rail.scrollBy({
-        left: primaryDelta,
-        behavior: "auto",
-      });
-    };
-
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    return () => window.removeEventListener("wheel", handleWheel);
+    return attachHorizontalWheel(rail, {
+      minWidth: 0,
+      root: window,
+    });
   }, []);
 
   return (
@@ -255,6 +230,10 @@ export default function Guestbook() {
                       <Loader2 className="h-5 w-5 animate-spin" />
                       Loading messages...
                     </div>
+                  ) : error && messages.length === 0 ? (
+                    <div className="guestbook-bookmark-empty text-rose-700 dark:text-rose-300">
+                      {error}
+                    </div>
                   ) : messages.length === 0 ? (
                     <div className="guestbook-bookmark-empty">
                       No messages yet. Be the first one to leave a note.
@@ -276,7 +255,7 @@ export default function Guestbook() {
 
                             <div className="guestbook-bookmark-message-title">Message</div>
                             <div className="guestbook-bookmark-message-copy">
-                              <p>{message.content}</p>
+                              <p className="whitespace-pre-wrap">{message.content}</p>
                             </div>
                           </article>
                         ))}

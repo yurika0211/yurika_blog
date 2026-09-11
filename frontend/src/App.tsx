@@ -155,7 +155,7 @@ function AppLayout() {
 
               {showSidebar && (
                 <aside className="lg:col-span-4 space-y-8">
-                  <div className="sticky top-24">
+                  <div className="sticky top-6">
                     <Sidebar />
                   </div>
                 </aside>

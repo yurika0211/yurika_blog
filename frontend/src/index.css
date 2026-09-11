@@ -152,8 +152,12 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
     pointer-events: auto;
 }
 
-.right-scroll-sidebar__panel {
+.right-scroll-sidebar.is-visible .right-scroll-sidebar__panel {
     pointer-events: auto;
+}
+
+.right-scroll-sidebar__panel {
+    pointer-events: none;
     position: relative;
     display: flex;
     height: 100%;
@@ -1106,7 +1110,7 @@ html.dark .hero-fog-bridge {
 }
 
 .reading-wall-panel-narrow {
-    width: clamp(100rem, 13vw, 14.5rem);
+    width: clamp(12rem, 13vw, 14.5rem);
     min-width: 14rem;
 }
 
@@ -1262,7 +1266,7 @@ html.dark .reading-wall-panel-surface::after {
 
 .reading-wall-title-column {
     position: relative;
-    width: -0.25rem;
+    width: 4.25rem;
     min-width: 4.25rem;
     margin-top: 0.15rem;
     margin-bottom: 1.15rem;

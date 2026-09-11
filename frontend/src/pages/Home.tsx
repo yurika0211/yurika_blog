@@ -328,13 +328,16 @@ export default function Home() {
       ) : (
         <div className="grid gap-7">
           {postCards.map((post) => (
-            <Link
+            <article
               key={post.id}
-              to={`/post/${post.id}`}
               className="group flex flex-col sm:flex-row overflow-hidden rounded-2xl bg-slate-100/50 dark:bg-gray-900/30 shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 backdrop-blur-sm sm:h-56 lg:h-60"
             >
               {/* 封面图 */}
-              <div className="sm:w-72 sm:min-w-72 h-56 sm:h-full overflow-hidden shrink-0">
+              <Link
+                to={`/post/${post.id}`}
+                className="sm:w-72 sm:min-w-72 h-56 sm:h-full overflow-hidden shrink-0"
+                aria-label={`Open ${post.title}`}
+              >
                 {post.cover ? (
                   <img
                     src={post.cover}
@@ -348,13 +351,13 @@ export default function Home() {
                     <BookOpen className="w-10 h-10 text-white/50" />
                   </div>
                 )}
-              </div>
+              </Link>
 
               {/* 文字内容 */}
               <div className="flex flex-1 flex-col p-5 sm:p-6 min-w-0">
                 <div className="mb-1 sm:mb-2 flex items-center gap-2 min-w-0">
                   <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1 min-w-0">
-                    {post.title}
+                    <Link to={`/post/${post.id}`}>{post.title}</Link>
                   </h3>
                   {post.is_login_required ? (
                     <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/80 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-700/80 dark:bg-amber-900/30 dark:text-amber-300 shrink-0">
@@ -363,9 +366,12 @@ export default function Home() {
                     </span>
                   ) : null}
                 </div>
-                <p className="text-gray-600 dark:text-gray-300 mb-3 sm:mb-4 line-clamp-2 leading-relaxed text-sm sm:text-base">
+                <Link
+                  to={`/post/${post.id}`}
+                  className="text-gray-600 dark:text-gray-300 mb-3 sm:mb-4 line-clamp-2 leading-relaxed text-sm sm:text-base"
+                >
                   {post.summary}
-                </p>
+                </Link>
 
                 <div className="mt-auto flex items-center justify-between gap-2 min-w-0">
                   <div className="flex items-center gap-2 sm:gap-3 text-sm text-gray-500 dark:text-gray-400 min-w-0 overflow-hidden">
@@ -374,11 +380,10 @@ export default function Home() {
                       <time dateTime={post.date}>{formatDate(post.date)}</time>
                     </span>
                     <div className="flex gap-1 sm:gap-1.5 overflow-hidden">
-                      {post.tags.slice(0, 2).map((t) => (
+                      {(post.tags ?? []).slice(0, 2).map((t) => (
                         <Link
                           key={t}
                           to={`/posts?tag=${encodeURIComponent(t)}`}
-                          onClick={(e) => e.stopPropagation()}
                           className="bg-gray-100 dark:bg-gray-800 px-2 sm:px-2.5 py-0.5 rounded text-xs sm:text-sm text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 transition-colors truncate max-w-[5rem] sm:max-w-none"
                         >
                           #{t}
@@ -387,12 +392,15 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <span className="inline-flex items-center shrink-0 whitespace-nowrap text-sm sm:text-base font-medium text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Link
+                    to={`/post/${post.id}`}
+                    className="inline-flex items-center shrink-0 whitespace-nowrap text-sm sm:text-base font-medium text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
                     Read more <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
-                  </span>
+                  </Link>
                 </div>
               </div>
-            </Link>
+            </article>
           ))}
         </div>
       )}
