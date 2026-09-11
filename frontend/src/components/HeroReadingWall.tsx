@@ -8,11 +8,9 @@ import {
   ExternalLink,
   Github,
   Loader,
-  Mail,
   Newspaper,
   Pin,
   Star,
-  Twitter,
   Workflow,
 } from 'lucide-react';
 import { formatDate } from '../utils/date';
@@ -248,29 +246,13 @@ function HomeFooterRoll({ year }: { year: number }) {
 
       <div className="reading-wall-home-footer-icons" aria-label="Social links">
         <a
-          href="https://github.com"
+          href="https://github.com/yurika0211"
           target="_blank"
           rel="noopener noreferrer"
           className="reading-wall-home-footer-icon"
           title="GitHub"
         >
           <Github className="h-4 w-4" />
-        </a>
-        <a
-          href="https://twitter.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="reading-wall-home-footer-icon"
-          title="Twitter"
-        >
-          <Twitter className="h-4 w-4" />
-        </a>
-        <a
-          href="mailto:your.email@example.com"
-          className="reading-wall-home-footer-icon"
-          title="Email"
-        >
-          <Mail className="h-4 w-4" />
         </a>
       </div>
     </div>

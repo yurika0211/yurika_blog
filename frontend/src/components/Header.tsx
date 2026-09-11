@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, matchPath, useLocation, type To } from 'react-router-dom';
 import {
   BookOpen,
+  ChevronLeft,
   FileText,
   House,
   LogIn,
@@ -81,6 +82,12 @@ export default function Header() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const [desktopSidebarVisible, setDesktopSidebarVisible] = useState(false);
+  const [hoverNavAvailable, setHoverNavAvailable] = useState(() => {
+    if (typeof window === 'undefined') {
+      return false;
+    }
+    return window.matchMedia('(min-width: 1280px) and (hover: hover) and (pointer: fine)').matches;
+  });
 
   const editorLink = isLoggedIn ? '/editor' : '/login?redirect=%2Feditor';
   const pathname = location.pathname;
@@ -162,6 +169,21 @@ export default function Header() {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const mediaQuery = window.matchMedia('(min-width: 1280px) and (hover: hover) and (pointer: fine)');
+
+    const handleChange = () => setHoverNavAvailable(mediaQuery.matches);
+    mediaQuery.addEventListener('change', handleChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change', handleChange);
+    };
+  }, []);
+
   const desktopNav = NAV_ITEMS.map((item) => {
     const active = item.isActive(pathname);
     const Icon = item.icon;
@@ -204,6 +226,7 @@ export default function Header() {
   return (
     <>
       <aside
+        id="right-scroll-sidebar"
         className={`right-scroll-sidebar hidden xl:block ${desktopSidebarVisible ? 'is-visible' : ''}`}
         aria-label="Primary navigation"
       >
@@ -270,7 +293,18 @@ export default function Header() {
 
       <button
         type="button"
-        className="right-scroll-mobile-button fixed right-4 top-4 z-[80] inline-flex items-center justify-center xl:hidden"
+        className={`right-scroll-edge-tab fixed right-0 top-1/2 z-[71] ${hoverNavAvailable ? 'inline-flex' : 'hidden'} ${desktopSidebarVisible ? 'is-active' : ''}`}
+        onClick={() => setDesktopSidebarVisible((current) => !current)}
+        aria-expanded={desktopSidebarVisible}
+        aria-controls="right-scroll-sidebar"
+        aria-label={desktopSidebarVisible ? 'Hide navigation' : 'Show navigation'}
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+
+      <button
+        type="button"
+        className={`right-scroll-mobile-button fixed right-4 top-4 z-[80] items-center justify-center ${hoverNavAvailable ? 'hidden' : 'inline-flex'}`}
         onClick={() => setMenuOpen((current) => !current)}
         aria-expanded={menuOpen}
         aria-controls="right-scroll-mobile-sheet"
@@ -280,14 +314,14 @@ export default function Header() {
       </button>
 
       <div
-        className={`right-scroll-mobile-backdrop xl:hidden ${menuOpen ? 'is-open' : ''}`}
+        className={`right-scroll-mobile-backdrop ${hoverNavAvailable ? 'hidden' : ''} ${menuOpen ? 'is-open' : ''}`}
         aria-hidden="true"
         onClick={() => setMenuOpen(false)}
       />
 
       <aside
         id="right-scroll-mobile-sheet"
-        className={`right-scroll-mobile-sheet xl:hidden ${menuOpen ? 'is-open' : ''}`}
+        className={`right-scroll-mobile-sheet ${hoverNavAvailable ? 'hidden' : ''} ${menuOpen ? 'is-open' : ''}`}
         aria-label="Mobile navigation"
       >
         <div className="right-scroll-mobile-header">

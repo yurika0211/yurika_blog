@@ -347,6 +347,36 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
     color: rgba(135, 35, 35, 0.88);
 }
 
+.right-scroll-edge-tab {
+    align-items: center;
+    justify-content: center;
+    width: 1.65rem;
+    height: 3.5rem;
+    border: 1px solid rgba(168, 146, 117, 0.34);
+    border-right: none;
+    border-radius: 0.9rem 0 0 0.9rem;
+    background: linear-gradient(180deg, rgba(251, 246, 236, 0.94), rgba(244, 235, 219, 0.9));
+    color: rgba(77, 58, 34, 0.78);
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.78),
+        -4px 0 10px rgba(71, 49, 25, 0.08);
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition:
+        color 180ms ease,
+        transform 180ms ease,
+        background 180ms ease;
+}
+
+.right-scroll-edge-tab:hover,
+.right-scroll-edge-tab.is-active {
+    color: rgba(61, 42, 20, 0.94);
+}
+
+.right-scroll-edge-tab.is-active {
+    transform: translateY(-50%) translateX(-0.15rem);
+}
+
 .right-scroll-mobile-button {
     width: 3rem;
     height: 3rem;
@@ -562,6 +592,7 @@ html.dark .right-scroll-mobile-brand-title {
 html.dark .right-scroll-sidebar__brand-seal,
 html.dark .right-scroll-mobile-brand-seal,
 html.dark .right-scroll-mobile-close,
+html.dark .right-scroll-edge-tab,
 html.dark .right-scroll-mobile-button {
     border-color: rgba(125, 101, 73, 0.36);
     background:

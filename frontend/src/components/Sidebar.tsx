@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Tag, Github, Twitter, Link as LinkIcon, LogIn, LogOut, PenLine } from 'lucide-react';
+import { Tag, Github, Link as LinkIcon, LogIn, LogOut, PenLine } from 'lucide-react';
 import SearchWidget from './SearchWidget';
 import { formatDate } from '../utils/date';
 import { useAuth } from '../hooks/useAuth';
@@ -71,11 +71,8 @@ export default function Sidebar() {
 
           {/* 社交链接 */}
           <div className="flex gap-4 justify-center">
-            <a href="https://github.com/yurika0211" target="_blank" className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+            <a href="https://github.com/yurika0211" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-blue-50 hover:text-blue-600 transition-colors">
               <Github className="w-5 h-5" />
-            </a>
-            <a href="#" target="_blank" className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-blue-50 hover:text-blue-400 transition-colors">
-              <Twitter className="w-5 h-5" />
             </a>
           </div>
 

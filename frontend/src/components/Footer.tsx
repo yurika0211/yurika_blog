@@ -1,4 +1,4 @@
-import { Github, Twitter, Mail } from 'lucide-react';
+import { Github } from 'lucide-react';
 import { matchPath, useLocation } from 'react-router-dom';
 
 export default function Footer() {
@@ -23,30 +23,14 @@ export default function Footer() {
 
         {/* 右侧：社交图标 */}
         <div className="flex items-center gap-6">
-          <a 
-            href="https://github.com" 
-            target="_blank" 
+          <a
+            href="https://github.com/yurika0211"
+            target="_blank"
             rel="noopener noreferrer"
             className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             title="GitHub"
           >
             <Github className="w-5 h-5" />
-          </a>
-          <a 
-            href="https://twitter.com" 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-gray-400 hover:text-blue-400 transition-colors"
-            title="Twitter"
-          >
-            <Twitter className="w-5 h-5" />
-          </a>
-          <a 
-            href="mailto:your.email@example.com" 
-            className="text-gray-400 hover:text-red-500 transition-colors"
-            title="Email"
-          >
-            <Mail className="w-5 h-5" />
           </a>
         </div>
       </div>
