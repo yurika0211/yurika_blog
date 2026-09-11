@@ -52,39 +52,6 @@ html.dark .post-paper-wall {
         linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
 }
 
-/* 半透明卡片可读性增强 */
-.mist-readable-card {
-    position: relative;
-    overflow: hidden;
-    backdrop-filter: blur(14px) saturate(118%);
-}
-
-.mist-readable-card::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background:
-        linear-gradient(180deg,
-        rgba(255, 255, 255, 0.34) 0%,
-        rgba(255, 255, 255, 0.16) 46%,
-        rgba(255, 255, 255, 0.28) 100%);
-}
-
-html.dark .mist-readable-card::before {
-    background:
-        linear-gradient(180deg,
-        rgba(20, 24, 31, 0.2) 0%,
-        rgba(20, 24, 31, 0.1) 46%,
-        rgba(20, 24, 31, 0.18) 100%);
-}
-
-.mist-readable-content {
-    position: relative;
-    z-index: 1;
-}
-
 .post-markdown :where(.post-markdown-table) {
     margin-inline: 0;
 }
@@ -636,1387 +603,768 @@ html.dark .right-scroll-mobile-action[data-active="true"] {
     color: rgba(243, 229, 205, 0.96);
 }
 
-.mist-readable-title {
-    color: #102739;
-    text-shadow: 0 1px 10px rgba(245, 251, 255, 0.75);
-}
+/* ========================================================================
+   手卷（handscroll）
+   包首 → 题签 → 引首 → 隔水 → 画心 → 隔水 → 拖尾，两端有轴。
+   整卷是「一张纸」：底色与纤维纹理只在 .scroll-mount 上绘制一次，
+   段落之间由隔水（.scroll-leaf + .scroll-leaf::before）分隔，不用 border / radius / shadow / gap。
+   ======================================================================== */
 
-.mist-readable-summary {
-    color: #2a4a61;
-    text-shadow: 0 1px 8px rgba(245, 251, 255, 0.65);
-}
+.scroll-stage {
+    --scroll-band: min(74svh, 44rem);
+    --scroll-rod: 1.1rem;
+    --scroll-silk: 1.1rem;
+    --scroll-ink: rgba(53, 35, 18, 0.9);
+    --scroll-ink-soft: rgba(96, 71, 42, 0.78);
+    --scroll-hair: rgba(116, 86, 47, 0.22);
+    --seal: #a8352a;
 
-html.dark .mist-readable-title {
-    color: #d6eaf5;
-    text-shadow: 0 1px 10px rgba(8, 14, 20, 0.55);
-}
-
-html.dark .mist-readable-summary {
-    color: #b8d3e2;
-    text-shadow: 0 1px 8px rgba(8, 14, 20, 0.48);
-}
-
-/* 首页整页淡雾 */
-@keyframes homepage-mist-drift {
-    0% {
-        transform: translate3d(-2%, -1%, 0) scale(1);
-        opacity: 0.55;
-    }
-    50% {
-        transform: translate3d(2%, 1.5%, 0) scale(1.04);
-        opacity: 0.75;
-    }
-    100% {
-        transform: translate3d(-1%, 2%, 0) scale(1.02);
-        opacity: 0.62;
-    }
-}
-
-.homepage-mist-layer {
-    position: absolute;
-    inset: -8rem -4vw -8rem -4vw;
-    pointer-events: none;
-    z-index: 35;
-    filter: blur(24px);
-    mix-blend-mode: normal;
-    opacity: 0.88;
-    background:
-        radial-gradient(ellipse at 12% 24%,
-        rgba(248, 252, 255, 0.24) 0%,
-        rgba(248, 252, 255, 0.1) 42%,
-        rgba(248, 252, 255, 0) 72%),
-        radial-gradient(ellipse at 50% 56%,
-        rgba(240, 248, 255, 0.3) 0%,
-        rgba(240, 248, 255, 0.13) 44%,
-        rgba(240, 248, 255, 0) 76%),
-        radial-gradient(ellipse at 86% 28%,
-        rgba(245, 251, 255, 0.22) 0%,
-        rgba(245, 251, 255, 0.09) 40%,
-        rgba(245, 251, 255, 0) 70%),
-        radial-gradient(ellipse at 24% 82%,
-        rgba(241, 249, 255, 0.24) 0%,
-        rgba(241, 249, 255, 0.1) 44%,
-        rgba(241, 249, 255, 0) 74%),
-        radial-gradient(ellipse at 78% 78%,
-        rgba(236, 246, 255, 0.22) 0%,
-        rgba(236, 246, 255, 0.09) 44%,
-        rgba(236, 246, 255, 0) 74%),
-        linear-gradient(
-            180deg,
-            rgba(243, 250, 255, 0.08) 0%,
-            rgba(243, 250, 255, 0.12) 44%,
-            rgba(243, 250, 255, 0.1) 100%
-        );
-    animation: homepage-mist-drift 24s ease-in-out infinite alternate;
-}
-
-html.dark .homepage-mist-layer {
-    mix-blend-mode: normal;
-    opacity: 0.78;
-    background:
-        radial-gradient(ellipse at 12% 24%,
-        rgba(162, 195, 214, 0.16) 0%,
-        rgba(162, 195, 214, 0.07) 42%,
-        rgba(162, 195, 214, 0) 72%),
-        radial-gradient(ellipse at 50% 56%,
-        rgba(152, 188, 209, 0.2) 0%,
-        rgba(152, 188, 209, 0.09) 44%,
-        rgba(152, 188, 209, 0) 76%),
-        radial-gradient(ellipse at 86% 28%,
-        rgba(168, 201, 220, 0.15) 0%,
-        rgba(168, 201, 220, 0.07) 40%,
-        rgba(168, 201, 220, 0) 70%),
-        radial-gradient(ellipse at 24% 82%,
-        rgba(154, 191, 212, 0.16) 0%,
-        rgba(154, 191, 212, 0.08) 44%,
-        rgba(154, 191, 212, 0) 74%),
-        radial-gradient(ellipse at 78% 78%,
-        rgba(160, 196, 216, 0.14) 0%,
-        rgba(160, 196, 216, 0.07) 44%,
-        rgba(160, 196, 216, 0) 74%),
-        linear-gradient(
-            180deg,
-            rgba(156, 194, 214, 0.06) 0%,
-            rgba(156, 194, 214, 0.1) 44%,
-            rgba(156, 194, 214, 0.08) 100%
-        );
-}
-
-/* Header 碎片消失特效 */
-.header-shatter-surface-light,
-.header-shatter-surface-dark {
     position: relative;
-    isolation: isolate;
-}
-
-.header-shatter-layer {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
+    display: flex;
+    min-height: 100svh;
     overflow: hidden;
-    z-index: 1;
+    background: #e5dac2;
 }
 
-.header-shatter-shard {
-    position: absolute;
-    border-radius: 999px;
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.3);
-    transform-origin: center;
+html.dark .scroll-stage {
+    --scroll-ink: rgba(220, 202, 170, 0.9);
+    --scroll-ink-soft: rgba(193, 168, 128, 0.76);
+    --scroll-hair: rgba(170, 138, 94, 0.26);
+    --seal: #c25a49;
+
+    background: #120e09;
 }
 
-.header-shatter-surface-light .header-shatter-shard {
-    background: rgba(14, 116, 144, 0.42);
-    box-shadow: 0 0 8px rgba(14, 116, 144, 0.35);
-}
-
-.header-shatter-surface-dark .header-shatter-shard {
-    background: rgba(240, 238, 230, 0.72);
-    box-shadow: 0 0 8px rgba(240, 238, 230, 0.45);
-}
-
-@keyframes header-shard-burst {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
-        filter: blur(0);
-    }
-    20% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1) rotate(0deg);
-        filter: blur(0);
-    }
-    100% {
-        opacity: 0;
-        transform: translate(calc(-50% + var(--tx)), calc(-50% + var(--ty))) rotate(var(--rot)) scale(0.4);
-        filter: blur(1px);
-    }
-}
-
-.header-shatter-burst .header-shatter-shard {
-    animation: header-shard-burst 0.56s cubic-bezier(0.23, 0.74, 0.31, 1) forwards;
-}
-
-/* ── Hero 特效 ── */
-
-@keyframes hero-rise {
-    from {
-        opacity: 0;
-        transform: translateY(22px) scale(0.98);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-.hero-rise {
-    animation: none;
-}
-
-.hero-rise-delay-1 {
-    animation: none;
-}
-
-.hero-rise-delay-2 {
-    animation: none;
-}
-
-.hero-rise-delay-3 {
-    animation: none;
-}
-
-@keyframes hero-grid-pan {
-    from { background-position: 0 0; }
-    to { background-position: 0 44px; }
-}
-
-.hero-grid {
-    background-image:
-        linear-gradient(to right, rgba(114, 85, 48, 0.12) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(114, 85, 48, 0.12) 1px, transparent 1px);
-    background-size: 44px 44px;
-}
-
-html.dark .hero-grid {
-    background-image:
-        linear-gradient(to right, rgba(167, 132, 85, 0.08) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(167, 132, 85, 0.08) 1px, transparent 1px);
-}
-
-@keyframes hero-card-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
-}
-
-.hero-card-float {
-    animation: hero-card-float 8s ease-in-out infinite;
-}
-
-.hero-card-float-slow {
-    animation: hero-card-float 10s ease-in-out infinite;
-}
-
-.hero-card-float-alt {
-    animation: hero-card-float 9s ease-in-out 0.6s infinite;
-}
-
-.hero-rotator-shell {
-    position: relative;
-}
-
-.hero-rotator-shell::before {
-    display: none;
-}
-
-.hero-rotator-stage {
-    position: relative;
-    z-index: 1;
-}
-
-.hero-rotator-card {
+/* 案面：一道极淡的横向明暗，让卷有「摊开在桌上」的落点 */
+.scroll-stage::before {
+    content: "";
     position: absolute;
     inset: 0;
-    transition: none;
-}
-
-.hero-rotator-card[data-state="active"] {
-    z-index: 2;
-    opacity: 1;
-    filter: none;
-    transform: none;
-}
-
-.hero-rotator-card[data-state="prev"] {
-    z-index: 1;
-    opacity: 0;
-    filter: none;
-    transform: none;
-}
-
-.hero-rotator-card[data-state="next"] {
-    z-index: 1;
-    opacity: 0;
-    filter: none;
-    transform: none;
-}
-
-.hero-rotator-card[data-state="hidden"] {
-    z-index: 1;
-    opacity: 0;
-    filter: none;
-    transform: none;
-}
-
-html.dark .hero-rotator-shell::before {
-    background:
-        radial-gradient(circle at 50% 40%,
-        rgba(66, 153, 188, 0.2) 0%,
-        rgba(66, 153, 188, 0.11) 34%,
-        rgba(66, 153, 188, 0) 78%);
-}
-
-@keyframes hero-fog-drift-a {
-    0% { transform: translate3d(-8%, 0, 0) scale(1); opacity: 0.36; }
-    50% { transform: translate3d(6%, -4%, 0) scale(1.08); opacity: 0.52; }
-    100% { transform: translate3d(-3%, 3%, 0) scale(1.02); opacity: 0.4; }
-}
-
-@keyframes hero-fog-drift-b {
-    0% { transform: translate3d(6%, 0, 0) scale(1); opacity: 0.3; }
-    50% { transform: translate3d(-4%, 4%, 0) scale(1.09); opacity: 0.46; }
-    100% { transform: translate3d(8%, -3%, 0) scale(1.03); opacity: 0.34; }
-}
-
-@keyframes hero-fog-drift-c {
-    0% { transform: translate3d(0, 0, 0) scale(0.98); opacity: 0.22; }
-    50% { transform: translate3d(-5%, -3%, 0) scale(1.06); opacity: 0.36; }
-    100% { transform: translate3d(4%, 3%, 0) scale(1.02); opacity: 0.26; }
-}
-
-.hero-fog-plume {
-    position: absolute;
     pointer-events: none;
-    border-radius: 999px;
-    z-index: 12;
-    filter: blur(18px);
-    mix-blend-mode: screen;
-    background:
-        radial-gradient(ellipse at center,
-        rgba(255, 255, 255, 0.48) 0%,
-        rgba(255, 255, 255, 0.24) 32%,
-        rgba(255, 255, 255, 0.1) 58%,
-        rgba(255, 255, 255, 0) 78%);
+    background: linear-gradient(
+        180deg,
+        rgba(74, 52, 26, 0.1) 0%,
+        rgba(74, 52, 26, 0) 26%,
+        rgba(74, 52, 26, 0) 74%,
+        rgba(74, 52, 26, 0.12) 100%
+    );
 }
 
-.hero-fog-plume-a {
-    left: -14vw;
-    right: 22vw;
-    top: 32%;
-    height: 12.5rem;
-    animation: hero-fog-drift-a 16s ease-in-out infinite alternate;
+html.dark .scroll-stage::before {
+    background: linear-gradient(
+        180deg,
+        rgba(0, 0, 0, 0.45) 0%,
+        rgba(0, 0, 0, 0) 26%,
+        rgba(0, 0, 0, 0) 74%,
+        rgba(0, 0, 0, 0.5) 100%
+    );
 }
 
-.hero-fog-plume-b {
-    left: 18vw;
-    right: -10vw;
-    top: 44%;
-    height: 11.5rem;
-    animation: hero-fog-drift-b 19s ease-in-out infinite alternate;
-}
-
-.hero-fog-plume-c {
-    left: -6vw;
-    right: -4vw;
-    top: 56%;
-    height: 9.5rem;
-    animation: hero-fog-drift-c 21s ease-in-out infinite alternate;
-}
-
-html.dark .hero-fog-plume {
-    mix-blend-mode: normal;
-    background:
-        radial-gradient(ellipse at center,
-        rgba(232, 244, 250, 0.26) 0%,
-        rgba(210, 234, 245, 0.14) 34%,
-        rgba(190, 220, 235, 0.06) 58%,
-        rgba(190, 220, 235, 0) 80%);
-}
-
-@keyframes hero-fog-seam-drift {
-    0% { transform: translate3d(-3%, 0, 0) scale(1); opacity: 0.4; }
-    50% { transform: translate3d(3%, -2%, 0) scale(1.06); opacity: 0.56; }
-    100% { transform: translate3d(-1%, 2%, 0) scale(1.02); opacity: 0.44; }
-}
-
-.hero-fog-seam {
-    position: absolute;
-    left: -12%;
-    right: -12%;
-    bottom: -6.5rem;
-    height: 14rem;
-    pointer-events: none;
-    z-index: 14;
-    filter: blur(20px);
-    background:
-        radial-gradient(ellipse at 18% 40%,
-        rgba(246, 251, 255, 0.46) 0%,
-        rgba(246, 251, 255, 0.16) 48%,
-        rgba(246, 251, 255, 0) 74%),
-        radial-gradient(ellipse at 52% 46%,
-        rgba(238, 248, 255, 0.42) 0%,
-        rgba(238, 248, 255, 0.14) 50%,
-        rgba(238, 248, 255, 0) 76%),
-        radial-gradient(ellipse at 84% 42%,
-        rgba(243, 250, 255, 0.4) 0%,
-        rgba(243, 250, 255, 0.13) 46%,
-        rgba(243, 250, 255, 0) 74%);
-    animation: hero-fog-seam-drift 18s ease-in-out infinite alternate;
-}
-
-html.dark .hero-fog-seam {
-    background:
-        radial-gradient(ellipse at 18% 40%,
-        rgba(168, 203, 220, 0.2) 0%,
-        rgba(168, 203, 220, 0.07) 48%,
-        rgba(168, 203, 220, 0) 74%),
-        radial-gradient(ellipse at 52% 46%,
-        rgba(156, 194, 214, 0.18) 0%,
-        rgba(156, 194, 214, 0.06) 50%,
-        rgba(156, 194, 214, 0) 76%),
-        radial-gradient(ellipse at 84% 42%,
-        rgba(164, 201, 220, 0.2) 0%,
-        rgba(164, 201, 220, 0.07) 46%,
-        rgba(164, 201, 220, 0) 74%);
-}
-
-@keyframes hero-fog-bridge-drift {
-    0% { transform: translateX(-50%) translate3d(-2%, 0, 0) scale(1); opacity: 0.38; }
-    50% { transform: translateX(-50%) translate3d(2%, -3%, 0) scale(1.06); opacity: 0.52; }
-    100% { transform: translateX(-50%) translate3d(-1%, 2%, 0) scale(1.03); opacity: 0.42; }
-}
-
-.hero-fog-bridge {
-    position: absolute;
-    left: 50%;
-    top: -7.5rem;
-    width: 100vw;
-    height: 12rem;
-    pointer-events: none;
-    z-index: 0;
-    filter: blur(20px);
-    background:
-        radial-gradient(ellipse at 12% 48%,
-        rgba(245, 251, 255, 0.42) 0%,
-        rgba(245, 251, 255, 0.12) 48%,
-        rgba(245, 251, 255, 0) 74%),
-        radial-gradient(ellipse at 50% 44%,
-        rgba(237, 247, 255, 0.46) 0%,
-        rgba(237, 247, 255, 0.14) 52%,
-        rgba(237, 247, 255, 0) 78%),
-        radial-gradient(ellipse at 88% 48%,
-        rgba(246, 252, 255, 0.4) 0%,
-        rgba(246, 252, 255, 0.1) 48%,
-        rgba(246, 252, 255, 0) 74%);
-    animation: hero-fog-bridge-drift 20s ease-in-out infinite alternate;
-}
-
-html.dark .hero-fog-bridge {
-    background:
-        radial-gradient(ellipse at 12% 48%,
-        rgba(156, 194, 214, 0.18) 0%,
-        rgba(156, 194, 214, 0.06) 48%,
-        rgba(156, 194, 214, 0) 74%),
-        radial-gradient(ellipse at 50% 44%,
-        rgba(148, 187, 208, 0.2) 0%,
-        rgba(148, 187, 208, 0.07) 52%,
-        rgba(148, 187, 208, 0) 78%),
-        radial-gradient(ellipse at 88% 48%,
-        rgba(162, 199, 219, 0.18) 0%,
-        rgba(162, 199, 219, 0.06) 48%,
-        rgba(162, 199, 219, 0) 74%);
-}
-
-/* 首页阅读墙 Hero */
-.reading-wall-rail {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: max-content;
-    align-items: end;
-    gap: clamp(1rem, 1.4vw, 1.5rem);
+/* 展卷：横向滚动容器，卷悬在视口中段 */
+.scroll-rail {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    align-items: center;
     overflow-x: auto;
     overflow-y: hidden;
-    padding-top: 2.75rem;
-    padding-bottom: 0.5rem;
-    scroll-snap-type: x mandatory;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
+    padding-inline: clamp(1.25rem, 7vw, 7rem);
 }
 
-.reading-wall-rail::-webkit-scrollbar {
+.scroll-rail::-webkit-scrollbar {
     display: none;
 }
 
-.reading-wall-rail-full {
-    width: 100%;
-    padding-right: 8vw;
-}
-
-.reading-wall-panel {
+/* ——— 唯一的纸 ——— */
+.scroll-mount {
     position: relative;
-    align-self: end;
-    scroll-snap-align: start;
-    transition: opacity 160ms ease;
-}
-
-.reading-wall-panel-narrow {
-    width: clamp(12rem, 13vw, 14.5rem);
-    min-width: 14rem;
-}
-
-.reading-wall-panel-medium {
-    width: clamp(17rem, 19vw, 20rem);
-    min-width: 17rem;
-}
-
-.reading-wall-panel-wide {
-    width: clamp(21rem, 24vw, 24rem);
-    min-width: 21rem;
-}
-
-.reading-wall-panel-plaque {
-    width: clamp(11rem, 12vw, 12.75rem);
-    min-width: 11rem;
-}
-
-.reading-wall-panel-scroll {
-    width: clamp(24rem, 28vw, 28rem);
-    min-width: 24rem;
-}
-
-.reading-wall-panel-colophon {
-    width: clamp(10.5rem, 11.5vw, 12rem);
-    min-width: 10.5rem;
-}
-
-.reading-wall-panel-surface {
-    position: relative;
-    height: min(82svh, 54rem);
-    overflow: hidden;
-    border: 1px solid rgba(98, 79, 54, 0.24);
-    border-radius: 0.35rem;
-    background:
-        radial-gradient(circle at top right, rgba(162, 122, 72, 0.08), transparent 30%),
-        linear-gradient(180deg, rgba(247, 242, 230, 0.98), rgba(241, 233, 217, 0.96)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(122, 96, 60, 0.03) 0,
-            rgba(122, 96, 60, 0.03) 1px,
-            transparent 1px,
-            transparent 9px
-        ),
-        repeating-linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.3) 0,
-            rgba(255, 255, 255, 0.3) 1px,
-            transparent 1px,
-            transparent 13px
-        );
+    display: flex;
+    flex: 0 0 auto;
+    align-items: stretch;
+    width: max-content;
+    height: var(--scroll-band);
+    background-color: #f2e8d3;
+    background-image: repeating-linear-gradient(
+        90deg,
+        rgba(120, 94, 58, 0.05) 0 1px,
+        transparent 1px 4px
+    );
     box-shadow:
-        0 10px 20px rgba(71, 49, 25, 0.08),
-        inset 0 0 0 1px rgba(255, 252, 244, 0.54),
-        inset 0 0 24px rgba(122, 94, 58, 0.06);
+        0 22px 44px -20px rgba(58, 39, 18, 0.5),
+        0 2px 5px rgba(58, 39, 18, 0.13);
 }
 
-.reading-wall-panel-plaque .reading-wall-panel-surface {
-    height: min(66svh, 39rem);
+html.dark .scroll-mount {
+    background-color: #1d1610;
+    background-image: repeating-linear-gradient(
+        90deg,
+        rgba(196, 163, 113, 0.045) 0 1px,
+        transparent 1px 4px
+    );
+    box-shadow:
+        0 22px 44px -20px rgba(0, 0, 0, 0.72),
+        0 2px 5px rgba(0, 0, 0, 0.42);
 }
 
-.reading-wall-panel-folio-tall .reading-wall-panel-surface {
-    height: min(77svh, 49rem);
-}
-
-.reading-wall-panel-scroll .reading-wall-panel-surface {
-    height: min(86svh, 56rem);
-}
-
-.reading-wall-panel-folio-mid .reading-wall-panel-surface {
-    height: min(72svh, 45rem);
-}
-
-.reading-wall-panel-folio-low .reading-wall-panel-surface {
-    height: min(63svh, 40rem);
-}
-
-.reading-wall-panel-colophon .reading-wall-panel-surface {
-    height: min(52svh, 32rem);
-}
-
-.reading-wall-panel-surface::after {
+/* 天头 / 地头绫边：贯穿全卷，是「一个连续物体」最强的信号 */
+.scroll-mount::before,
+.scroll-mount::after {
     content: "";
     position: absolute;
-    inset: 0;
-    background:
-        linear-gradient(180deg, rgba(255, 250, 241, 0.18), transparent 16%, transparent 84%, rgba(111, 82, 48, 0.08) 100%),
-        repeating-linear-gradient(
-            0deg,
-            rgba(116, 88, 50, 0.035) 0,
-            rgba(116, 88, 50, 0.035) 1px,
-            transparent 1px,
-            transparent 11px
-        );
-    background-size: auto, 100% 100%;
+    z-index: 2;
+    inset-inline: var(--scroll-rod);
+    height: var(--scroll-silk);
     pointer-events: none;
+    background: linear-gradient(
+        180deg,
+        rgba(94, 66, 36, 0.3),
+        rgba(94, 66, 36, 0.12) 55%,
+        rgba(94, 66, 36, 0.26)
+    );
 }
 
-html.dark .reading-wall-panel-surface {
-    border-color: rgba(126, 105, 72, 0.35);
-    background:
-        radial-gradient(circle at top right, rgba(133, 102, 58, 0.11), transparent 28%),
-        linear-gradient(180deg, rgba(31, 24, 17, 0.96), rgba(23, 18, 13, 0.94)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(163, 133, 92, 0.04) 0,
-            rgba(163, 133, 92, 0.04) 1px,
-            transparent 1px,
-            transparent 9px
-        );
-    box-shadow:
-        0 12px 24px rgba(0, 0, 0, 0.24),
-        inset 0 0 0 1px rgba(198, 171, 130, 0.06),
-        inset 0 0 24px rgba(0, 0, 0, 0.18);
+.scroll-mount::before {
+    top: 0;
+    box-shadow: inset 0 -1px 0 rgba(72, 48, 22, 0.34);
 }
 
-html.dark .reading-wall-panel-surface::after {
-    background:
-        linear-gradient(180deg, rgba(255, 237, 208, 0.04), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.16) 100%),
-        repeating-linear-gradient(
-            0deg,
-            rgba(189, 154, 105, 0.03) 0,
-            rgba(189, 154, 105, 0.03) 1px,
-            transparent 1px,
-            transparent 11px
-        );
+.scroll-mount::after {
+    bottom: 0;
+    box-shadow: inset 0 1px 0 rgba(72, 48, 22, 0.34);
 }
 
-.reading-wall-panel-shell {
+html.dark .scroll-mount::before,
+html.dark .scroll-mount::after {
+    background: linear-gradient(
+        180deg,
+        rgba(10, 7, 4, 0.62),
+        rgba(120, 96, 62, 0.16) 55%,
+        rgba(10, 7, 4, 0.56)
+    );
+}
+
+/* ——— 轴：天杆 / 地杆 + 轴头 ——— */
+.scroll-rod {
     position: relative;
-    z-index: 1;
+    z-index: 3;
+    flex: 0 0 auto;
+    width: var(--scroll-rod);
+    background: linear-gradient(
+        90deg,
+        #3d2b19 0%,
+        #6b4e2f 24%,
+        #a7845a 48%,
+        #66492b 74%,
+        #33230f 100%
+    );
+}
+
+.scroll-rod::before,
+.scroll-rod::after {
+    content: "";
+    position: absolute;
+    left: -0.24rem;
+    right: -0.24rem;
+    height: 1.45rem;
+    border-radius: 0.14rem;
+    background: linear-gradient(
+        90deg,
+        #2f2011 0%,
+        #7a5a35 40%,
+        #b18d60 56%,
+        #6a4c2c 80%,
+        #28190c 100%
+    );
+    box-shadow: 0 1px 4px rgba(28, 17, 6, 0.42);
+}
+
+.scroll-rod::before {
+    top: -0.62rem;
+}
+
+.scroll-rod::after {
+    bottom: -0.62rem;
+}
+
+/* 卷尾：轴前几道收紧的纸，暗示尚未展开的部分 */
+.scroll-rod--tail {
+    width: calc(var(--scroll-rod) * 2.4);
+    background: linear-gradient(
+        90deg,
+        rgba(94, 66, 36, 0) 0%,
+        rgba(94, 66, 36, 0.24) 7%,
+        rgba(94, 66, 36, 0.03) 15%,
+        rgba(94, 66, 36, 0.32) 25%,
+        rgba(94, 66, 36, 0.04) 34%,
+        rgba(94, 66, 36, 0.46) 44%,
+        #3d2b19 54%,
+        #6b4e2f 67%,
+        #a7845a 79%,
+        #66492b 90%,
+        #33230f 100%
+    );
+}
+
+.scroll-rod--tail::before,
+.scroll-rod--tail::after {
+    left: auto;
+    right: -0.24rem;
+    width: calc(var(--scroll-rod) + 0.48rem);
+}
+
+/* ——— 叶：画心的一段 ——— */
+.scroll-leaf {
+    --scroll-seam: 0rem;
+
+    position: relative;
     display: flex;
+    flex: 0 0 auto;
+    min-height: 0;
     height: 100%;
     gap: 1rem;
-    padding: 1.5rem 1.1rem 1.5rem 1.25rem;
+    padding-block: calc(var(--scroll-silk) + 1.15rem);
+    padding-inline: 1.25rem;
+    padding-inline-start: calc(1.25rem + var(--scroll-seam));
 }
 
-.reading-wall-panel-scroll .reading-wall-panel-shell {
-    padding-inline: 1.35rem 1.2rem;
+/* 隔水：唯一的分隔物，长在每一段画心自己的起边上 */
+.scroll-leaf + .scroll-leaf {
+    --scroll-seam: 1.75rem;
 }
 
-.reading-wall-panel-plaque .reading-wall-panel-shell,
-.reading-wall-panel-colophon .reading-wall-panel-shell {
-    padding-block: 1.2rem;
-}
-
-.reading-wall-column {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    min-width: 0rem;
-}
-
-.reading-wall-title-column {
-    position: relative;
-    width: 4.25rem;
-    min-width: 4.25rem;
-    margin-top: 0.15rem;
-    margin-bottom: 1.15rem;
-    align-items: center;
-    padding-block: 0.7rem 0.8rem;
-    border-inline: 1px solid rgba(116, 86, 47, 0.16);
-    background:
-        linear-gradient(180deg, rgba(249, 244, 232, 0.9), rgba(239, 228, 207, 0.84)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(138, 108, 66, 0.035) 0,
-            rgba(138, 108, 66, 0.035) 1px,
-            transparent 1px,
-            transparent 10px
-        );
-    box-shadow:
-        inset 0 1px 0 rgba(255, 251, 243, 0.45),
-        inset 0 -1px 0 rgba(122, 89, 46, 0.1);
-}
-
-.reading-wall-title-column::before,
-.reading-wall-title-column::after {
+.scroll-leaf + .scroll-leaf::before {
     content: "";
     position: absolute;
-    left: 50%;
-    width: 1.1rem;
-    height: 1px;
-    transform: translateX(-50%);
-    background: linear-gradient(90deg, transparent, rgba(122, 82, 38, 0.42), transparent);
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: var(--scroll-seam);
+    background: linear-gradient(
+        90deg,
+        rgba(94, 66, 36, 0.17),
+        rgba(94, 66, 36, 0.07) 26%,
+        rgba(94, 66, 36, 0.07) 74%,
+        rgba(94, 66, 36, 0.17)
+    );
+    box-shadow:
+        inset 1px 0 0 var(--scroll-hair),
+        inset -1px 0 0 var(--scroll-hair);
 }
 
-.reading-wall-title-column::before {
-    top: 0.42rem;
+html.dark .scroll-leaf + .scroll-leaf::before {
+    background: linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.4),
+        rgba(0, 0, 0, 0.18) 26%,
+        rgba(0, 0, 0, 0.18) 74%,
+        rgba(0, 0, 0, 0.4)
+    );
 }
 
-.reading-wall-title-column::after {
-    bottom: 0.48rem;
+.scroll-leaf--slim {
+    width: clamp(12.5rem, 13.5vw, 15rem);
 }
 
-.reading-wall-title-stack {
-    display: flex;
-    height: 100%;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    gap: 0.26rem;
+.scroll-leaf--mid {
+    width: clamp(18rem, 20vw, 22rem);
 }
 
-.reading-wall-copy-column {
-    flex: 1 1 auto;
+/* 画心随条目数自然延长，卷内不再出现第二条滚动条 */
+.scroll-leaf--wide {
     width: auto;
-    overflow: auto;
+    min-width: clamp(21rem, 24vw, 25rem);
 }
 
-.moments-entry-panel .reading-wall-copy-column {
-    min-height: 0;
+/* ——— 题签：首页、近札、留札共用同一条绫带 ——— */
+.scroll-label,
+.moments-bookmark-strip,
+.guestbook-bookmark-strip {
+    position: relative;
+    display: flex;
+    flex: 0 0 auto;
+    width: 4.1rem;
+    min-width: 4.1rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.28rem;
     overflow: hidden;
+    border-inline: 1px solid var(--scroll-hair);
+    background: linear-gradient(180deg, rgba(94, 66, 36, 0.09), rgba(94, 66, 36, 0.04));
 }
 
-.reading-wall-meta-column {
-    width: 2.3rem;
+html.dark .scroll-label,
+html.dark .moments-bookmark-strip,
+html.dark .guestbook-bookmark-strip {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.32), rgba(0, 0, 0, 0.18));
 }
 
-.reading-wall-rule {
-    width: 1px;
+/* 题签贯穿画心全高，一直压到天头与地头之下 */
+.scroll-label,
+.moments-bookmark-strip,
+.guestbook-bookmark-strip {
     align-self: stretch;
-    background: linear-gradient(
-        180deg,
-        rgba(150, 117, 72, 0.1),
-        rgba(113, 78, 43, 0.42) 14%,
-        rgba(113, 78, 43, 0.22) 82%,
-        rgba(150, 117, 72, 0.08)
-    );
+    margin-block: calc(-1 * (var(--scroll-silk) + 1.15rem));
+    padding-block: calc(var(--scroll-silk) + 1.15rem);
 }
 
-.reading-wall-rule-muted {
-    background: rgba(113, 78, 43, 0.12);
-}
-
-html.dark .reading-wall-rule,
-html.dark .reading-wall-rule-muted {
-    background: linear-gradient(
-        180deg,
-        rgba(180, 145, 98, 0.1),
-        rgba(160, 124, 80, 0.36) 14%,
-        rgba(160, 124, 80, 0.2) 82%,
-        rgba(180, 145, 98, 0.08)
-    );
-}
-
-.reading-wall-kicker,
-.reading-wall-vertical-title,
-.reading-wall-vertical-copy,
-.reading-wall-vertical-meta {
+.scroll-title {
+    margin: 0;
     writing-mode: vertical-rl;
     text-orientation: mixed;
-}
-
-.reading-wall-kicker {
-    font-size: 0.7rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    color: rgba(117, 80, 42, 0.52);
-}
-
-html.dark .reading-wall-kicker {
-    color: rgba(193, 159, 108, 0.5);
-}
-
-.reading-wall-vertical-title {
-    margin-top: 0;
-    font-size: clamp(1.82rem, 2.05vw, 2.38rem);
-    font-weight: 700;
-    line-height: 1;
-    letter-spacing: 0.09em;
     font-family: var(--app-font-serif);
-    color: #2f1d10;
-    text-shadow:
-        0 1px 0 rgba(255, 251, 244, 0.3),
-        0 0 12px rgba(122, 89, 46, 0.08);
-    -webkit-text-stroke: 0.35px rgba(85, 49, 18, 0.22);
-}
-
-.reading-wall-title-char {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 1.05em;
-    background: linear-gradient(180deg, #5a341a 0%, #2a160a 48%, #7f4e2c 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow:
-        0 1px 0 rgba(255, 248, 236, 0.12),
-        0 2px 8px rgba(73, 45, 20, 0.12);
-}
-
-.reading-wall-title-char:nth-child(odd) {
-    transform: translateX(-0.02em) scale(1.02);
-}
-
-.reading-wall-title-char:nth-child(even) {
-    transform: translateX(0.02em);
-}
-
-.reading-wall-title-kun {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    width: 0.72rem;
-    min-width: 0.72rem;
-    font-size: 0.42rem;
-    line-height: 1.32;
-    letter-spacing: 0.08em;
-    color: rgba(128, 91, 48, 0.66);
-    font-family: var(--app-font-kana);
-    text-align: center;
-    padding-block: 0.22rem;
-    opacity: 0.9;
-}
-
-.reading-wall-vertical-copy {
-    font-size: clamp(1rem, 1.22vw, 1.3rem);
-    line-height: 1.92;
-    letter-spacing: 0.08em;
-    font-family: var(--app-font-serif);
-    font-weight: 600;
-    color: rgba(53, 35, 18, 0.9);
-}
-
-.reading-wall-copy-stack {
-    display: flex;
-    flex-direction: row;
-    gap: 1.15rem;
-    height: 100%;
-    align-items: flex-start;
-}
-
-.reading-wall-ruby {
-    ruby-position: inter-character;
-    ruby-align: center;
-}
-
-.reading-wall-ruby rt {
-    font-size: 0.46em;
-    line-height: 1;
-    letter-spacing: 0.02em;
-    font-family: var(--app-font-kana);
-    font-weight: 500;
-    color: rgba(138, 82, 30, 0.92);
-}
-
-.reading-wall-kaeri {
-    display: inline-flex;
-    font-size: 0.48em;
-    line-height: 1;
-    transform: translateY(-0.18em);
-    margin-inline-start: 0.04em;
-    font-family: var(--app-font-kana);
+    font-size: clamp(1.7rem, 2vw, 2.25rem);
     font-weight: 700;
-    color: rgba(125, 70, 24, 0.92);
-}
-
-.reading-wall-vertical-meta {
-    font-size: 0.78rem;
-    line-height: 1.8;
-    letter-spacing: 0.12em;
-    color: rgba(60, 46, 30, 0.56);
-}
-
-.reading-wall-rich-column {
-    display: flex;
-    height: 100%;
-    min-height: 0;
-    flex-direction: column;
-    writing-mode: horizontal-tb;
-    text-orientation: mixed;
-}
-
-.reading-wall-rich-layout {
-    display: flex;
-    min-height: 0;
-    flex: 1 1 auto;
-    gap: 0.9rem;
-}
-
-.reading-wall-rich-body {
-    display: flex;
-    min-width: 0;
-    min-height: 0;
-    flex: 1 1 auto;
-    flex-direction: column;
-    gap: 0.9rem;
-}
-
-.reading-wall-rich-side {
-    display: flex;
-    width: 3.5rem;
-    min-width: 3.5rem;
-    flex-direction: column;
-    align-items: center;
-    justify-content: space-between;
-    border-left: 1px solid rgba(122, 88, 47, 0.14);
-    padding-left: 0.8rem;
-    padding-right: 0.05rem;
-}
-
-.reading-wall-rich-kicker {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    font-size: 0.66rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: rgba(117, 80, 42, 0.58);
-}
-
-.reading-wall-rich-title {
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    margin-top: 0;
-    font-size: 1.4rem;
     line-height: 1.08;
-    font-weight: 700;
-    color: #362416;
-    font-family: var(--app-font-serif);
-    letter-spacing: 0.08em;
+    letter-spacing: 0.09em;
+    color: #2f1d10;
 }
 
-.reading-wall-rich-link {
-    display: inline-flex;
+html.dark .scroll-title {
+    color: rgba(234, 216, 184, 0.94);
+}
+
+.scroll-title-kana {
+    margin: 0;
     writing-mode: vertical-rl;
     text-orientation: mixed;
-    align-items: center;
-    gap: 0.3rem;
-    font-size: 0.78rem;
-    line-height: 1.25;
-    color: #0f766e;
+    font-family: var(--app-font-kana);
+    font-size: 0.62rem;
+    line-height: 1.35;
+    letter-spacing: 0.1em;
+    color: rgba(128, 91, 48, 0.7);
 }
 
-.reading-wall-rich-link svg {
-    width: 0.8rem;
-    height: 0.8rem;
+html.dark .scroll-title-kana {
+    color: rgba(214, 172, 110, 0.66);
 }
 
-.reading-wall-rich-side-action {
+/* ——— 正文（竖排） ——— */
+.scroll-copy-col {
     display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.reading-wall-rich-list {
-    display: flex;
-    min-height: 0;
     flex: 1 1 auto;
-    flex-direction: column;
-    gap: 0.85rem;
-    overflow-y: auto;
-    padding-right: 0.18rem;
-}
-
-.reading-wall-rich-list::-webkit-scrollbar {
-    width: 6px;
-}
-
-.reading-wall-rich-list::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background: rgba(120, 88, 49, 0.18);
-}
-
-.reading-wall-rich-status,
-.reading-wall-rich-empty {
-    display: inline-flex;
-    width: fit-content;
-    align-items: center;
-    gap: 0.45rem;
-    border-radius: 999px;
-    border: 1px solid rgba(122, 88, 47, 0.15);
-    background: rgba(255, 251, 243, 0.72);
-    padding: 0.45rem 0.8rem;
-    font-size: 0.82rem;
-    color: rgba(66, 46, 25, 0.84);
-}
-
-.reading-wall-rich-status-error {
-    border-color: rgba(185, 73, 73, 0.24);
-    background: rgba(255, 236, 236, 0.74);
-    color: #a42b2b;
-}
-
-.reading-wall-rich-card {
-    display: grid;
-    height: 12rem;
-    grid-template-columns: 7.25rem minmax(0, 1fr);
-    gap: 0.8rem;
-    overflow: hidden;
-    border-radius: 0.95rem;
-    border: 1px solid rgba(122, 88, 47, 0.14);
-    background:
-        linear-gradient(180deg, rgba(255, 251, 245, 0.88), rgba(248, 239, 224, 0.78));
-    box-shadow:
-        0 8px 18px rgba(93, 67, 37, 0.06),
-        inset 0 1px 0 rgba(255, 255, 255, 0.58);
-    transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
-}
-
-.reading-wall-rich-card:hover {
-    transform: translateY(-1px);
-    border-color: rgba(15, 118, 110, 0.26);
-    box-shadow:
-        0 12px 24px rgba(93, 67, 37, 0.09),
-        inset 0 1px 0 rgba(255, 255, 255, 0.58);
-}
-
-.reading-wall-rich-card-cover {
-    overflow: hidden;
-    background: rgba(181, 157, 128, 0.24);
-}
-
-.reading-wall-rich-card-copy {
-    display: flex;
     min-width: 0;
-    min-height: 8.6rem;
-    flex-direction: column;
-    padding: 0.8rem 0.8rem 0.8rem 0;
+    align-items: flex-start;
+    gap: 1.1rem;
 }
 
-.reading-wall-rich-card-copy-project {
-    grid-column: 1 / -1;
-    padding-left: 0.9rem;
-}
-
-.reading-wall-rich-card-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.6rem 0.75rem;
-    font-size: 0.72rem;
-    color: rgba(92, 70, 44, 0.68);
-}
-
-.reading-wall-rich-card-title {
-    margin-top: 0.5rem;
-    font-size: 0.98rem;
-    line-height: 1.5;
-    font-weight: 700;
-    color: #25180d;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.reading-wall-rich-card-summary {
-    margin-top: 0.4rem;
-    font-size: 0.8rem;
-    line-height: 1.72;
-    color: rgba(58, 41, 24, 0.8);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-.reading-wall-rich-card-footer {
-    margin-top: auto;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding-top: 0.7rem;
-    font-size: 0.74rem;
-    color: rgba(91, 67, 40, 0.76);
-}
-
-.reading-wall-home-footer {
-    display: flex;
+.scroll-copy {
+    margin: 0;
     height: 100%;
-    width: 100%;
-    align-items: stretch;
-    justify-content: space-between;
-    gap: 0.75rem;
-    writing-mode: horizontal-tb;
-    text-orientation: mixed;
-}
-
-.reading-wall-home-footer-copy {
-    flex: 1 1 auto;
-    min-width: 0;
     writing-mode: vertical-rl;
     text-orientation: mixed;
-    font-size: 0.88rem;
-    line-height: 1.9;
-    letter-spacing: 0.08em;
-    color: rgba(53, 35, 18, 0.88);
     font-family: var(--app-font-serif);
+    font-size: clamp(0.98rem, 1.15vw, 1.22rem);
+    font-weight: 600;
+    line-height: 1.95;
+    letter-spacing: 0.08em;
+    color: var(--scroll-ink);
 }
 
-.reading-wall-home-footer-icons {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.8rem;
-    border-right: 1px solid rgba(122, 88, 47, 0.14);
-    padding-right: 0.45rem;
-}
-
-.reading-wall-home-footer-icon {
+/* ——— 印：全卷唯一的强调色 ——— */
+.scroll-seal {
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    color: rgba(86, 67, 44, 0.7);
-    transition: color 180ms ease, transform 180ms ease;
+    width: 2.15rem;
+    height: 2.15rem;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    border: 2px solid var(--seal);
+    border-radius: 0.14rem;
+    font-family: var(--app-font-serif);
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: 0.06em;
+    color: var(--seal);
+    opacity: 0.84;
+    transform: rotate(-1.8deg);
 }
 
-.reading-wall-home-footer-icon:hover {
-    color: #0f766e;
-    transform: translateY(-1px);
+.scroll-seal--solid {
+    border-color: transparent;
+    background: var(--seal);
+    color: #f6ecd8;
+    opacity: 0.8;
 }
 
-html.dark .reading-wall-vertical-title {
-    color: rgba(232, 214, 182, 0.94);
-    -webkit-text-stroke: 0.35px rgba(228, 194, 143, 0.18);
+/* 钤在一段题字之后 */
+.scroll-copy-col > .scroll-seal {
+    align-self: flex-end;
 }
 
-html.dark .reading-wall-vertical-copy {
-    color: rgba(220, 202, 170, 0.9);
+/* ——— 画心索引：题跋式竖栏 ——— */
+.scroll-index {
+    display: flex;
+    flex: 1 0 auto;
+    min-width: 0;
+    height: 100%;
+    align-items: stretch;
 }
 
-html.dark .reading-wall-title-char {
-    background: linear-gradient(180deg, #f0d8b4 0%, #d8b583 48%, #fff2d9 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    text-shadow:
-        0 1px 0 rgba(20, 12, 7, 0.22),
-        0 2px 10px rgba(0, 0, 0, 0.16);
+.scroll-slip {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    width: clamp(9rem, 10vw, 10.5rem);
+    min-height: 0;
+    height: 100%;
+    gap: 0.75rem;
+    padding-inline: 0.85rem;
+    border-inline-start: 1px solid var(--scroll-hair);
+    transition: background-color 180ms ease;
 }
 
-html.dark .reading-wall-title-kun {
-    color: rgba(220, 177, 113, 0.7);
+.scroll-index > .scroll-slip:first-child {
+    padding-inline-start: 0;
+    border-inline-start: 0;
 }
 
-html.dark .reading-wall-ruby rt,
-html.dark .reading-wall-kaeri {
-    color: rgba(217, 168, 103, 0.92);
+.scroll-slip:hover {
+    background-color: rgba(168, 53, 42, 0.05);
 }
 
-html.dark .reading-wall-rich-kicker {
-    color: rgba(205, 169, 117, 0.58);
+.scroll-slip-cover {
+    flex: 0 0 auto;
+    align-self: center;
+    width: 5rem;
+    height: 5rem;
+    overflow: hidden;
+    padding: 0.22rem;
+    background: linear-gradient(180deg, rgba(120, 88, 46, 0.24), rgba(120, 88, 46, 0.12));
+    box-shadow: inset 0 0 0 1px var(--scroll-hair);
 }
 
-html.dark .reading-wall-rich-title {
-    color: rgba(233, 214, 183, 0.94);
+.scroll-slip-cover > * {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
-html.dark .reading-wall-rich-side {
-    border-left-color: rgba(170, 138, 94, 0.14);
+.scroll-slip-text {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
 }
 
-html.dark .reading-wall-rich-link {
-    color: #67e8f9;
+/* 竖排下 block 轴由右向左，margin-block-start 即列与列之间的空当 */
+.scroll-slip-text > * + * {
+    margin-block-start: 0.45rem;
 }
 
-html.dark .reading-wall-rich-status,
-html.dark .reading-wall-rich-empty {
-    border-color: rgba(170, 138, 94, 0.15);
-    background: rgba(47, 35, 23, 0.72);
-    color: rgba(223, 205, 177, 0.86);
+.scroll-slip-title {
+    margin: 0;
+    max-block-size: calc(1.5em * 2);
+    overflow: hidden;
+    font-family: var(--app-font-serif);
+    font-size: 1.06rem;
+    font-weight: 700;
+    line-height: 1.5;
+    letter-spacing: 0.06em;
+    color: #25180d;
 }
 
-html.dark .reading-wall-rich-status-error {
-    border-color: rgba(186, 88, 88, 0.24);
-    background: rgba(79, 28, 28, 0.5);
-    color: rgba(255, 186, 186, 0.92);
-}
-
-html.dark .reading-wall-rich-card {
-    border-color: rgba(159, 126, 82, 0.18);
-    background:
-        linear-gradient(180deg, rgba(44, 33, 23, 0.84), rgba(31, 24, 17, 0.82));
-    box-shadow:
-        0 10px 22px rgba(0, 0, 0, 0.2),
-        inset 0 1px 0 rgba(255, 239, 214, 0.04);
-}
-
-html.dark .reading-wall-rich-card:hover {
-    border-color: rgba(103, 232, 249, 0.24);
-}
-
-html.dark .reading-wall-rich-card-cover {
-    background: rgba(94, 72, 49, 0.3);
-}
-
-html.dark .reading-wall-rich-card-meta {
-    color: rgba(194, 165, 124, 0.68);
-}
-
-html.dark .reading-wall-rich-card-title {
+html.dark .scroll-slip-title {
     color: rgba(242, 232, 215, 0.95);
 }
 
-html.dark .reading-wall-rich-card-summary {
-    color: rgba(212, 196, 172, 0.84);
+.scroll-slip-summary {
+    margin: 0;
+    max-block-size: calc(1.85em * 2);
+    overflow: hidden;
+    font-size: 0.78rem;
+    line-height: 1.85;
+    letter-spacing: 0.04em;
+    color: rgba(58, 41, 24, 0.78);
 }
 
-html.dark .reading-wall-rich-card-footer {
-    color: rgba(188, 160, 123, 0.76);
+html.dark .scroll-slip-summary {
+    color: rgba(212, 196, 172, 0.82);
 }
 
-html.dark .reading-wall-home-footer-copy {
-    color: rgba(220, 202, 170, 0.9);
+.scroll-slip-mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin: 0;
+    font-size: 0.68rem;
+    line-height: 1.5;
+    letter-spacing: 0.12em;
+    color: var(--scroll-ink-soft);
 }
 
-html.dark .reading-wall-home-footer-icons {
-    border-right-color: rgba(170, 138, 94, 0.14);
+.scroll-slip-mark svg {
+    width: 0.76rem;
+    height: 0.76rem;
 }
 
-html.dark .reading-wall-home-footer-icon {
-    color: rgba(194, 165, 124, 0.72);
+.scroll-slip:hover .scroll-slip-mark {
+    color: var(--seal);
 }
 
-html.dark .reading-wall-home-footer-icon:hover {
-    color: #67e8f9;
+/* 索引末尾的去处（全部文章 / 仓库） */
+.scroll-index-tail {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: flex-end;
+    padding-inline-start: 0.9rem;
+    border-inline-start: 1px solid var(--scroll-hair);
 }
 
-html.dark .reading-wall-title-column {
-    border-inline-color: rgba(154, 121, 79, 0.18);
-    background:
-        linear-gradient(180deg, rgba(48, 35, 21, 0.94), rgba(36, 27, 18, 0.9)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(173, 136, 82, 0.04) 0,
-            rgba(173, 136, 82, 0.04) 1px,
-            transparent 1px,
-            transparent 10px
-        );
-    box-shadow:
-        inset 0 1px 0 rgba(255, 239, 214, 0.04),
-        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+/* ——— 卷内的状态与链接 ——— */
+.scroll-note {
+    display: inline-flex;
+    align-self: flex-start;
+    align-items: center;
+    gap: 0.45rem;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 0.82rem;
+    letter-spacing: 0.1em;
+    color: var(--scroll-ink-soft);
 }
 
-html.dark .reading-wall-title-column::before,
-html.dark .reading-wall-title-column::after {
-    background: linear-gradient(90deg, transparent, rgba(192, 154, 106, 0.36), transparent);
+.scroll-note--error {
+    color: var(--seal);
+}
+
+.scroll-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 0.78rem;
+    letter-spacing: 0.1em;
+    color: var(--scroll-ink-soft);
+    transition: color 160ms ease;
+}
+
+.scroll-link:hover {
+    color: var(--seal);
+}
+
+.scroll-link svg {
+    width: 0.82rem;
+    height: 0.82rem;
+}
+
+/* 卷内的横排按钮：朱砂是唯一的强调色 */
+.scroll-button {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid var(--seal);
+    border-radius: 0.16rem;
+    background: var(--seal);
+    padding: 0.45rem 0.95rem;
+    font-size: 0.84rem;
+    letter-spacing: 0.06em;
+    color: #f7efe0;
+    transition: opacity 160ms ease;
+}
+
+.scroll-button:hover {
+    opacity: 0.86;
+}
+
+.scroll-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+.scroll-button--quiet {
+    border-color: var(--scroll-hair);
+    background: transparent;
+    color: var(--scroll-ink-soft);
+}
+
+.scroll-button--quiet:hover {
+    border-color: var(--seal);
+    color: var(--seal);
+    opacity: 1;
+}
+
+.scroll-inline-error {
+    margin: 0;
+    border-inline-start: 2px solid var(--seal);
+    padding-inline-start: 0.65rem;
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: var(--seal);
+}
+
+.scroll-field {
+    width: 100%;
+    resize: none;
+    border: 1px solid var(--scroll-hair);
+    border-radius: 0.16rem;
+    background: rgba(255, 252, 245, 0.5);
+    padding: 0.7rem 0.85rem;
+    font-size: 0.88rem;
+    line-height: 1.75;
+    color: var(--scroll-ink);
+    outline: none;
+    transition: border-color 160ms ease;
+}
+
+.scroll-field:focus {
+    border-color: var(--seal);
+}
+
+html.dark .scroll-field {
+    background: rgba(18, 13, 9, 0.52);
+}
+
+/* ——— 拖尾：落款、年份与压角章 ——— */
+.scroll-colophon {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    align-items: flex-start;
+    gap: 1.1rem;
+}
+
+.scroll-colophon-copy {
+    margin: 0;
+    height: 100%;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-family: var(--app-font-serif);
+    font-size: 0.84rem;
+    line-height: 1.95;
+    letter-spacing: 0.1em;
+    color: var(--scroll-ink-soft);
+}
+
+.scroll-colophon-copy--lead {
+    font-size: 1.02rem;
+    color: var(--scroll-ink);
+}
+
+.scroll-colophon-marks .scroll-link {
+    padding: 0.3rem;
+}
+
+.scroll-colophon-marks .scroll-link svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.scroll-colophon-marks {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.85rem;
+    margin-inline-start: auto;
+}
+
+/* ——— 横排内容在竖排卷内的回退位 ——— */
+.scroll-plain {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+}
+
+.scroll-plain--center {
+    justify-content: center;
+}
+
+/* 表单一类内容需要确定宽度，才能撑住 width:auto 的画心 */
+.scroll-plain--sheet {
+    flex: 0 0 auto;
+    width: min(32rem, 76vw);
 }
 
 @media (max-width: 1023px) {
-    .reading-wall-rail {
-        align-items: start;
-        padding-top: 0.5rem;
+    .scroll-stage {
+        --scroll-band: min(78svh, 36rem);
     }
 
-    .reading-wall-panel-surface {
-        height: 32rem;
+    .scroll-rail {
+        padding-inline: clamp(0.75rem, 4vw, 2rem);
+        scroll-snap-type: x proximity;
     }
 
-    .reading-wall-panel-narrow,
-    .reading-wall-panel-medium,
-    .reading-wall-panel-wide,
-    .reading-wall-panel-plaque,
-    .reading-wall-panel-scroll,
-    .reading-wall-panel-colophon {
-        width: min(76vw, 24rem);
-        min-width: min(76vw, 24rem);
+    .scroll-leaf {
+        scroll-snap-align: center;
     }
 
-    .reading-wall-panel-plaque .reading-wall-panel-surface {
-        height: 27rem;
+    .scroll-leaf--wide {
+        min-width: min(82vw, 24rem);
     }
 
-    .reading-wall-panel-folio-tall .reading-wall-panel-surface,
-    .reading-wall-panel-folio-mid .reading-wall-panel-surface {
-        height: 31rem;
-    }
-
-    .reading-wall-panel-scroll .reading-wall-panel-surface {
-        height: 34rem;
-    }
-
-    .reading-wall-panel-folio-low .reading-wall-panel-surface {
-        height: 29rem;
-    }
-
-    .reading-wall-panel-colophon .reading-wall-panel-surface {
-        height: 25rem;
+    .scroll-leaf + .scroll-leaf {
+        --scroll-seam: 1.25rem;
     }
 }
 
 @media (max-width: 767px) {
-    .reading-wall-panel-narrow,
-    .reading-wall-panel-medium,
-    .reading-wall-panel-wide,
-    .reading-wall-panel-plaque,
-    .reading-wall-panel-scroll,
-    .reading-wall-panel-colophon {
-        width: 88vw;
-        min-width: 88vw;
+    .scroll-stage {
+        --scroll-band: min(80svh, 32rem);
+        --scroll-silk: 0.8rem;
     }
 
-    .reading-wall-panel-shell {
-        gap: 0.75rem;
-        padding: 1.1rem 0.95rem;
-    }
-
-    .reading-wall-title-column {
-        width: 2.85rem;
-        min-width: 2.85rem;
-        margin-top: -0.05rem;
-        padding-block: 0.52rem 0.62rem;
-    }
-
-    .reading-wall-title-stack {
-        gap: 0.16rem;
-    }
-
-    .reading-wall-copy-column {
-        width: 4.2rem;
-    }
-
-    .reading-wall-meta-column {
-        width: 1.8rem;
-    }
-
-    .reading-wall-vertical-title {
-        font-size: 1.44rem;
-    }
-
-    .reading-wall-title-kun {
-        width: 0.62rem;
-        min-width: 0.62rem;
-        font-size: 0.36rem;
-    }
-
-    .reading-wall-vertical-copy {
-        font-size: 0.95rem;
-        line-height: 1.82;
-    }
-
-    .reading-wall-ruby rt {
-        font-size: 0.5em;
-    }
-
-    .reading-wall-rich-layout {
+    .scroll-leaf {
         gap: 0.7rem;
+        padding-inline: 0.9rem;
+        padding-inline-start: calc(0.9rem + var(--scroll-seam));
     }
 
-    .reading-wall-rich-side {
-        width: 2.7rem;
-        min-width: 2.7rem;
-        padding-left: 0.55rem;
+    .scroll-leaf--slim {
+        width: 9rem;
     }
 
-    .reading-wall-rich-card {
-        grid-template-columns: 1fr;
+    .scroll-leaf--mid {
+        width: 15.5rem;
     }
 
-    .reading-wall-rich-card-cover {
-        aspect-ratio: 16 / 8;
+    .scroll-label {
+        width: 3rem;
+        min-width: 3rem;
     }
 
-    .reading-wall-rich-card-copy {
-        min-height: auto;
-        padding: 0 0.8rem 0.8rem;
+    .scroll-title {
+        font-size: 1.5rem;
     }
 
-    .reading-wall-rich-card-copy-project {
-        padding-top: 0.8rem;
+    .scroll-copy {
+        font-size: 0.95rem;
+        line-height: 1.85;
     }
 
-    .reading-wall-home-footer {
-        gap: 0.55rem;
+    .scroll-slip {
+        width: 8.25rem;
+        padding-inline: 0.6rem;
     }
 
-    .reading-wall-home-footer-copy {
-        font-size: 0.8rem;
+    .scroll-slip-cover {
+        width: 4rem;
+        height: 4rem;
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .hero-rise,
-    .hero-rise-delay-1,
-    .hero-rise-delay-2,
-    .hero-rise-delay-3,
-    .hero-grid,
-    .hero-card-float,
-    .hero-card-float-slow,
-    .hero-card-float-alt,
-    .hero-fog-plume-a,
-    .hero-fog-plume-b,
-    .hero-fog-plume-c,
-    .hero-fog-seam,
-    .hero-fog-bridge,
-    .homepage-mist-layer {
-        animation: none !important;
-    }
-
-    .hero-rotator-card {
-        transition: opacity 180ms ease !important;
-        transform: none !important;
-    }
-
-    .hero-rotator-card[data-state="active"] {
-        opacity: 1;
-    }
-
-    .hero-rotator-card[data-state="prev"],
-    .hero-rotator-card[data-state="next"],
-    .hero-rotator-card[data-state="hidden"] {
-        opacity: 0;
+    .scroll-slip,
+    .scroll-link {
+        transition: none;
     }
 }
 
@@ -2035,53 +1383,6 @@ html.dark body[data-rm-theme="light"] {
     background-color: #030712 !important;
 }
 
-.moments-scroll-rail {
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: minmax(26rem, 34rem);
-    gap: 1rem;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-bottom: 0.35rem;
-    scroll-snap-type: x mandatory;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-}
-
-.moments-reading-wall-rail {
-    align-items: stretch;
-}
-
-.moments-reading-wall-intro,
-.moments-reading-wall-overview,
-.moments-reading-wall-composer,
-.moments-reading-wall-body {
-    display: flex;
-    height: 100%;
-    min-height: 0;
-    flex-direction: column;
-    gap: 1rem;
-    writing-mode: horizontal-tb;
-    text-orientation: mixed;
-}
-
-.moments-entry-content {
-    display: flex;
-    flex: 1 1 auto;
-    min-height: 0;
-}
-
-.moments-entry-stack {
-    display: flex;
-    flex: 1 1 auto;
-    min-height: 0;
-    flex-direction: column;
-}
-
-.moments-reading-wall-overview {
-    justify-content: center;
-}
-
 .moments-bookmark-panel {
     transition:
         width 260ms ease,
@@ -2089,8 +1390,8 @@ html.dark body[data-rm-theme="light"] {
 }
 
 .moments-bookmark-panel-closed {
-    width: clamp(15rem, 16vw, 17rem);
-    min-width: 15rem;
+    width: clamp(18rem, 19vw, 20rem);
+    min-width: 18rem;
 }
 
 .moments-bookmark-panel-open {
@@ -2100,74 +1401,20 @@ html.dark body[data-rm-theme="light"] {
 
 .moments-bookmark-stage {
     display: flex;
+    width: 100%;
     height: 100%;
     min-height: 0;
     align-items: stretch;
     gap: 1rem;
-    padding: 1.5rem 1.1rem;
 }
 
 .moments-bookmark-assembly {
     display: flex;
     gap: 1rem;
-    align-items: center;
+    align-items: stretch;
     flex: 0 0 auto;
 }
 
-.moments-bookmark-panel-open .moments-bookmark-assembly {
-    align-items: stretch;
-}
-
-.moments-bookmark-strip {
-    position: relative;
-    width: 4.25rem;
-    min-width: 4.25rem;
-    border-inline: 1px solid rgba(116, 86, 47, 0.16);
-    border-radius: 0.25rem;
-    background:
-        linear-gradient(180deg, rgba(249, 244, 232, 0.9), rgba(239, 228, 207, 0.84)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(138, 108, 66, 0.035) 0,
-            rgba(138, 108, 66, 0.035) 1px,
-            transparent 1px,
-            transparent 10px
-        );
-    box-shadow:
-        inset 0 1px 0 rgba(255, 251, 243, 0.45),
-        inset 0 -1px 0 rgba(122, 89, 46, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
-.moments-bookmark-panel-closed .moments-bookmark-strip {
-    height: 100%;
-}
-
-.moments-bookmark-panel-open .moments-bookmark-strip {
-    align-self: stretch;
-}
-
-.moments-bookmark-strip::before,
-.moments-bookmark-strip::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    width: 1.1rem;
-    height: 1px;
-    transform: translateX(-50%);
-    background: linear-gradient(90deg, transparent, rgba(122, 82, 38, 0.42), transparent);
-}
-
-.moments-bookmark-strip::before {
-    top: 0.42rem;
-}
-
-.moments-bookmark-strip::after {
-    bottom: 0.48rem;
-}
 
 .moments-bookmark-title {
     margin: 0;
@@ -2197,40 +1444,33 @@ html.dark body[data-rm-theme="light"] {
     transform: translateY(-50%);
     writing-mode: vertical-rl;
     text-orientation: mixed;
-    font-size: 0.42rem;
-    line-height: 1.4;
+    font-size: 0.62rem;
+    line-height: 1.35;
     padding-block: 0.12rem;
-    letter-spacing: 0.08em;
-    color: rgba(128, 91, 48, 0.66);
+    letter-spacing: 0.1em;
+    color: rgba(128, 91, 48, 0.7);
     font-family: var(--app-font-kana);
 }
 
-.moments-bookmark-toggle {
-    width: 2.45rem;
-    height: 2.45rem;
-    min-width: 2.45rem;
-    border-radius: 999px;
-    border: 1px solid rgba(168, 146, 117, 0.26);
-    background: rgba(255, 255, 255, 0.8);
-    color: rgba(89, 65, 38, 0.9);
-    box-shadow: 0 6px 12px rgba(71, 49, 25, 0.04);
+.moments-bookmark-toggle,
+.guestbook-bookmark-toggle {
     display: inline-flex;
+    align-self: center;
     align-items: center;
     justify-content: center;
-    transition:
-        border-color 180ms ease,
-        color 180ms ease,
-        transform 180ms ease;
+    width: 1.9rem;
+    height: 2.8rem;
+    min-width: 1.9rem;
+    border: 1px solid var(--scroll-hair);
+    border-radius: 0.14rem;
+    color: var(--scroll-ink-soft);
+    transition: color 160ms ease, border-color 160ms ease;
 }
 
-.moments-bookmark-toggle:hover {
-    border-color: rgba(136, 103, 66, 0.52);
-    color: rgba(77, 53, 29, 0.92);
-    transform: translateY(-1px);
-}
-
-.moments-bookmark-panel-open .moments-bookmark-toggle {
-    align-self: center;
+.moments-bookmark-toggle:hover,
+.guestbook-bookmark-toggle:hover {
+    border-color: var(--seal);
+    color: var(--seal);
 }
 
 .moments-bookmark-collapsed {
@@ -2247,23 +1487,32 @@ html.dark body[data-rm-theme="light"] {
 .moments-bookmark-time-chip {
     display: inline-flex;
     align-items: center;
-    border: 1px solid rgba(168, 146, 117, 0.38);
-    border-radius: 999px;
-    background:
-        linear-gradient(180deg, rgba(251, 246, 236, 0.9), rgba(244, 235, 219, 0.82));
-    padding: 0.5rem 0.72rem;
+    border: 1px solid var(--scroll-hair);
+    border-radius: 0.14rem;
+    padding: 0.4rem 0.6rem;
     font-size: 0.76rem;
     letter-spacing: 0.08em;
-    color: rgba(104, 81, 52, 0.8);
-    box-shadow: 0 6px 12px rgba(71, 49, 25, 0.04);
+    color: var(--scroll-ink-soft);
+}
+
+.moments-bookmark-collapsed-time {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    align-self: center;
+    padding: 0.6rem 0.4rem;
 }
 
 .moments-bookmark-collapsed-copy {
     margin: 0;
-    max-width: 8rem;
+    align-self: stretch;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    overflow: hidden;
+    max-block-size: calc(1.8em * 3);
+    font-family: var(--app-font-serif);
     font-size: 0.95rem;
     line-height: 1.8;
-    color: rgba(102, 79, 50, 0.62);
+    color: var(--scroll-ink-soft);
 }
 
 .moments-bookmark-open-shell {
@@ -2557,111 +1806,10 @@ html.dark body[data-rm-theme="light"] {
     color: rgba(94, 72, 44, 0.82);
 }
 
-.guestbook-bookmark-frame {
-    display: flex;
-    width: 100%;
-    max-width: min(120rem, calc(100vw - 32px));
-    margin: 0 auto;
-    min-height: 0;
-    flex: 1 1 auto;
-    flex-direction: column;
-    overflow: hidden;
-}
-
 .guestbook-page-shell {
     min-height: calc(100dvh - 1.5rem);
     overscroll-behavior: none;
     touch-action: pan-x;
-}
-
-.guestbook-bookmark-legend {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    margin-bottom: 1.125rem;
-    flex: 0 0 auto;
-}
-
-.guestbook-bookmark-legend span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    border: 1px solid rgba(124, 98, 64, 0.14);
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.62);
-    padding: 0.5rem 0.75rem;
-    font-size: 0.76rem;
-    color: rgba(98, 76, 48, 0.82);
-    box-shadow: 0 6px 12px rgba(71, 49, 25, 0.04);
-}
-
-.guestbook-bookmark-dot {
-    width: 0.5rem;
-    height: 0.5rem;
-    border-radius: 999px;
-    background: linear-gradient(180deg, #b28657, #7c5730);
-}
-
-.guestbook-reading-wall-rail {
-    display: flex;
-    flex: 1 1 auto;
-    min-width: 0;
-    min-height: 0;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-top: 2.75rem;
-    padding-bottom: 0.5rem;
-    scroll-snap-type: x mandatory;
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-}
-
-.guestbook-reading-wall-rail::-webkit-scrollbar {
-    display: none;
-}
-
-.guestbook-bookmark-board {
-    display: flex;
-    gap: clamp(1rem, 1.4vw, 1.5rem);
-    width: max-content;
-    min-width: 100%;
-    flex: 0 0 auto;
-    min-height: 0;
-    height: 100%;
-    align-items: stretch;
-    scroll-snap-align: start;
-}
-
-.guestbook-bookmark-panel {
-    position: relative;
-    min-height: 0;
-    height: 100%;
-    flex: 0 0 auto;
-    border: 1px solid rgba(98, 79, 54, 0.24);
-    border-radius: 0.35rem;
-    background:
-        radial-gradient(circle at top right, rgba(162, 122, 72, 0.08), transparent 30%),
-        linear-gradient(180deg, rgba(247, 242, 230, 0.98) 0%, rgba(241, 233, 217, 0.96) 100%),
-        repeating-linear-gradient(
-            180deg,
-            rgba(122, 96, 60, 0.03) 0,
-            rgba(122, 96, 60, 0.03) 1px,
-            transparent 1px,
-            transparent 9px
-        ),
-        repeating-linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.3) 0,
-            rgba(255, 255, 255, 0.3) 1px,
-            transparent 1px,
-            transparent 13px
-        );
-    box-shadow:
-        0 10px 20px rgba(71, 49, 25, 0.08),
-        inset 0 0 0 1px rgba(255, 252, 244, 0.54),
-        inset 0 0 24px rgba(122, 94, 58, 0.06);
-    overflow: hidden;
-    scroll-snap-align: start;
 }
 
 .guestbook-bookmark-composer-panel {
@@ -2679,7 +1827,7 @@ html.dark body[data-rm-theme="light"] {
 
 .guestbook-bookmark-messages-panel {
     width: max-content;
-    min-width: 56rem;
+    min-width: clamp(24rem, 32vw, 34rem);
 }
 
 .guestbook-bookmark-composer {
@@ -2687,12 +1835,6 @@ html.dark body[data-rm-theme="light"] {
     align-items: stretch;
     gap: 1rem;
     height: 100%;
-    padding: 1.4rem 1.1rem;
-    transition: padding 260ms ease;
-}
-
-.guestbook-bookmark-board.is-collapsed .guestbook-bookmark-composer {
-    padding-inline: 0.9rem;
 }
 
 .guestbook-bookmark-composer-rail {
@@ -2702,49 +1844,7 @@ html.dark body[data-rm-theme="light"] {
     flex: 0 0 auto;
 }
 
-.guestbook-bookmark-strip {
-    position: relative;
-    width: 4.25rem;
-    min-width: 4.25rem;
-    height: 100%;
-    border-inline: 1px solid rgba(116, 86, 47, 0.16);
-    border-radius: 0.25rem;
-    background:
-        linear-gradient(180deg, rgba(249, 244, 232, 0.9), rgba(239, 228, 207, 0.84)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(138, 108, 66, 0.035) 0,
-            rgba(138, 108, 66, 0.035) 1px,
-            transparent 1px,
-            transparent 10px
-        );
-    box-shadow:
-        inset 0 1px 0 rgba(255, 251, 243, 0.45),
-        inset 0 -1px 0 rgba(122, 89, 46, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
 
-.guestbook-bookmark-strip::before,
-.guestbook-bookmark-strip::after {
-    content: "";
-    position: absolute;
-    left: 50%;
-    width: 1.1rem;
-    height: 1px;
-    transform: translateX(-50%);
-    background: linear-gradient(90deg, transparent, rgba(122, 82, 38, 0.42), transparent);
-}
-
-.guestbook-bookmark-strip::before {
-    top: 0.42rem;
-}
-
-.guestbook-bookmark-strip::after {
-    bottom: 0.48rem;
-}
 
 .guestbook-bookmark-strip-title {
     margin: 0;
@@ -2758,44 +1858,24 @@ html.dark body[data-rm-theme="light"] {
 
 .guestbook-bookmark-strip-kana {
     position: absolute;
-    right: 0.72rem;
+    right: 0.6rem;
     top: 50%;
     transform: translateY(-50%);
     writing-mode: vertical-rl;
     text-orientation: mixed;
-    font-size: 0.42rem;
-    line-height: 1.4;
+    font-size: 0.62rem;
+    line-height: 1.35;
     color: rgba(128, 91, 48, 0.66);
     font-family: var(--app-font-kana);
 }
 
-.guestbook-bookmark-toggle {
-    width: 2.45rem;
-    height: 2.45rem;
-    min-width: 2.45rem;
-    border-radius: 999px;
-    border: 1px solid rgba(168, 146, 117, 0.28);
-    background: rgba(255, 255, 255, 0.8);
-    color: rgba(89, 65, 38, 0.9);
-    box-shadow: 0 6px 12px rgba(71, 49, 25, 0.04);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 180ms ease, border-color 180ms ease, color 180ms ease;
-    align-self: center;
-}
-
-.guestbook-bookmark-toggle:hover {
-    transform: translateY(-1px);
-    border-color: rgba(136, 103, 66, 0.52);
-    color: rgba(77, 53, 29, 0.92);
-}
 
 .guestbook-bookmark-compose-sheet {
     display: grid;
-    grid-template-rows: auto auto 1fr auto auto;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
     flex: 1 1 auto;
     min-width: 0;
+    min-height: 0;
     gap: 1rem;
     opacity: 1;
     transform: translateX(0);
@@ -2824,20 +1904,16 @@ html.dark body[data-rm-theme="light"] {
     gap: 1rem;
 }
 
-.guestbook-bookmark-chip,
-.guestbook-bookmark-post-button {
+.guestbook-bookmark-chip {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    border: 1px solid rgba(168, 146, 117, 0.28);
-    border-radius: 999px;
-    background:
-        linear-gradient(180deg, rgba(251, 246, 236, 0.9), rgba(244, 235, 219, 0.82));
-    padding: 0.5rem 0.78rem;
+    border: 1px solid var(--scroll-hair);
+    border-radius: 0.14rem;
+    padding: 0.4rem 0.62rem;
     font-size: 0.76rem;
     letter-spacing: 0.08em;
-    color: rgba(104, 81, 52, 0.8);
-    box-shadow: 0 6px 12px rgba(71, 49, 25, 0.04);
+    color: var(--scroll-ink-soft);
 }
 
 .guestbook-bookmark-compose-note {
@@ -2857,33 +1933,38 @@ html.dark body[data-rm-theme="light"] {
 .guestbook-bookmark-input,
 .guestbook-bookmark-textarea {
     width: 100%;
-    border: 1px solid rgba(186, 171, 147, 0.42);
-    background: rgba(255, 255, 255, 0.82);
-    color: #111827;
+    resize: none;
+    border: 1px solid var(--scroll-hair);
+    border-radius: 0.16rem;
+    background: rgba(255, 252, 245, 0.5);
+    padding: 0.7rem 0.85rem;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--scroll-ink);
     outline: none;
-    font-size: 0.92rem;
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
-    box-shadow: 0 6px 12px rgba(71, 49, 25, 0.04);
-}
-
-.guestbook-bookmark-input {
-    border-radius: 1rem;
-    padding: 0.9rem 1rem;
+    transition: border-color 160ms ease;
 }
 
 .guestbook-bookmark-textarea {
-    resize: none;
-    border-radius: 1.35rem;
-    padding: 1rem 1.05rem;
-    min-height: 16rem;
-    line-height: 1.8;
+    min-height: 7rem;
+}
+
+.guestbook-bookmark-input:focus,
+.guestbook-bookmark-textarea:focus {
+    border-color: var(--seal);
+}
+
+html.dark .guestbook-bookmark-input,
+html.dark .guestbook-bookmark-textarea {
+    background: rgba(18, 13, 9, 0.52);
 }
 
 .guestbook-bookmark-compose-footer {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
-    gap: 1rem;
+    gap: 0.75rem 1rem;
 }
 
 .guestbook-bookmark-hint {
@@ -2892,26 +1973,16 @@ html.dark body[data-rm-theme="light"] {
     color: rgba(107, 84, 53, 0.72);
 }
 
-.guestbook-bookmark-post-button {
-    color: #2f1d10;
-    padding-inline: 1rem;
-}
-
-.guestbook-bookmark-post-button:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-}
 
 .guestbook-bookmark-error {
     display: flex;
     align-items: flex-start;
     gap: 0.5rem;
-    border-radius: 1.25rem;
-    border: 1px solid rgba(248, 113, 113, 0.35);
-    background: rgba(254, 242, 242, 0.8);
-    padding: 0.95rem 1rem;
+    border-inline-start: 2px solid var(--seal);
+    padding-inline-start: 0.65rem;
     font-size: 0.86rem;
-    color: #b91c1c;
+    line-height: 1.7;
+    color: var(--seal);
 }
 
 .guestbook-bookmark-messages {
@@ -2919,7 +1990,6 @@ html.dark body[data-rm-theme="light"] {
     grid-template-rows: auto 1fr auto;
     min-height: 0;
     height: 100%;
-    padding: 1.4rem 1.1rem;
     gap: 1rem;
 }
 
@@ -2943,7 +2013,6 @@ html.dark body[data-rm-theme="light"] {
 
 .guestbook-bookmark-messages-rail {
     display: flex;
-    gap: 1rem;
     width: max-content;
     min-width: max-content;
     height: 100%;
@@ -2951,26 +2020,17 @@ html.dark body[data-rm-theme="light"] {
 }
 
 .guestbook-bookmark-message-card {
-    width: 14rem;
-    min-width: 14rem;
-    height: 100%;
-    min-height: 30rem;
-    border: 1px solid rgba(168, 146, 117, 0.24);
-    border-radius: 0.25rem;
-    background:
-        linear-gradient(180deg, rgba(248, 242, 232, 0.9), rgba(240, 231, 216, 0.82)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(137, 112, 78, 0.04) 0,
-            rgba(137, 112, 78, 0.04) 1px,
-            transparent 1px,
-            transparent 12px
-        );
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.5),
-        0 6px 14px rgba(98, 77, 47, 0.05);
-    padding: 1rem 0.9rem;
     position: relative;
+    width: 13rem;
+    min-width: 13rem;
+    height: 100%;
+    padding-inline: 0.9rem;
+    border-inline-start: 1px solid var(--scroll-hair);
+}
+
+.guestbook-bookmark-messages-rail > .guestbook-bookmark-message-card:first-child {
+    padding-inline-start: 0;
+    border-inline-start: 0;
 }
 
 .guestbook-bookmark-message-avatar {
@@ -3039,11 +2099,6 @@ html.dark body[data-rm-theme="light"] {
     color: rgba(94, 72, 44, 0.82);
 }
 
-.guestbook-bookmark-footer-note {
-    font-size: 0.82rem;
-    color: rgba(107, 84, 53, 0.74);
-}
-
 @media (max-width: 1499px) {
     .guestbook-bookmark-composer-panel {
         width: 26rem;
@@ -3056,7 +2111,7 @@ html.dark body[data-rm-theme="light"] {
     }
 
     .guestbook-bookmark-messages-panel {
-        min-width: 46rem;
+        min-width: clamp(22rem, 40vw, 30rem);
     }
 }
 
@@ -3067,10 +2122,6 @@ html.dark body[data-rm-theme="light"] {
 }
 
 @media (max-width: 1199px) {
-    .guestbook-bookmark-frame {
-        max-width: min(100vw, calc(100vw - 24px));
-    }
-
     .guestbook-bookmark-composer {
         min-height: 34rem;
     }
@@ -3117,332 +2168,3 @@ html.dark body[data-rm-theme="light"] {
     }
 }
 
-.moments-scroll-rail::-webkit-scrollbar {
-    display: none;
-}
-
-.moments-scroll-panel {
-    scroll-snap-align: start;
-    min-height: 100%;
-}
-
-.moments-scroll-note-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 0.75rem;
-}
-
-.moments-scroll-time-note {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    min-height: 8rem;
-    border-radius: 0.9rem;
-    border: 1px solid rgba(168, 146, 117, 0.38);
-    background:
-        linear-gradient(180deg, rgba(251, 246, 236, 0.9), rgba(244, 235, 219, 0.82)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(140, 115, 78, 0.05) 0,
-            rgba(140, 115, 78, 0.05) 1px,
-            transparent 1px,
-            transparent 10px
-        );
-    padding: 0.7rem 0.4rem;
-    font-size: 0.78rem;
-    line-height: 1.55;
-    letter-spacing: 0.08em;
-    color: rgba(103, 78, 48, 0.86);
-    font-family: var(--app-font-serif);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.52),
-        0 4px 10px rgba(97, 76, 47, 0.06);
-}
-
-.moments-scroll-copy-shell {
-    flex: 1 1 auto;
-    min-height: 0;
-    height: 100%;
-    display: flex;
-    align-items: stretch;
-    overflow-x: auto;
-    overflow-y: hidden;
-    overscroll-behavior-x: contain;
-    border-radius: 1.5rem;
-    border: 1px solid rgba(186, 171, 147, 0.42);
-    background:
-        linear-gradient(180deg, rgba(250, 245, 235, 0.88), rgba(243, 236, 223, 0.8)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(133, 107, 73, 0.05) 0,
-            rgba(133, 107, 73, 0.05) 1px,
-            transparent 1px,
-            transparent 11px
-        );
-    padding: 1.1rem 1rem;
-}
-
-.moments-scroll-sheet-stack {
-    display: flex;
-    width: max-content;
-    min-width: 100%;
-    min-height: 100%;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.moments-fold-stage {
-    display: flex;
-    min-height: 100%;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.65rem;
-}
-
-.moments-fold-toggle-row {
-    display: flex;
-    width: 100%;
-    justify-content: flex-start;
-}
-
-.moments-fold-toggle {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 999px;
-    border: 1px solid rgba(166, 140, 108, 0.42);
-    background:
-        linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(242, 233, 218, 0.92));
-    padding: 0.34rem 0.8rem;
-    font-size: 0.72rem;
-    line-height: 1;
-    letter-spacing: 0.14em;
-    color: rgba(99, 72, 42, 0.82);
-    font-family: var(--app-font-serif);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.75),
-        0 4px 10px rgba(90, 68, 40, 0.05);
-    transition:
-        border-color 180ms ease,
-        color 180ms ease,
-        background 180ms ease,
-        transform 180ms ease;
-}
-
-.moments-fold-toggle:hover {
-    border-color: rgba(136, 103, 66, 0.52);
-    color: rgba(77, 53, 29, 0.92);
-    transform: translateY(-1px);
-}
-
-.moments-scroll-text-rail {
-    display: flex;
-    width: max-content;
-    max-width: var(--moments-fold-peek, 3.5rem);
-    min-height: 100%;
-    justify-content: flex-end;
-    overflow: hidden;
-    transform-origin: left center;
-    transition:
-        max-width 440ms cubic-bezier(0.2, 0.78, 0.18, 1),
-        filter 220ms ease,
-        opacity 220ms ease;
-    will-change: max-width;
-}
-
-.moments-scroll-text-rail.is-expanded {
-    max-width: var(--moments-fold-width);
-}
-
-.moments-scroll-text-rail.is-collapsed {
-    max-width: var(--moments-fold-peek, 3.5rem);
-    filter: saturate(0.92);
-}
-
-.moments-scroll-vertical-copy {
-    flex: none;
-    height: 100%;
-    min-height: 100%;
-    margin: 0;
-    writing-mode: vertical-rl;
-    text-orientation: mixed;
-    white-space: pre-wrap;
-    font-size: 1rem;
-    line-height: 2;
-    letter-spacing: 0.08em;
-    font-family: var(--app-font-serif);
-    color: rgba(49, 35, 21, 0.92);
-}
-
-.moments-scroll-insert-block {
-    border-radius: 1.5rem;
-    border: 1px solid rgba(183, 164, 138, 0.42);
-    background:
-        linear-gradient(180deg, rgba(248, 242, 232, 0.9), rgba(240, 231, 216, 0.82)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(137, 112, 78, 0.045) 0,
-            rgba(137, 112, 78, 0.045) 1px,
-            transparent 1px,
-            transparent 12px
-        );
-    padding: 0.9rem;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.5),
-        0 6px 14px rgba(98, 77, 47, 0.05);
-}
-
-.moments-scroll-insert-label {
-    margin-bottom: 0.7rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    color: rgba(110, 84, 50, 0.72);
-    font-family: var(--app-font-serif);
-}
-
-.moments-scroll-image-sheet {
-    border-radius: 1.2rem;
-    border: 1px solid rgba(198, 182, 159, 0.55);
-    background:
-        linear-gradient(180deg, rgba(255, 252, 247, 0.95), rgba(246, 240, 231, 0.88));
-    padding: 0.45rem;
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.75),
-        0 6px 16px rgba(87, 67, 40, 0.06);
-}
-
-.moments-scroll-image {
-    border-radius: 0.95rem;
-    background: rgba(244, 240, 233, 0.9);
-}
-
-.moments-scroll-rail-with-composer {
-    grid-auto-columns: minmax(24rem, 30rem);
-}
-
-html.dark .moments-scroll-copy-shell {
-    border-color: rgba(125, 103, 77, 0.34);
-    background:
-        linear-gradient(180deg, rgba(33, 27, 22, 0.9), rgba(25, 20, 16, 0.84)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(184, 154, 112, 0.04) 0,
-            rgba(184, 154, 112, 0.04) 1px,
-            transparent 1px,
-            transparent 11px
-        );
-}
-
-html.dark .moments-fold-toggle {
-    border-color: rgba(125, 101, 73, 0.36);
-    background:
-        linear-gradient(180deg, rgba(49, 40, 33, 0.95), rgba(35, 29, 24, 0.92));
-    color: rgba(213, 190, 157, 0.84);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 241, 217, 0.05),
-        0 4px 10px rgba(0, 0, 0, 0.14);
-}
-
-html.dark .moments-fold-toggle:hover {
-    border-color: rgba(162, 131, 93, 0.42);
-    color: rgba(235, 216, 188, 0.92);
-}
-
-html.dark .moments-scroll-vertical-copy {
-    color: rgba(228, 213, 192, 0.92);
-}
-
-html.dark .moments-scroll-time-note {
-    border-color: rgba(142, 117, 84, 0.34);
-    background:
-        linear-gradient(180deg, rgba(38, 31, 25, 0.9), rgba(30, 24, 19, 0.84)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(188, 159, 116, 0.04) 0,
-            rgba(188, 159, 116, 0.04) 1px,
-            transparent 1px,
-            transparent 10px
-        );
-    color: rgba(210, 188, 156, 0.88);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 242, 221, 0.05),
-        0 4px 10px rgba(0, 0, 0, 0.18);
-}
-
-html.dark .moments-scroll-insert-block {
-    border-color: rgba(131, 108, 79, 0.34);
-    background:
-        linear-gradient(180deg, rgba(36, 30, 25, 0.9), rgba(29, 23, 19, 0.84)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(183, 155, 116, 0.04) 0,
-            rgba(183, 155, 116, 0.04) 1px,
-            transparent 1px,
-            transparent 12px
-        );
-    box-shadow:
-        inset 0 1px 0 rgba(255, 241, 217, 0.05),
-        0 6px 14px rgba(0, 0, 0, 0.16);
-}
-
-html.dark .moments-scroll-insert-label {
-    color: rgba(201, 176, 136, 0.74);
-}
-
-html.dark .moments-scroll-image-sheet {
-    border-color: rgba(123, 103, 78, 0.42);
-    background:
-        linear-gradient(180deg, rgba(46, 37, 30, 0.92), rgba(37, 30, 25, 0.88));
-    box-shadow:
-        inset 0 1px 0 rgba(255, 241, 217, 0.04),
-        0 6px 16px rgba(0, 0, 0, 0.18);
-}
-
-html.dark .moments-scroll-image {
-    background: rgba(27, 23, 20, 0.92);
-}
-
-@media (max-width: 767px) {
-    .moments-scroll-rail,
-    .moments-scroll-rail-with-composer {
-        grid-auto-columns: 88vw;
-    }
-
-    .moments-reading-wall-intro,
-    .moments-reading-wall-overview,
-    .moments-reading-wall-composer,
-    .moments-reading-wall-body {
-        gap: 0.8rem;
-    }
-
-    .moments-scroll-time-note {
-        min-height: 6.8rem;
-        font-size: 0.72rem;
-        padding: 0.55rem 0.35rem;
-    }
-
-    .moments-scroll-copy-shell {
-        padding: 0.9rem 0.85rem;
-    }
-
-    .moments-scroll-text-rail {
-        min-height: 100%;
-    }
-
-    .moments-scroll-vertical-copy {
-        font-size: 0.95rem;
-        line-height: 1.9;
-    }
-
-    .moments-fold-toggle {
-        padding: 0.3rem 0.68rem;
-        font-size: 0.68rem;
-    }
-
-    .moments-scroll-insert-block {
-        padding: 0.75rem;
-    }
-}
