@@ -13,7 +13,7 @@ import type {
   MomentComment,
   MomentLikeState,
 } from "../types";
-import { getAuthToken, isAuthenticated } from "../utils/auth";
+import { clearAuthSession, getAuthToken, isAuthenticated } from "../utils/auth";
 import { normalizeDisplayName } from "../utils/displayName";
 import { getOrCreateDeviceId } from "../utils/device";
 import { API_BASE_URL } from "./apiConfig";
@@ -63,6 +63,9 @@ export type UpdatePostPayload = Partial<Omit<BlogPost, "id">>;
 apiClient.interceptors.response.use(
   response => response,
   (error: AxiosError) => {
+    if (error.response?.status === 401) {
+      clearAuthSession();
+    }
     console.error("API Error Details:", {
       url: error.config?.url,
       method: error.config?.method,

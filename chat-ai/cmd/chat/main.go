@@ -52,6 +52,7 @@ func main() {
 	model := getEnv("OPENAI_MODEL", "deepseek-chat")
 	port := getEnv("CHAT_PORT", "8080")
 	systemContent := mustEnv("SYSTEM_CONTENT")
+	corsAllowedOrigin := getEnv("CORS_ALLOWED_ORIGIN", "http://localhost:5173")
 
 	client.InitClient(provider, apiKey, apiURL, model)
 	client.SetSystemPrompt(systemContent)
@@ -59,7 +60,7 @@ func main() {
 	// 初始化一个gin引擎，并绑定端口号
 	r := gin.Default()
 	r.Use(func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Origin", corsAllowedOrigin)
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, Origin")
 		c.Writer.Header().Set("Access-Control-Max-Age", "86400")

@@ -4,7 +4,7 @@ use crate::{
     errors::MyError,
     state::*,
 };
-use actix_web::web;
+use actix_web::{HttpRequest, web};
 use argon2::{
     Argon2, PasswordVerifier,
     password_hash::{PasswordHash, PasswordHasher, SaltString, rand_core::OsRng},
@@ -31,6 +31,7 @@ pub struct LoginResponse {
 pub async fn login_handler(
     app_state: web::Data<AppState>,
     payload: web::Json<LoginRequest>,
+    req: HttpRequest,
 ) -> Result<web::Json<LoginResponse>, MyError> {
     debug!(">>> 开始执行数据库查询<<<");
     let payload = payload.into_inner();
@@ -40,6 +41,16 @@ pub async fn login_handler(
     }
     if payload.password.chars().count() > MAX_PASSWORD_CHARS {
         return Err(MyError::BadRequest("Invalid password".into()));
+    }
+    let remote = req
+        .peer_addr()
+        .map(|address| address.ip().to_string())
+        .unwrap_or_else(|| "unknown".into());
+    let rate_key = format!("{}:{}", remote, username.to_lowercase());
+    if !app_state.login_rate_limiter.allow(&rate_key) {
+        return Err(MyError::TooManyRequests(
+            "Too many login attempts; please try again later".into(),
+        ));
     }
 
     let user = get_user_by_username(&app_state.db, username).await?;

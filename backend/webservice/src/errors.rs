@@ -11,6 +11,7 @@ pub enum MyError {
     BadRequest(String),
     Unauthorized(String),
     Forbidden(String),
+    TooManyRequests(String),
 }
 
 #[derive(Debug, Serialize)]
@@ -46,6 +47,10 @@ impl MyError {
                 println!("Forbidden error occurred: {:?}", msg);
                 msg.clone()
             }
+            MyError::TooManyRequests(msg) => {
+                println!("Too many requests error occurred: {:?}", msg);
+                msg.clone()
+            }
         }
     }
 }
@@ -59,6 +64,7 @@ impl error::ResponseError for MyError {
             MyError::BadRequest(_msg) => StatusCode::BAD_REQUEST,
             MyError::Unauthorized(_msg) => StatusCode::UNAUTHORIZED,
             MyError::Forbidden(_msg) => StatusCode::FORBIDDEN,
+            MyError::TooManyRequests(_msg) => StatusCode::TOO_MANY_REQUESTS,
         }
     }
     // 错误返回

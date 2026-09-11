@@ -1,5 +1,5 @@
 import axios, { AxiosError, type AxiosInstance } from "axios";
-import { getAuthToken, isAuthenticated } from "../utils/auth";
+import { clearAuthSession, getAuthToken, isAuthenticated } from "../utils/auth";
 
 export interface SendMessageRequest {
   content: string;
@@ -70,6 +70,9 @@ const createApiClient = (baseURL: string): AxiosInstance => {
   client.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
+      if (error.response?.status === 401) {
+        clearAuthSession();
+      }
       console.error("API request failed:", {
         baseURL,
         url: error.config?.url,
@@ -335,6 +338,9 @@ const streamMessageWithBase = async (
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      clearAuthSession();
+    }
     if (isResponseUnavailable(response)) {
       const error = new Error(`HTTP ${response.status}`);
       throw error;

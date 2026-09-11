@@ -64,7 +64,11 @@ func ValidateConfiguration() error {
 }
 
 func configuredSecret() (string, error) {
-	secret := strings.TrimSpace(os.Getenv("JWT_SECRET"))
+	raw := os.Getenv("JWT_SECRET")
+	secret := strings.TrimSpace(raw)
+	if raw != secret {
+		return "", errors.New("JWT_SECRET must not start or end with whitespace")
+	}
 	if len(secret) < minJWTSecretBytes {
 		return "", fmt.Errorf("JWT_SECRET must be configured with at least %d bytes", minJWTSecretBytes)
 	}

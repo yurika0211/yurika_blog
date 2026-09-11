@@ -12,7 +12,12 @@ pub const ADMIN_ROLE: &str = "admin";
 pub fn jwt_secret() -> Result<String, MyError> {
     let secret = env::var("JWT_SECRET")
         .map_err(|_| MyError::ActixError("JWT_SECRET is not configured".into()))?;
-    if secret.trim().len() < MIN_JWT_SECRET_BYTES {
+    if secret.trim() != secret {
+        return Err(MyError::ActixError(
+            "JWT_SECRET must not start or end with whitespace".into(),
+        ));
+    }
+    if secret.len() < MIN_JWT_SECRET_BYTES {
         return Err(MyError::ActixError(format!(
             "JWT_SECRET must be at least {MIN_JWT_SECRET_BYTES} bytes"
         )));
@@ -31,7 +36,6 @@ pub struct Claims {
 
 #[derive(Debug, Clone)]
 pub struct AuthContext {
-    pub user_id: i32,
     pub role: String,
 }
 
@@ -61,15 +65,11 @@ pub fn authenticate(req: &HttpRequest) -> Option<AuthContext> {
     .ok()?
     .claims;
 
-    let user_id = claims.sub.parse::<i32>().ok()?;
-    if user_id <= 0 || claims.role.trim().is_empty() {
+    if claims.sub.parse::<i32>().ok()? <= 0 || claims.role.trim().is_empty() {
         return None;
     }
 
-    Some(AuthContext {
-        user_id,
-        role: claims.role,
-    })
+    Some(AuthContext { role: claims.role })
 }
 
 pub fn is_authorized(req: &HttpRequest) -> bool {
