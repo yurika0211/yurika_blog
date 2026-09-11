@@ -6,103 +6,93 @@ import { loginApi } from "../services/api_login";
 import { useAuth } from "../hooks/useAuth";
 
 type LoginResult = {
-  status: "success" | "error";
-  message: string;
-  raw?: unknown;
+ status: "success" | "error";
+ message: string;
 };
 
 export default function Login() {
-  const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { isLoggedIn, username: currentUsername, login, logout } = useAuth();
+ const navigate = useNavigate();
+ const [searchParams] = useSearchParams();
+ const { isLoggedIn, username: currentUsername, login, logout } = useAuth();
 
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<LoginResult | null>(null);
-  const redirect = searchParams.get("redirect");
-  const redirectPath =
-    redirect && redirect.startsWith("/") && !redirect.startsWith("//")
+ const [username, setUsername] = useState("");
+ const [password, setPassword] = useState("");
+ const [loading, setLoading] = useState(false);
+ const [result, setResult] = useState<LoginResult | null>(null);
+ const redirect = searchParams.get("redirect");
+ const redirectPath =
+ redirect && redirect.startsWith("/") && !redirect.startsWith("//")
       ? redirect
       : "/posts";
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+ const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+ event.preventDefault();
 
-    const trimmedUsername = username.trim();
-    const trimmedPassword = password.trim();
-    if (!trimmedUsername || !trimmedPassword) {
-      setResult({
-        status: "error",
-        message: "Username and password are required.",
+ const trimmedUsername = username.trim();
+ if (!trimmedUsername || !password) {
+ setResult({
+ status: "error",
+ message: "Username and password are required.",
       });
-      return;
+ return;
     }
-    if (trimmedUsername === "admin" && trimmedPassword === "admin123") {
-      setResult({
-        status: "error",
-        message: "Weak credentials admin/admin123 detected. Please change them in the backend before signing in.",
+ try {
+ setLoading(true);
+ setResult(null);
+ const response = await loginApi.login({
+ username: trimmedUsername,
+ password,
       });
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setResult(null);
-      const response = await loginApi.login({
-        username: trimmedUsername,
-        password: trimmedPassword,
-      });
-      const token =
-        typeof response.token === "string" ? response.token.trim() : "";
-      if (!token) {
-        throw new Error("The login API did not return a valid token. Please check the backend configuration.");
+ const token =
+ typeof response.token === "string" ? response.token.trim() : "";
+ if (!token) {
+ throw new Error("The login API did not return a valid token. Please check the backend configuration.");
       }
 
-      setResult({
-        status: "success",
-        message: "Signed in successfully. Redirecting...",
-        raw: response,
+ setResult({
+ status: "success",
+ message: "Signed in successfully. Redirecting...",
       });
-      login(trimmedUsername, token);
-      setTimeout(() => {
-        navigate(redirectPath, { replace: true });
+ login(trimmedUsername, token);
+ setPassword("");
+ setTimeout(() => {
+ navigate(redirectPath, { replace: true });
       }, 250);
     } catch (error) {
-      const message = getApiErrorMessage(error, "Sign-in failed. Please try again.");
-      setResult({
-        status: "error",
-        message,
+ const message = getApiErrorMessage(error, "Sign-in failed. Please try again.");
+ setResult({
+ status: "error",
+ message,
       });
     } finally {
-      setLoading(false);
+ setLoading(false);
     }
   };
 
-  return (
+ return (
     <section className="mx-auto w-full max-w-2xl animate-fade-in">
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white/30 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-gray-900/30">
-        <div className="border-b border-gray-200/80 px-6 py-5 dark:border-gray-800">
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-white">
-            <LogIn className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+      <div className="paper-sheet overflow-hidden">
+        <div className="border-b border-[color:var(--hair)] px-6 py-5 dark:border-[color:var(--hair)]">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-[color:var(--ink)] ">
+            <LogIn className="h-6 w-6 text-[color:var(--seal)] dark:text-[color:var(--seal)]" />
             Sign In
           </h1>
         </div>
 
         {isLoggedIn && (
-          <div className="mx-6 mt-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300">
+          <div className="mx-6 mt-6 rounded-[0.14rem] border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300">
             <p>Signed in as: {currentUsername}</p>
             <div className="mt-3 flex gap-2">
               <Link
-                to={redirectPath}
-                className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-white hover:bg-green-700"
+ to={redirectPath}
+ className="inline-flex items-center gap-1 rounded-md bg-green-600 px-3 py-1.5 text-white hover:bg-green-700"
               >
                 Continue
               </Link>
               <button
-                type="button"
-                onClick={logout}
-                className="inline-flex items-center gap-1 rounded-md border border-green-400 px-3 py-1.5 hover:bg-green-100 dark:border-green-700 dark:hover:bg-green-900/30"
+ type="button"
+ onClick={logout}
+ className="inline-flex items-center gap-1 rounded-md border border-green-400 px-3 py-1.5 hover:bg-green-100 dark:border-green-700 dark:hover:bg-green-900/30"
               >
                 <LogOut className="h-4 w-4" />
                 Sign out
@@ -114,43 +104,43 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="space-y-5 px-6 py-6">
           <div className="space-y-2">
             <label
-              htmlFor="username"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+ htmlFor="username"
+ className="block text-sm font-medium text-[color:var(--ink)] "
             >
               Username
             </label>
             <input
-              id="username"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
-              placeholder="Enter your username"
-              autoComplete="username"
+ id="username"
+ value={username}
+ onChange={(event) => setUsername(event.target.value)}
+ className="w-full rounded-[0.14rem] border border-[color:var(--hair)] bg-[color:var(--paper)] px-3 py-2 text-sm text-[color:var(--ink)] outline-none transition-colors focus:border-[color:var(--hair)] dark:border-[color:var(--hair)]  "
+ placeholder="Enter your username"
+ autoComplete="username"
             />
           </div>
 
           <div className="space-y-2">
             <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+ htmlFor="password"
+ className="block text-sm font-medium text-[color:var(--ink)] "
             >
               Password
             </label>
             <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 dark:border-gray-700 dark:bg-gray-950 dark:text-gray-100"
-              placeholder="Enter your password"
-              autoComplete="current-password"
+ id="password"
+ type="password"
+ value={password}
+ onChange={(event) => setPassword(event.target.value)}
+ className="w-full rounded-[0.14rem] border border-[color:var(--hair)] bg-[color:var(--paper)] px-3 py-2 text-sm text-[color:var(--ink)] outline-none transition-colors focus:border-[color:var(--hair)] dark:border-[color:var(--hair)]  "
+ placeholder="Enter your password"
+ autoComplete="current-password"
             />
           </div>
 
           <button
-            type="submit"
-            disabled={loading}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+ type="submit"
+ disabled={loading}
+ className="inline-flex w-full items-center justify-center gap-2 rounded-[0.14rem] bg-[color:var(--seal)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[color:var(--seal)] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {loading ? (
               <>
@@ -167,10 +157,10 @@ export default function Login() {
 
           {result && (
             <div
-              className={`rounded-lg border px-4 py-3 text-sm ${
-                result.status === "success"
+ className={`rounded-[0.14rem] border px-4 py-3 text-sm ${
+ result.status === "success"
                   ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300"
-                  : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
+                  : "border-red-200 bg-[color:var(--seal)] text-[color:var(--seal)] dark:border-red-800 dark:bg-[color:var(--seal)]/20 dark:text-[color:var(--seal)]"
               }`}
             >
               {result.status === "error" && (
@@ -182,11 +172,6 @@ export default function Login() {
 
               <p>{result.message}</p>
 
-              {result.raw !== undefined && (
-                <pre className="mt-2 overflow-auto rounded bg-black/10 p-2 text-xs dark:bg-black/30">
-                  {JSON.stringify(result.raw, null, 2)}
-                </pre>
-              )}
             </div>
           )}
         </form>

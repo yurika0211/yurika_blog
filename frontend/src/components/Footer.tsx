@@ -4,20 +4,21 @@ import { matchPath, useLocation } from 'react-router-dom';
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const location = useLocation();
-  if (location.pathname === '/' || location.pathname === '/moments' || location.pathname === '/guestbook') {
+  const SCROLL_ROUTES = ['/', '/moments', '/guestbook', '/posts', '/friends'];
+  if (SCROLL_ROUTES.includes(location.pathname)) {
     return null;
   }
   const isPostPage = Boolean(matchPath('/post/:id', location.pathname));
   const footerClass = isPostPage
     ? 'post-paper-wall py-8 mt-0 border-t border-[#b0aea5]/60 dark:border-[#a1a0a0]/70 transition-colors duration-300'
-    : 'py-8 mt-12 border-t border-gray-200 dark:border-gray-800/50 bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-sm transition-colors duration-300';
+    : 'paper-page py-8 border-t border-[color:var(--hair-strong)] transition-colors duration-300';
 
   return (
     <footer className={footerClass}>
       <div className="max-w-4xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4">
         
         {/* 左侧：版权信息 */}
-        <div className="text-gray-500 dark:text-gray-400 text-sm text-center md:text-left">
+        <div className="paper-muted text-sm text-center md:text-left">
           <p>Copyright © {currentYear} My DevBlog. All rights reserved.</p>
         </div>
 
@@ -27,7 +28,7 @@ export default function Footer() {
             href="https://github.com/yurika0211"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+            className="paper-muted hover:text-[color:var(--seal)] transition-colors"
             title="GitHub"
           >
             <Github className="w-5 h-5" />

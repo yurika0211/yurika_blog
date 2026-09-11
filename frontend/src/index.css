@@ -17,6 +17,29 @@
     --app-font-kana: "Hiragino Sans GB", "PingFang SC", "Noto Sans CJK SC",
         "Microsoft YaHei", sans-serif;
     --right-sidebar-width: 6.9rem;
+
+    /* 纸面语汇：手卷页与普通页共用同一套纸、墨、绫、印 */
+    --paper: #f2e8d3;
+    --paper-deep: #e5dac2;
+    --paper-raise: rgba(94, 66, 36, 0.045);
+    --ink: rgba(53, 35, 18, 0.9);
+    --ink-soft: rgba(96, 71, 42, 0.78);
+    --hair: rgba(116, 86, 47, 0.22);
+    --hair-strong: rgba(116, 86, 47, 0.4);
+    --silk: rgba(94, 66, 36, 0.14);
+    --seal: #a8352a;
+}
+
+html.dark {
+    --paper: #1d1610;
+    --paper-deep: #120e09;
+    --paper-raise: rgba(196, 163, 113, 0.05);
+    --ink: rgba(220, 202, 170, 0.9);
+    --ink-soft: rgba(193, 168, 128, 0.76);
+    --hair: rgba(170, 138, 94, 0.26);
+    --hair-strong: rgba(184, 152, 106, 0.46);
+    --silk: rgba(0, 0, 0, 0.34);
+    --seal: #c25a49;
 }
 
 html,
@@ -100,6 +123,10 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
     background: rgba(17, 24, 39, 0.4);
 }
 
+/* ========================================================================
+   侧边功能栏：一幅小立轴（上下有轴，纸上以细线分栏，朱砂标出当前页）
+   ======================================================================== */
+
 .right-scroll-sidebar {
     position: fixed;
     inset: 1rem 1rem 1rem auto;
@@ -128,66 +155,60 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
     position: relative;
     display: flex;
     height: 100%;
-    min-height: calc(100vh - 2rem);
+    min-height: 0;
     flex-direction: column;
-    align-items: center;
-    gap: 1rem;
+    align-items: stretch;
     overflow: hidden;
-    border: 1px solid rgba(98, 79, 54, 0.24);
-    border-radius: 0.45rem;
-    background:
-        radial-gradient(circle at top right, rgba(162, 122, 72, 0.08), transparent 28%),
-        linear-gradient(180deg, rgba(247, 242, 230, 0.98), rgba(241, 233, 217, 0.96)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(122, 96, 60, 0.03) 0,
-            rgba(122, 96, 60, 0.03) 1px,
-            transparent 1px,
-            transparent 9px
-        ),
-        repeating-linear-gradient(
-            90deg,
-            rgba(255, 255, 255, 0.3) 0,
-            rgba(255, 255, 255, 0.3) 1px,
-            transparent 1px,
-            transparent 13px
-        );
-    box-shadow:
-        0 10px 24px rgba(71, 49, 25, 0.1),
-        inset 0 0 0 1px rgba(255, 252, 244, 0.54),
-        inset 0 0 24px rgba(122, 94, 58, 0.06);
-    padding: 1.15rem 0.75rem 1rem;
+    border: 1px solid var(--hair-strong);
+    background-color: var(--paper);
+    background-image: repeating-linear-gradient(
+        90deg,
+        var(--paper-raise) 0 1px,
+        transparent 1px 4px
+    );
+    box-shadow: 0 16px 32px -14px rgba(58, 39, 18, 0.5);
+    /* 上下留出天头 / 地头绫边的位置 */
+    padding: calc(0.85rem + 0.5rem) 0.55rem calc(0.85rem + 0.5rem);
 }
 
+html.dark .right-scroll-sidebar__panel {
+    box-shadow: 0 16px 32px -14px rgba(0, 0, 0, 0.72);
+}
+
+/* 天头 / 地头 */
+.right-scroll-sidebar__panel::before,
 .right-scroll-sidebar__panel::after {
     content: "";
     position: absolute;
-    inset: 0;
+    inset-inline: 0;
+    height: 0.85rem;
     pointer-events: none;
-    background:
-        linear-gradient(180deg, rgba(255, 250, 241, 0.18), transparent 14%, transparent 84%, rgba(111, 82, 48, 0.08) 100%),
-        repeating-linear-gradient(
-            0deg,
-            rgba(116, 88, 50, 0.035) 0,
-            rgba(116, 88, 50, 0.035) 1px,
-            transparent 1px,
-            transparent 11px
-        );
+    background: linear-gradient(
+        180deg,
+        rgba(94, 66, 36, 0.28),
+        rgba(94, 66, 36, 0.11) 55%,
+        rgba(94, 66, 36, 0.24)
+    );
 }
 
 .right-scroll-sidebar__panel::before {
-    content: "";
-    position: absolute;
-    inset: 0.75rem auto 0.75rem 0.65rem;
-    width: 1px;
+    top: 0;
+    box-shadow: inset 0 -1px 0 var(--hair-strong);
+}
+
+.right-scroll-sidebar__panel::after {
+    bottom: 0;
+    box-shadow: inset 0 1px 0 var(--hair-strong);
+}
+
+html.dark .right-scroll-sidebar__panel::before,
+html.dark .right-scroll-sidebar__panel::after {
     background: linear-gradient(
         180deg,
-        rgba(150, 117, 72, 0.12),
-        rgba(113, 78, 43, 0.4) 14%,
-        rgba(113, 78, 43, 0.22) 82%,
-        rgba(150, 117, 72, 0.08)
+        rgba(8, 5, 3, 0.6),
+        rgba(120, 96, 62, 0.18) 55%,
+        rgba(8, 5, 3, 0.54)
     );
-    pointer-events: none;
 }
 
 .right-scroll-sidebar__brand,
@@ -199,25 +220,28 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
 
 .right-scroll-sidebar__brand {
     display: flex;
+    flex: 0 0 auto;
     width: 100%;
     align-items: center;
     flex-direction: column;
-    gap: 0.45rem;
+    gap: 0.4rem;
+    padding-bottom: 0.7rem;
     text-decoration: none;
-    color: #2f1d10;
-    padding-bottom: 0.9rem;
+    color: var(--ink);
 }
 
+/* 首印：一方朱砂小章 */
 .right-scroll-sidebar__brand-seal {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.1rem;
-    height: 2.1rem;
-    border-radius: 999px;
-    border: 1px solid rgba(138, 108, 66, 0.24);
-    background: rgba(255, 251, 244, 0.78);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+    width: 1.9rem;
+    height: 1.9rem;
+    border-radius: 0.14rem;
+    background: var(--seal);
+    color: #f7efe0;
+    opacity: 0.88;
+    transform: rotate(-1.8deg);
 }
 
 .right-scroll-sidebar__title,
@@ -227,21 +251,18 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
 }
 
 .right-scroll-sidebar__title {
-    font-size: 1.3rem;
+    font-size: 1.24rem;
     line-height: 1;
     font-weight: 700;
     letter-spacing: 0.12em;
     font-family: var(--app-font-serif);
-    background: linear-gradient(180deg, #5a341a 0%, #2a160a 48%, #7f4e2c 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--ink);
 }
 
 .right-scroll-sidebar__subtitle {
-    font-size: 0.56rem;
+    font-size: 0.6rem;
     letter-spacing: 0.24em;
-    color: rgba(117, 80, 42, 0.62);
+    color: var(--ink-soft);
     text-transform: uppercase;
 }
 
@@ -249,99 +270,104 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
 .right-scroll-sidebar__actions {
     display: flex;
     width: 100%;
-    align-items: center;
+    align-items: stretch;
     flex-direction: column;
-    gap: 0.55rem;
 }
 
+/* 导航项按可用高度均分，永远不会把下面的动作挤出面板 */
 .right-scroll-sidebar__nav {
     flex: 1 1 auto;
-    padding-block: 0.35rem 0.65rem;
+    min-height: 0;
+    border-block: 1px solid var(--hair-strong);
+}
+
+.right-scroll-sidebar__actions {
+    flex: 0 0 auto;
+    padding-top: 0.15rem;
 }
 
 .right-scroll-sidebar__nav-link,
 .right-scroll-sidebar__action {
+    position: relative;
     display: inline-flex;
+    flex: 1 1 0;
     width: 100%;
+    min-height: 2.5rem;
     align-items: center;
     justify-content: center;
-    gap: 0.32rem;
-    min-height: 4.6rem;
-    border-radius: 1.35rem;
-    border: 1px solid rgba(168, 146, 117, 0.24);
-    background:
-        linear-gradient(180deg, rgba(251, 246, 236, 0.88), rgba(244, 235, 219, 0.82));
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.62),
-        0 6px 12px rgba(71, 49, 25, 0.04);
-    color: rgba(77, 58, 34, 0.88);
+    gap: 0.3rem;
+    border: 0;
+    background: none;
+    color: var(--ink);
     text-decoration: none;
     writing-mode: vertical-rl;
     text-orientation: mixed;
     font-family: var(--app-font-serif);
-    font-size: 0.9rem;
-    letter-spacing: 0.1em;
-    transition:
-        transform 180ms ease,
-        border-color 180ms ease,
-        color 180ms ease,
-        box-shadow 180ms ease,
-        background 180ms ease;
+    font-size: 0.95rem;
+    letter-spacing: 0.12em;
+    transition: color 160ms ease, background-color 160ms ease;
+}
+
+.right-scroll-sidebar__nav-link + .right-scroll-sidebar__nav-link,
+.right-scroll-sidebar__action + .right-scroll-sidebar__action {
+    border-top: 1px solid var(--hair);
 }
 
 .right-scroll-sidebar__nav-link:hover,
 .right-scroll-sidebar__action:hover {
-    transform: translateX(-2px);
-    border-color: rgba(136, 103, 66, 0.42);
-    color: rgba(61, 42, 20, 0.94);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.7),
-        0 10px 18px rgba(71, 49, 25, 0.08);
+    background-color: rgba(168, 53, 42, 0.07);
+    color: var(--seal);
 }
 
+/* 当前页：朱砂色字 + 贴着页缘的一道朱砂标 */
 .right-scroll-sidebar__nav-link[data-active="true"],
 .right-scroll-sidebar__action[data-active="true"] {
-    border-color: rgba(143, 105, 61, 0.5);
-    background:
-        linear-gradient(180deg, rgba(241, 228, 203, 0.96), rgba(232, 214, 183, 0.9));
-    color: rgba(73, 43, 20, 0.96);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 252, 242, 0.72),
-        0 10px 20px rgba(86, 58, 28, 0.1);
+    color: var(--seal);
+    font-weight: 700;
+    background-color: rgba(168, 53, 42, 0.07);
+}
+
+.right-scroll-sidebar__nav-link[data-active="true"]::before,
+.right-scroll-sidebar__action[data-active="true"]::before {
+    content: "";
+    position: absolute;
+    right: -0.55rem;
+    top: 18%;
+    bottom: 18%;
+    width: 2px;
+    background: var(--seal);
 }
 
 .right-scroll-sidebar__action {
     cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--ink-soft);
 }
 
-.right-scroll-sidebar__action--danger {
-    color: rgba(135, 35, 35, 0.88);
+.right-scroll-sidebar__action--danger:hover {
+    color: var(--seal);
 }
 
+/* 页缘的抽出标：一小片纸 */
 .right-scroll-edge-tab {
     align-items: center;
     justify-content: center;
-    width: 1.65rem;
-    height: 3.5rem;
-    border: 1px solid rgba(168, 146, 117, 0.34);
+    width: 1.5rem;
+    height: 4rem;
+    border: 1px solid var(--hair-strong);
     border-right: none;
-    border-radius: 0.9rem 0 0 0.9rem;
-    background: linear-gradient(180deg, rgba(251, 246, 236, 0.94), rgba(244, 235, 219, 0.9));
-    color: rgba(77, 58, 34, 0.78);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.78),
-        -4px 0 10px rgba(71, 49, 25, 0.08);
+    border-radius: 0.16rem 0 0 0.16rem;
+    background: var(--paper);
+    color: var(--ink-soft);
+    box-shadow: -6px 0 14px -6px rgba(58, 39, 18, 0.4);
     cursor: pointer;
     transform: translateY(-50%);
-    transition:
-        color 180ms ease,
-        transform 180ms ease,
-        background 180ms ease;
+    transition: color 160ms ease, transform 180ms ease;
 }
 
 .right-scroll-edge-tab:hover,
 .right-scroll-edge-tab.is-active {
-    color: rgba(61, 42, 20, 0.94);
+    color: var(--seal);
 }
 
 .right-scroll-edge-tab.is-active {
@@ -349,23 +375,20 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
 }
 
 .right-scroll-mobile-button {
-    width: 3rem;
-    height: 3rem;
-    border-radius: 999px;
-    border: 1px solid rgba(168, 146, 117, 0.34);
-    background:
-        linear-gradient(180deg, rgba(251, 246, 236, 0.94), rgba(244, 235, 219, 0.9));
-    color: rgba(77, 58, 34, 0.9);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.78),
-        0 8px 18px rgba(71, 49, 25, 0.12);
+    width: 2.9rem;
+    height: 2.9rem;
+    border-radius: 0.16rem;
+    border: 1px solid var(--hair-strong);
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 10px 22px -10px rgba(58, 39, 18, 0.55);
 }
 
 .right-scroll-mobile-backdrop {
     position: fixed;
     inset: 0;
     z-index: 74;
-    background: rgba(19, 15, 11, 0.28);
+    background: rgba(19, 15, 11, 0.34);
     opacity: 0;
     pointer-events: none;
     transition: opacity 220ms ease;
@@ -385,15 +408,15 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
     z-index: 75;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    border: 1px solid rgba(98, 79, 54, 0.24);
-    border-radius: 1rem;
-    background:
-        radial-gradient(circle at top right, rgba(162, 122, 72, 0.08), transparent 28%),
-        linear-gradient(180deg, rgba(247, 242, 230, 0.98), rgba(241, 233, 217, 0.96));
-    box-shadow:
-        0 16px 32px rgba(44, 28, 11, 0.18),
-        inset 0 0 0 1px rgba(255, 252, 244, 0.54);
+    gap: 0.9rem;
+    border: 1px solid var(--hair-strong);
+    background-color: var(--paper);
+    background-image: repeating-linear-gradient(
+        90deg,
+        var(--paper-raise) 0 1px,
+        transparent 1px 4px
+    );
+    box-shadow: 0 18px 36px -14px rgba(44, 28, 11, 0.6);
     padding: 1rem 0.95rem;
     transform: translateX(calc(100% + 1rem));
     opacity: 0;
@@ -419,30 +442,49 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
 .right-scroll-mobile-header {
     justify-content: space-between;
     gap: 0.75rem;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--hair-strong);
 }
 
 .right-scroll-mobile-brand {
     gap: 0.7rem;
 }
 
-.right-scroll-mobile-brand-seal,
+.right-scroll-mobile-brand-seal {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 0.14rem;
+    background: var(--seal);
+    color: #f7efe0;
+    opacity: 0.88;
+    transform: rotate(-1.8deg);
+}
+
 .right-scroll-mobile-close {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     width: 2.25rem;
     height: 2.25rem;
-    border-radius: 999px;
-    border: 1px solid rgba(168, 146, 117, 0.28);
-    background: rgba(255, 250, 241, 0.76);
-    color: rgba(77, 58, 34, 0.88);
+    border-radius: 0.14rem;
+    border: 1px solid var(--hair);
+    color: var(--ink-soft);
+    transition: color 160ms ease, border-color 160ms ease;
+}
+
+.right-scroll-mobile-close:hover {
+    border-color: var(--seal);
+    color: var(--seal);
 }
 
 .right-scroll-mobile-brand-title {
     margin: 0;
     font-size: 0.98rem;
     line-height: 1.2;
-    color: #2f1d10;
+    color: var(--ink);
     font-family: var(--app-font-serif);
 }
 
@@ -450,39 +492,52 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
     margin: 0.15rem 0 0;
     font-size: 0.72rem;
     letter-spacing: 0.08em;
-    color: rgba(117, 80, 42, 0.62);
+    color: var(--ink-soft);
 }
 
 .right-scroll-mobile-nav,
 .right-scroll-mobile-actions {
     display: flex;
     flex-direction: column;
-    gap: 0.65rem;
 }
 
 .right-scroll-mobile-nav {
     flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
-    padding-right: 0.15rem;
+}
+
+.right-scroll-mobile-actions {
+    flex: 0 0 auto;
+    border-top: 1px solid var(--hair-strong);
+    padding-top: 0.2rem;
 }
 
 .right-scroll-mobile-link,
 .right-scroll-mobile-action {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.85rem;
-    border-radius: 1rem;
-    border: 1px solid rgba(168, 146, 117, 0.24);
-    background:
-        linear-gradient(180deg, rgba(251, 246, 236, 0.88), rgba(244, 235, 219, 0.82));
-    box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.62),
-        0 6px 12px rgba(71, 49, 25, 0.04);
-    color: rgba(77, 58, 34, 0.9);
+    border: 0;
+    background: none;
+    color: var(--ink);
     text-decoration: none;
-    padding: 0.9rem 0.95rem;
-    font-size: 0.92rem;
+    padding: 0.85rem 0.6rem;
+    font-size: 0.94rem;
+    transition: color 160ms ease, background-color 160ms ease;
+}
+
+.right-scroll-mobile-link + .right-scroll-mobile-link,
+.right-scroll-mobile-action + .right-scroll-mobile-action {
+    border-top: 1px solid var(--hair);
+}
+
+.right-scroll-mobile-link:hover,
+.right-scroll-mobile-action:hover {
+    background-color: rgba(168, 53, 42, 0.07);
+    color: var(--seal);
 }
 
 .right-scroll-mobile-link-main {
@@ -495,112 +550,38 @@ html.dark .post-markdown :where(tbody tr:nth-child(even)) {
     font-family: var(--app-font-serif);
     font-size: 0.82rem;
     letter-spacing: 0.12em;
-    color: rgba(117, 80, 42, 0.72);
+    color: var(--ink-soft);
 }
 
 .right-scroll-mobile-link[data-active="true"],
 .right-scroll-mobile-action[data-active="true"] {
-    border-color: rgba(143, 105, 61, 0.5);
-    background:
-        linear-gradient(180deg, rgba(241, 228, 203, 0.96), rgba(232, 214, 183, 0.9));
+    color: var(--seal);
+    font-weight: 700;
+    background-color: rgba(168, 53, 42, 0.07);
+}
+
+.right-scroll-mobile-link[data-active="true"]::before,
+.right-scroll-mobile-action[data-active="true"]::before {
+    content: "";
+    position: absolute;
+    left: -0.95rem;
+    top: 22%;
+    bottom: 22%;
+    width: 2px;
+    background: var(--seal);
+}
+
+.right-scroll-mobile-link[data-active="true"] .right-scroll-mobile-link-mark {
+    color: var(--seal);
 }
 
 .right-scroll-mobile-action {
-    width: 100%;
     cursor: pointer;
+    color: var(--ink-soft);
 }
 
-.right-scroll-mobile-action--danger {
-    color: rgba(135, 35, 35, 0.88);
-}
-
-html.dark .right-scroll-sidebar__panel,
-html.dark .right-scroll-mobile-sheet {
-    border-color: rgba(126, 105, 72, 0.35);
-    background:
-        radial-gradient(circle at top right, rgba(133, 102, 58, 0.11), transparent 28%),
-        linear-gradient(180deg, rgba(31, 24, 17, 0.96), rgba(23, 18, 13, 0.94)),
-        repeating-linear-gradient(
-            180deg,
-            rgba(163, 133, 92, 0.04) 0,
-            rgba(163, 133, 92, 0.04) 1px,
-            transparent 1px,
-            transparent 9px
-        );
-    box-shadow:
-        0 12px 24px rgba(0, 0, 0, 0.24),
-        inset 0 0 0 1px rgba(198, 171, 130, 0.06),
-        inset 0 0 24px rgba(0, 0, 0, 0.18);
-}
-
-html.dark .right-scroll-sidebar__panel::after {
-    background:
-        linear-gradient(180deg, rgba(255, 237, 208, 0.04), transparent 18%, transparent 82%, rgba(0, 0, 0, 0.16) 100%),
-        repeating-linear-gradient(
-            0deg,
-            rgba(189, 154, 105, 0.03) 0,
-            rgba(189, 154, 105, 0.03) 1px,
-            transparent 1px,
-            transparent 11px
-        );
-}
-
-html.dark .right-scroll-sidebar__panel::before {
-    background: linear-gradient(
-        180deg,
-        rgba(180, 145, 98, 0.1),
-        rgba(160, 124, 80, 0.36) 14%,
-        rgba(160, 124, 80, 0.2) 82%,
-        rgba(180, 145, 98, 0.08)
-    );
-}
-
-html.dark .right-scroll-sidebar__brand,
-html.dark .right-scroll-mobile-brand-title {
-    color: #ecdcc1;
-}
-
-html.dark .right-scroll-sidebar__brand-seal,
-html.dark .right-scroll-mobile-brand-seal,
-html.dark .right-scroll-mobile-close,
-html.dark .right-scroll-edge-tab,
-html.dark .right-scroll-mobile-button {
-    border-color: rgba(125, 101, 73, 0.36);
-    background:
-        linear-gradient(180deg, rgba(49, 40, 33, 0.95), rgba(35, 29, 24, 0.92));
-    color: rgba(213, 190, 157, 0.84);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 241, 217, 0.05),
-        0 4px 10px rgba(0, 0, 0, 0.14);
-}
-
-html.dark .right-scroll-sidebar__subtitle,
-html.dark .right-scroll-mobile-brand-note,
-html.dark .right-scroll-mobile-link-mark {
-    color: rgba(201, 176, 136, 0.72);
-}
-
-html.dark .right-scroll-sidebar__nav-link,
-html.dark .right-scroll-sidebar__action,
-html.dark .right-scroll-mobile-link,
-html.dark .right-scroll-mobile-action {
-    border-color: rgba(125, 101, 73, 0.32);
-    background:
-        linear-gradient(180deg, rgba(49, 40, 33, 0.94), rgba(35, 29, 24, 0.9));
-    color: rgba(228, 213, 192, 0.9);
-    box-shadow:
-        inset 0 1px 0 rgba(255, 241, 217, 0.05),
-        0 6px 14px rgba(0, 0, 0, 0.16);
-}
-
-html.dark .right-scroll-sidebar__nav-link[data-active="true"],
-html.dark .right-scroll-sidebar__action[data-active="true"],
-html.dark .right-scroll-mobile-link[data-active="true"],
-html.dark .right-scroll-mobile-action[data-active="true"] {
-    border-color: rgba(162, 131, 93, 0.5);
-    background:
-        linear-gradient(180deg, rgba(73, 58, 42, 0.96), rgba(56, 44, 31, 0.92));
-    color: rgba(243, 229, 205, 0.96);
+.right-scroll-mobile-action--danger:hover {
+    color: var(--seal);
 }
 
 /* ========================================================================
@@ -614,25 +595,12 @@ html.dark .right-scroll-mobile-action[data-active="true"] {
     --scroll-band: min(74svh, 44rem);
     --scroll-rod: 1.1rem;
     --scroll-silk: 1.1rem;
-    --scroll-ink: rgba(53, 35, 18, 0.9);
-    --scroll-ink-soft: rgba(96, 71, 42, 0.78);
-    --scroll-hair: rgba(116, 86, 47, 0.22);
-    --seal: #a8352a;
 
     position: relative;
     display: flex;
     min-height: 100svh;
     overflow: hidden;
-    background: #e5dac2;
-}
-
-html.dark .scroll-stage {
-    --scroll-ink: rgba(220, 202, 170, 0.9);
-    --scroll-ink-soft: rgba(193, 168, 128, 0.76);
-    --scroll-hair: rgba(170, 138, 94, 0.26);
-    --seal: #c25a49;
-
-    background: #120e09;
+    background: var(--paper-deep);
 }
 
 /* 案面：一道极淡的横向明暗，让卷有「摊开在桌上」的落点 */
@@ -687,10 +655,10 @@ html.dark .scroll-stage::before {
     align-items: stretch;
     width: max-content;
     height: var(--scroll-band);
-    background-color: #f2e8d3;
+    background-color: var(--paper);
     background-image: repeating-linear-gradient(
         90deg,
-        rgba(120, 94, 58, 0.05) 0 1px,
+        var(--paper-raise) 0 1px,
         transparent 1px 4px
     );
     box-shadow:
@@ -699,12 +667,6 @@ html.dark .scroll-stage::before {
 }
 
 html.dark .scroll-mount {
-    background-color: #1d1610;
-    background-image: repeating-linear-gradient(
-        90deg,
-        rgba(196, 163, 113, 0.045) 0 1px,
-        transparent 1px 4px
-    );
     box-shadow:
         0 22px 44px -20px rgba(0, 0, 0, 0.72),
         0 2px 5px rgba(0, 0, 0, 0.42);
@@ -850,8 +812,8 @@ html.dark .scroll-mount::after {
         rgba(94, 66, 36, 0.17)
     );
     box-shadow:
-        inset 1px 0 0 var(--scroll-hair),
-        inset -1px 0 0 var(--scroll-hair);
+        inset 1px 0 0 var(--hair),
+        inset -1px 0 0 var(--hair);
 }
 
 html.dark .scroll-leaf + .scroll-leaf::before {
@@ -891,7 +853,7 @@ html.dark .scroll-leaf + .scroll-leaf::before {
     justify-content: center;
     gap: 0.28rem;
     overflow: hidden;
-    border-inline: 1px solid var(--scroll-hair);
+    border-inline: 1px solid var(--hair);
     background: linear-gradient(180deg, rgba(94, 66, 36, 0.09), rgba(94, 66, 36, 0.04));
 }
 
@@ -960,7 +922,7 @@ html.dark .scroll-title-kana {
     font-weight: 600;
     line-height: 1.95;
     letter-spacing: 0.08em;
-    color: var(--scroll-ink);
+    color: var(--ink);
 }
 
 /* ——— 印：全卷唯一的强调色 ——— */
@@ -993,7 +955,8 @@ html.dark .scroll-title-kana {
 }
 
 /* 钤在一段题字之后 */
-.scroll-copy-col > .scroll-seal {
+.scroll-copy-col > .scroll-seal,
+.scroll-leaf > .scroll-seal {
     align-self: flex-end;
 }
 
@@ -1015,7 +978,7 @@ html.dark .scroll-title-kana {
     height: 100%;
     gap: 0.75rem;
     padding-inline: 0.85rem;
-    border-inline-start: 1px solid var(--scroll-hair);
+    border-inline-start: 1px solid var(--hair);
     transition: background-color 180ms ease;
 }
 
@@ -1036,7 +999,7 @@ html.dark .scroll-title-kana {
     overflow: hidden;
     padding: 0.22rem;
     background: linear-gradient(180deg, rgba(120, 88, 46, 0.24), rgba(120, 88, 46, 0.12));
-    box-shadow: inset 0 0 0 1px var(--scroll-hair);
+    box-shadow: inset 0 0 0 1px var(--hair);
 }
 
 .scroll-slip-cover > * {
@@ -1044,6 +1007,15 @@ html.dark .scroll-title-kana {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+/* 无封面时的占位块：压成绢色，别在纸上留一块糖果色 */
+.scroll-slip-cover > div {
+    filter: sepia(0.6) saturate(0.45) brightness(0.96);
+}
+
+html.dark .scroll-slip-cover > div {
+    filter: sepia(0.6) saturate(0.4) brightness(0.45);
 }
 
 .scroll-slip-text {
@@ -1097,7 +1069,7 @@ html.dark .scroll-slip-summary {
     font-size: 0.68rem;
     line-height: 1.5;
     letter-spacing: 0.12em;
-    color: var(--scroll-ink-soft);
+    color: var(--ink-soft);
 }
 
 .scroll-slip-mark svg {
@@ -1115,7 +1087,7 @@ html.dark .scroll-slip-summary {
     flex: 0 0 auto;
     align-items: flex-end;
     padding-inline-start: 0.9rem;
-    border-inline-start: 1px solid var(--scroll-hair);
+    border-inline-start: 1px solid var(--hair);
 }
 
 /* ——— 卷内的状态与链接 ——— */
@@ -1128,7 +1100,7 @@ html.dark .scroll-slip-summary {
     text-orientation: mixed;
     font-size: 0.82rem;
     letter-spacing: 0.1em;
-    color: var(--scroll-ink-soft);
+    color: var(--ink-soft);
 }
 
 .scroll-note--error {
@@ -1143,7 +1115,7 @@ html.dark .scroll-slip-summary {
     text-orientation: mixed;
     font-size: 0.78rem;
     letter-spacing: 0.1em;
-    color: var(--scroll-ink-soft);
+    color: var(--ink-soft);
     transition: color 160ms ease;
 }
 
@@ -1182,9 +1154,9 @@ html.dark .scroll-slip-summary {
 }
 
 .scroll-button--quiet {
-    border-color: var(--scroll-hair);
+    border-color: var(--hair);
     background: transparent;
-    color: var(--scroll-ink-soft);
+    color: var(--ink-soft);
 }
 
 .scroll-button--quiet:hover {
@@ -1205,13 +1177,13 @@ html.dark .scroll-slip-summary {
 .scroll-field {
     width: 100%;
     resize: none;
-    border: 1px solid var(--scroll-hair);
+    border: 1px solid var(--hair);
     border-radius: 0.16rem;
     background: rgba(255, 252, 245, 0.5);
     padding: 0.7rem 0.85rem;
     font-size: 0.88rem;
     line-height: 1.75;
-    color: var(--scroll-ink);
+    color: var(--ink);
     outline: none;
     transition: border-color 160ms ease;
 }
@@ -1243,12 +1215,12 @@ html.dark .scroll-field {
     font-size: 0.84rem;
     line-height: 1.95;
     letter-spacing: 0.1em;
-    color: var(--scroll-ink-soft);
+    color: var(--ink-soft);
 }
 
 .scroll-colophon-copy--lead {
     font-size: 1.02rem;
-    color: var(--scroll-ink);
+    color: var(--ink);
 }
 
 .scroll-colophon-marks .scroll-link {
@@ -1291,6 +1263,246 @@ html.dark .scroll-field {
 .scroll-plain--sheet {
     flex: 0 0 auto;
     width: min(32rem, 76vw);
+}
+
+.scroll-plain--narrow {
+    flex: 0 0 auto;
+    width: min(19rem, 70vw);
+}
+
+/* ——— 纸面页：不展卷，但和手卷同一套纸、墨、绫、印 ——— */
+.paper-page {
+    position: relative;
+    background-color: var(--paper-deep);
+    color: var(--ink);
+}
+
+.paper-sheet {
+    position: relative;
+    background-color: var(--paper);
+    background-image: repeating-linear-gradient(
+        90deg,
+        var(--paper-raise) 0 1px,
+        transparent 1px 4px
+    );
+    border-block: 1px solid var(--hair-strong);
+    box-shadow: 0 18px 36px -22px rgba(58, 39, 18, 0.45);
+}
+
+html.dark .paper-sheet {
+    box-shadow: 0 18px 36px -22px rgba(0, 0, 0, 0.7);
+}
+
+/* 天头 / 地头：让纸面页也读作一张纸 */
+.paper-sheet::before,
+.paper-sheet::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0;
+    height: 0.7rem;
+    pointer-events: none;
+    background: linear-gradient(
+        180deg,
+        rgba(94, 66, 36, 0.24),
+        rgba(94, 66, 36, 0.09) 55%,
+        rgba(94, 66, 36, 0.2)
+    );
+}
+
+.paper-sheet::before {
+    top: 0;
+}
+
+.paper-sheet::after {
+    bottom: 0;
+}
+
+html.dark .paper-sheet::before,
+html.dark .paper-sheet::after {
+    background: linear-gradient(
+        180deg,
+        rgba(8, 5, 3, 0.55),
+        rgba(120, 96, 62, 0.16) 55%,
+        rgba(8, 5, 3, 0.5)
+    );
+}
+
+.paper-rule {
+    height: 1px;
+    background: var(--hair);
+}
+
+.paper-kicker {
+    margin: 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+
+.paper-title {
+    margin: 0;
+    font-family: var(--app-font-serif);
+    font-size: 1.55rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--ink);
+}
+
+.paper-body {
+    color: var(--ink);
+}
+
+.paper-muted {
+    color: var(--ink-soft);
+}
+
+/* 检索 */
+.paper-search {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.paper-search-field {
+    position: relative;
+}
+
+.paper-search-input {
+    padding-inline: 2rem 2.1rem;
+}
+
+.paper-search-icon,
+.paper-search-clear {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 1rem;
+    height: 1rem;
+    color: var(--ink-soft);
+}
+
+.paper-search-icon {
+    left: 0.7rem;
+    pointer-events: none;
+}
+
+.paper-search-clear {
+    right: 0.7rem;
+    transition: color 160ms ease;
+}
+
+.paper-search-clear:hover {
+    color: var(--seal);
+}
+
+/* 分页：卷尾的翻页标 */
+.paper-pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.paper-pager-pages {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.paper-pager-step,
+.paper-pager-page {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2rem;
+    height: 2rem;
+    padding-inline: 0.35rem;
+    border: 1px solid var(--hair);
+    border-radius: 0.14rem;
+    font-family: var(--app-font-serif);
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    transition: color 160ms ease, border-color 160ms ease;
+}
+
+.paper-pager-step:hover:not(:disabled),
+.paper-pager-page:hover {
+    border-color: var(--seal);
+    color: var(--seal);
+}
+
+.paper-pager-step:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+}
+
+.paper-pager-page[data-active="true"] {
+    border-color: transparent;
+    background: var(--seal);
+    color: #f7efe0;
+}
+
+.paper-pager-gap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.2rem;
+    color: var(--ink-soft);
+}
+
+/* 归档 / 类目 / 标签：纸上的细线栏目 */
+.paper-archive {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+}
+
+.paper-entry-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.paper-entry {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.42rem 0.1rem;
+    border-top: 1px solid var(--hair);
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    transition: color 160ms ease;
+}
+
+.paper-entry:first-child {
+    border-top: 0;
+}
+
+.paper-entry:hover {
+    color: var(--seal);
+}
+
+.paper-entry[data-active="true"] {
+    color: var(--seal);
+    font-weight: 700;
+}
+
+.paper-entry--head {
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.paper-entry-count {
+    flex: 0 0 auto;
+    margin-left: auto;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    opacity: 0.75;
 }
 
 @media (max-width: 1023px) {
@@ -1461,9 +1673,9 @@ html.dark body[data-rm-theme="light"] {
     width: 1.9rem;
     height: 2.8rem;
     min-width: 1.9rem;
-    border: 1px solid var(--scroll-hair);
+    border: 1px solid var(--hair);
     border-radius: 0.14rem;
-    color: var(--scroll-ink-soft);
+    color: var(--ink-soft);
     transition: color 160ms ease, border-color 160ms ease;
 }
 
@@ -1487,12 +1699,12 @@ html.dark body[data-rm-theme="light"] {
 .moments-bookmark-time-chip {
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--scroll-hair);
+    border: 1px solid var(--hair);
     border-radius: 0.14rem;
     padding: 0.4rem 0.6rem;
     font-size: 0.76rem;
     letter-spacing: 0.08em;
-    color: var(--scroll-ink-soft);
+    color: var(--ink-soft);
 }
 
 .moments-bookmark-collapsed-time {
@@ -1512,7 +1724,7 @@ html.dark body[data-rm-theme="light"] {
     font-family: var(--app-font-serif);
     font-size: 0.95rem;
     line-height: 1.8;
-    color: var(--scroll-ink-soft);
+    color: var(--ink-soft);
 }
 
 .moments-bookmark-open-shell {
@@ -1908,12 +2120,12 @@ html.dark body[data-rm-theme="light"] {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    border: 1px solid var(--scroll-hair);
+    border: 1px solid var(--hair);
     border-radius: 0.14rem;
     padding: 0.4rem 0.62rem;
     font-size: 0.76rem;
     letter-spacing: 0.08em;
-    color: var(--scroll-ink-soft);
+    color: var(--ink-soft);
 }
 
 .guestbook-bookmark-compose-note {
@@ -1934,13 +2146,13 @@ html.dark body[data-rm-theme="light"] {
 .guestbook-bookmark-textarea {
     width: 100%;
     resize: none;
-    border: 1px solid var(--scroll-hair);
+    border: 1px solid var(--hair);
     border-radius: 0.16rem;
     background: rgba(255, 252, 245, 0.5);
     padding: 0.7rem 0.85rem;
     font-size: 0.9rem;
     line-height: 1.8;
-    color: var(--scroll-ink);
+    color: var(--ink);
     outline: none;
     transition: border-color 160ms ease;
 }
@@ -2025,7 +2237,7 @@ html.dark .guestbook-bookmark-textarea {
     min-width: 13rem;
     height: 100%;
     padding-inline: 0.9rem;
-    border-inline-start: 1px solid var(--scroll-hair);
+    border-inline-start: 1px solid var(--hair);
 }
 
 .guestbook-bookmark-messages-rail > .guestbook-bookmark-message-card:first-child {

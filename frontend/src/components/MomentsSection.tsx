@@ -485,7 +485,7 @@ export default function MomentsSection() {
               <p className="scroll-title-kana">インデックス</p>
             </div>
             <div className="scroll-plain scroll-plain--center">
-              <p className="text-sm text-[color:var(--scroll-ink-soft)]">
+              <p className="text-sm text-[color:var(--ink-soft)]">
                 {moments.length} moments
               </p>
 
@@ -612,11 +612,7 @@ export default function MomentsSection() {
 
                       {submissionState && (
                         <div
-                          className={`rounded-2xl border px-4 py-3 text-sm ${
-                            submissionState.status === "success"
-                              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
-                              : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
-                          }`}
+                          className="scroll-inline-error"
                         >
                           {submissionState.message}
                         </div>

@@ -5,24 +5,14 @@ import {
   useSearchParams,
   useNavigate,
 } from "react-router-dom";
-import {
-  Calendar,
-  Tag as TagIcon,
-  ArrowRight,
-  SearchX,
-  Search,
-  AlertCircle,
-  Loader,
-  BookOpen,
-  Archive,
-  Lock,
-  FolderTree,
-} from "lucide-react";
+import { AlertCircle, Loader, Lock, SearchX } from "lucide-react";
 import Pagination from "../components/Pagination";
 import SearchWidget from "../components/SearchWidget";
+import ArchiveWidget from "../components/ArchiveWidget";
 import { blog } from "../services/api";
 import type { BlogPost } from "../types";
 import { formatDate } from "../utils/date";
+import { attachHorizontalWheel, lockDocumentScroll } from "../utils/scroll";
 
 const POSTS_PER_PAGE = 5;
 
@@ -82,6 +72,7 @@ export default function Home() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
+  const railRef = useRef<HTMLDivElement | null>(null);
   const currentPage = Math.max(1, Number(searchParams.get("page")) || 1);
 
   const [posts, setPosts] = useState<BlogPost[]>([]);
@@ -118,6 +109,16 @@ export default function Home() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTag, searchQuery, archiveParam, categoryParam]);
+
+  useEffect(() => lockDocumentScroll(), []);
+
+  useEffect(() => {
+    const rail = railRef.current;
+    if (!rail) {
+      return;
+    }
+    return attachHorizontalWheel(rail);
+  }, []);
 
   useEffect(() => {
     let isCurrentRequest = true;
@@ -205,211 +206,123 @@ export default function Home() {
       params.set("page", String(pageNumber));
     }
     navigate(`?${params.toString()}`);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    railRef.current?.scrollTo({ left: 0, behavior: "smooth" });
   };
 
-  if (loading && !hasLoadedOnce) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20">
-        <Loader className="w-12 h-12 text-blue-500 animate-spin mb-4" />
-        <p className="text-gray-600 dark:text-gray-300">Loading articles...</p>
-      </div>
-    );
-  }
+  const headingText = searchQuery
+    ? `检索「${searchQuery}」`
+    : activeTag && categoryParam
+      ? `${categoryParam} · ${activeTag}`
+      : activeTag
+        ? `标签「${activeTag}」`
+        : categoryParam && archiveParam
+          ? `${categoryParam} · ${formatArchiveLabel(archiveParam)}`
+          : categoryParam
+            ? `类目「${categoryParam}」`
+            : archiveParam
+              ? formatArchiveLabel(archiveParam)
+              : "卷中所收文章，自新至旧，逐段向右展开。";
 
-  if (error && !hasLoadedOnce) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 bg-red-50 dark:bg-red-900/20 rounded-2xl border border-red-200 dark:border-red-800">
-        <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
-        <h3 className="text-xl font-medium text-red-600 dark:text-red-400 mb-2">
-          Load failed
-        </h3>
-        <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-6 px-6 py-2 bg-red-500 text-white rounded-full text-sm font-medium hover:bg-red-600 transition-colors"
-        >
-          Reload
-        </button>
-      </div>
-    );
-  }
+  const isFiltered = Boolean(searchQuery || activeTag || categoryParam || archiveParam);
 
   return (
-    <div className="space-y-10 lg:space-y-12 animate-fade-in">
-      <SearchWidget />
-      {/* 头部标题区 */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl lg:text-[2rem] font-bold text-gray-800 dark:text-gray-100 flex items-center gap-3">
-          {searchQuery ? (
-            <>
-              <Search className="w-7 h-7 text-purple-500" />
-              <span className="text-gray-500 text-lg font-normal">Search:</span>
-              <span className="text-purple-600 dark:text-purple-400">
-                "{searchQuery}"
-              </span>
-            </>
-          ) : activeTag ? (
-            <>
-              <TagIcon className="w-7 h-7 text-blue-500" />
-              {categoryParam ? (
-                <span className="text-blue-600 dark:text-blue-400">
-                  {categoryParam} / #{activeTag}
-                </span>
+    <section className="scroll-stage">
+      <div ref={railRef} className="scroll-rail" aria-label="文录手卷">
+        <div className="scroll-mount">
+          <div className="scroll-rod scroll-rod--head" aria-hidden="true" />
+
+          <section className="scroll-leaf scroll-leaf--wide">
+            <div className="scroll-label">
+              <h2 className="scroll-title">文录</h2>
+              <p className="scroll-title-kana">ブンロク</p>
+            </div>
+
+            <div className="scroll-copy-col">
+              <p className="scroll-copy">{headingText}</p>
+              <span className="scroll-seal" aria-hidden="true">文録</span>
+            </div>
+
+            <div className="scroll-plain scroll-plain--narrow scroll-plain--center">
+              <SearchWidget />
+              <p className="scroll-slip-mark" style={{ writingMode: "horizontal-tb" }}>
+                {loading ? <Loader className="h-3.5 w-3.5 animate-spin" /> : null}
+                {`共 ${totalPosts} 篇`}
+              </p>
+              {isFiltered ? (
+                <Link to="/posts" className="scroll-link" style={{ writingMode: "horizontal-tb" }}>
+                  <SearchX aria-hidden="true" />
+                  清除筛选
+                </Link>
+              ) : null}
+            </div>
+          </section>
+
+          <section className="scroll-leaf scroll-leaf--wide">
+            <div className="scroll-label">
+              <h2 className="scroll-title">篇目</h2>
+              <p className="scroll-title-kana">ヘンモク</p>
+            </div>
+
+            <div className="scroll-index">
+              {error ? (
+                <p className="scroll-note scroll-note--error">
+                  <AlertCircle className="h-4 w-4" aria-hidden="true" />
+                  <span>{error}</span>
+                </p>
+              ) : loading && !hasLoadedOnce ? (
+                <p className="scroll-note">
+                  <Loader className="h-4 w-4 animate-spin" aria-hidden="true" />
+                  <span>正在展卷…</span>
+                </p>
+              ) : postCards.length === 0 ? (
+                <p className="scroll-note">此卷无文，换个词再检索。</p>
               ) : (
-                <span className="text-blue-600 dark:text-blue-400">#{activeTag}</span>
-              )}{" "}
-              posts
-            </>
-          ) : categoryParam && archiveParam ? (
-            <>
-              <FolderTree className="w-7 h-7 text-emerald-500" />
-              <span className="text-emerald-600 dark:text-emerald-400">
-                {categoryParam}
-              </span>
-              <span className="text-gray-500 text-lg font-normal">/</span>
-              <span className="text-orange-600 dark:text-orange-400">
-                {formatArchiveLabel(archiveParam)}
-              </span>{" "}
-              posts
-            </>
-          ) : categoryParam ? (
-            <>
-              <FolderTree className="w-7 h-7 text-emerald-500" />
-              <span className="text-emerald-600 dark:text-emerald-400">
-                {categoryParam}
-              </span>{" "}
-              posts
-            </>
-          ) : archiveParam ? (
-            <>
-              <Archive className="w-7 h-7 text-orange-500" />
-              <span className="text-orange-600 dark:text-orange-400">
-                {formatArchiveLabel(archiveParam)}
-              </span>{" "}
-              posts
-            </>
-          ) : (
-            "All Articles"
-          )}
-        </h2>
-        <div className="flex items-center gap-2 text-base text-gray-500 dark:text-gray-400">
-          {loading ? <Loader className="w-4 h-4 animate-spin" /> : null}
-          <span>{totalPosts} posts</span>
+                postCards.map((post) => (
+                  <Link key={post.id} to={`/post/${post.id}`} className="scroll-slip">
+                    <div className="scroll-slip-cover">
+                      {post.cover ? (
+                        <img src={post.cover} alt="" loading="lazy" />
+                      ) : (
+                        <div className={`bg-gradient-to-br ${post.coverBg}`} />
+                      )}
+                    </div>
+
+                    <div className="scroll-slip-text">
+                      <h3 className="scroll-slip-title">{post.title}</h3>
+                      <p className="scroll-slip-summary">{post.summary || "未著小序。"}</p>
+                      <p className="scroll-slip-mark">
+                        {post.is_login_required ? <Lock aria-hidden="true" /> : null}
+                        {formatDate(post.date)}
+                      </p>
+                    </div>
+                  </Link>
+                ))
+              )}
+            </div>
+          </section>
+
+          <section className="scroll-leaf scroll-leaf--wide">
+            <div className="scroll-label">
+              <h2 className="scroll-title">卷尾</h2>
+              <p className="scroll-title-kana">カンビ</p>
+            </div>
+
+            <div className="scroll-plain scroll-plain--narrow scroll-plain--center">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+
+              <ArchiveWidget />
+            </div>
+
+            <span className="scroll-seal scroll-seal--solid" aria-hidden="true">卷尾</span>
+          </section>
+
+          <div className="scroll-rod scroll-rod--tail" aria-hidden="true" />
         </div>
       </div>
-
-      {error ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-800 dark:border-amber-900/80 dark:bg-amber-950/40 dark:text-amber-200">
-          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
-          <div>
-            <p className="font-medium">Search refresh failed</p>
-            <p className="text-sm opacity-90">{error}</p>
-          </div>
-        </div>
-      ) : null}
-
-      {postCards.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 bg-slate-100/50 dark:bg-gray-900/30 rounded-2xl border border-dashed border-gray-300 dark:border-gray-700 backdrop-blur-sm">
-          <SearchX className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" />
-          <h3 className="text-2xl font-medium text-gray-600 dark:text-gray-300">
-            No matching articles found
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400 mt-2 text-base">
-            Try another keyword or browse all articles
-          </p>
-          <Link
-            to="/posts"
-            className="mt-6 px-7 py-3 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-full text-base font-medium shadow-sm hover:shadow-md transition-all border border-gray-200 dark:border-gray-700"
-          >
-            Clear filters
-          </Link>
-        </div>
-      ) : (
-        <div className="grid gap-7">
-          {postCards.map((post) => (
-            <article
-              key={post.id}
-              className="group flex flex-col sm:flex-row overflow-hidden rounded-2xl bg-slate-100/50 dark:bg-gray-900/30 shadow-sm border border-gray-100 dark:border-gray-800 hover:shadow-lg hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300 backdrop-blur-sm sm:h-56 lg:h-60"
-            >
-              {/* 封面图 */}
-              <Link
-                to={`/post/${post.id}`}
-                className="sm:w-72 sm:min-w-72 h-56 sm:h-full overflow-hidden shrink-0"
-                aria-label={`Open ${post.title}`}
-              >
-                {post.cover ? (
-                  <img
-                    src={post.cover}
-                    alt={post.title}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
-                ) : (
-                  <div
-                    className={`h-full w-full bg-gradient-to-br ${post.coverBg} flex items-center justify-center`}
-                  >
-                    <BookOpen className="w-10 h-10 text-white/50" />
-                  </div>
-                )}
-              </Link>
-
-              {/* 文字内容 */}
-              <div className="flex flex-1 flex-col p-5 sm:p-6 min-w-0">
-                <div className="mb-1 sm:mb-2 flex items-center gap-2 min-w-0">
-                  <h3 className="text-lg sm:text-2xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1 min-w-0">
-                    <Link to={`/post/${post.id}`}>{post.title}</Link>
-                  </h3>
-                  {post.is_login_required ? (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-300/80 bg-amber-50 px-2 py-0.5 text-[11px] font-medium text-amber-700 dark:border-amber-700/80 dark:bg-amber-900/30 dark:text-amber-300 shrink-0">
-                      <Lock className="w-3 h-3" />
-                      Login only
-                    </span>
-                  ) : null}
-                </div>
-                <Link
-                  to={`/post/${post.id}`}
-                  className="text-gray-600 dark:text-gray-300 mb-3 sm:mb-4 line-clamp-2 leading-relaxed text-sm sm:text-base"
-                >
-                  {post.summary}
-                </Link>
-
-                <div className="mt-auto flex items-center justify-between gap-2 min-w-0">
-                  <div className="flex items-center gap-2 sm:gap-3 text-sm text-gray-500 dark:text-gray-400 min-w-0 overflow-hidden">
-                    <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
-                      <Calendar className="w-4 h-4 shrink-0" />
-                      <time dateTime={post.date}>{formatDate(post.date)}</time>
-                    </span>
-                    <div className="flex gap-1 sm:gap-1.5 overflow-hidden">
-                      {(post.tags ?? []).slice(0, 2).map((t) => (
-                        <Link
-                          key={t}
-                          to={`/posts?tag=${encodeURIComponent(t)}`}
-                          className="bg-gray-100 dark:bg-gray-800 px-2 sm:px-2.5 py-0.5 rounded text-xs sm:text-sm text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 transition-colors truncate max-w-[5rem] sm:max-w-none"
-                        >
-                          #{t}
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Link
-                    to={`/post/${post.id}`}
-                    className="inline-flex items-center shrink-0 whitespace-nowrap text-sm sm:text-base font-medium text-blue-600 dark:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    Read more <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 ml-1" />
-                  </Link>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
-
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
-    </div>
+    </section>
   );
 }
