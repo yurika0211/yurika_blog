@@ -88,32 +88,31 @@ export default function SearchWidget() {
   };
 
   return (
-    <div className="bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-md p-7 rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30">
-      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-5 flex items-center gap-2 border-b border-gray-100 dark:border-gray-800 pb-2.5">
-        <Search className="w-5 h-5 text-purple-500" />
-        Search Posts
-      </h3>
-      
-      <div className="relative group">
+    <div className="paper-search">
+      <label className="paper-kicker" htmlFor="paper-search-input">
+        检索
+      </label>
+
+      <div className="paper-search-field">
+        <Search className="paper-search-icon" aria-hidden="true" />
         <input
+          id="paper-search-input"
           type="text"
           value={inputValue}
           onChange={handleSearch}
           onCompositionStart={handleCompositionStart}
           onCompositionEnd={handleCompositionEnd}
-          placeholder="Search titles or content..."
-          className="w-full pl-12 pr-12 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all text-gray-700 dark:text-gray-200 placeholder-gray-400"
+          placeholder="检索标题或正文…"
+          className="scroll-field paper-search-input"
         />
-        {/* 左侧搜索图标 */}
-        <Search className="absolute left-4 top-4 w-5 h-5 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
-        
-        {/* 右侧清除按钮 (只有输入内容时才显示) */}
         {inputValue && (
-          <button 
+          <button
+            type="button"
             onClick={clearSearch}
-            className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+            className="paper-search-clear"
+            aria-label="清除检索"
           >
-            <X className="w-5 h-5" />
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>

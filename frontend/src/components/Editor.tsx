@@ -14,185 +14,185 @@ import type { BlogPost } from '../types';
 const DEFAULT_CATEGORY = 'Uncategorized';
 
 type ApiLikeError = {
-  message?: string;
-  response?: {
-    data?: {
-      message?: string;
+ message?: string;
+ response?: {
+ data?: {
+ message?: string;
     };
   };
 };
 
 type MarkdownCodeProps = HTMLAttributes<HTMLElement> & {
-  inline?: boolean;
-  children?: ReactNode;
+ inline?: boolean;
+ children?: ReactNode;
 };
 
 const getErrorMessage = (err: unknown, fallback: string): string => {
-  if (typeof err === 'object' && err !== null) {
-    const e = err as ApiLikeError;
-    return e.response?.data?.message || e.message || fallback;
+ if (typeof err === 'object' && err !== null) {
+ const e = err as ApiLikeError;
+ return e.response?.data?.message || e.message || fallback;
   }
-  return fallback;
+ return fallback;
 };
 
 export default function Editor() {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id?: string }>();
+ const navigate = useNavigate();
+ const { id } = useParams<{ id?: string }>();
 
-  const [title, setTitle] = useState('');
-  const [category, setCategory] = useState(DEFAULT_CATEGORY);
-  const [summary, setSummary] = useState('');
-  const [tags, setTags] = useState('');
-  const [content, setContent] = useState('# Hello World');
-  const [isPinned, setIsPinned] = useState(false);
-  const [isLoginRequired, setIsLoginRequired] = useState(false);
+ const [title, setTitle] = useState('');
+ const [category, setCategory] = useState(DEFAULT_CATEGORY);
+ const [summary, setSummary] = useState('');
+ const [tags, setTags] = useState('');
+ const [content, setContent] = useState('# Hello World');
+ const [isPinned, setIsPinned] = useState(false);
+ const [isLoginRequired, setIsLoginRequired] = useState(false);
 
-  const [originalDate, setOriginalDate] = useState<string | undefined>(undefined);
+ const [originalDate, setOriginalDate] = useState<string | undefined>(undefined);
 
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [statusMsg, setStatusMsg] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+ const [loading, setLoading] = useState(false);
+ const [saving, setSaving] = useState(false);
+ const [statusMsg, setStatusMsg] = useState<string | null>(null);
+ const [error, setError] = useState<string | null>(null);
 
-  const parseTags = (raw: string) =>
-    raw
+ const parseTags = (raw: string) =>
+ raw
       ? raw
           .split(/[,，]/)
           .map((t) => t.trim())
           .filter(Boolean)
       : ['Uncategorized'];
 
-  useEffect(() => {
-    let mounted = true;
-    async function fetchPost() {
-      if (!id) return;
-      setLoading(true);
-      setError(null);
-      setStatusMsg('Loading article from the server...');
+ useEffect(() => {
+ let mounted = true;
+ async function fetchPost() {
+ if (!id) return;
+ setLoading(true);
+ setError(null);
+ setStatusMsg('Loading article from the server...');
 
-      try {
-        const post = await blog.getPostById(id);
-        if (!mounted) return;
-        if (!post) {
-          setError('The requested article could not be found.');
-          setStatusMsg(null);
-          return;
+ try {
+ const post = await blog.getPostById(id);
+ if (!mounted) return;
+ if (!post) {
+ setError('The requested article could not be found.');
+ setStatusMsg(null);
+ return;
         }
 
-        setTitle(post.title || '');
-        setCategory(post.category?.trim() || DEFAULT_CATEGORY);
-        setSummary(post.summary || '');
-        setTags(post.tags.join(', '));
-        setContent(post.content || '');
-        setOriginalDate(post.date);
-        setIsPinned(post.is_pinned ?? false);
-        setIsLoginRequired(post.is_login_required ?? false);
-        setStatusMsg(null);
+ setTitle(post.title || '');
+ setCategory(post.category?.trim() || DEFAULT_CATEGORY);
+ setSummary(post.summary || '');
+ setTags(post.tags.join(', '));
+ setContent(post.content || '');
+ setOriginalDate(post.date);
+ setIsPinned(post.is_pinned ?? false);
+ setIsLoginRequired(post.is_login_required ?? false);
+ setStatusMsg(null);
       } catch (err: unknown) {
-        console.error('Fetch post failed:', err);
-        setError(getErrorMessage(err, 'Something went wrong while loading the article.'));
-        setStatusMsg(null);
+ console.error('Fetch post failed:', err);
+ setError(getErrorMessage(err, 'Something went wrong while loading the article.'));
+ setStatusMsg(null);
       } finally {
-        if (mounted) setLoading(false);
+ if (mounted) setLoading(false);
       }
     }
 
-    void fetchPost();
-    return () => {
-      mounted = false;
+ void fetchPost();
+ return () => {
+ mounted = false;
     };
   }, [id]);
 
-  const handleSave = async () => {
-    setError(null);
-    setStatusMsg(null);
+ const handleSave = async () => {
+ setError(null);
+ setStatusMsg(null);
 
-    if (!title.trim() || !content.trim()) {
-      setError('Title and content cannot be empty.');
-      return;
+ if (!title.trim() || !content.trim()) {
+ setError('Title and content cannot be empty.');
+ return;
     }
 
-    const tagsArray = parseTags(tags);
+ const tagsArray = parseTags(tags);
 
-    const payload: CreatePostPayload = {
-      title: title.trim(),
-      category: category.trim() || DEFAULT_CATEGORY,
-      summary: summary.trim() || `${content.slice(0, 50)}...`,
-      tags: tagsArray,
-      content,
-      is_pinned: isPinned,
-      is_login_required: isLoginRequired,
+ const payload: CreatePostPayload = {
+ title: title.trim(),
+ category: category.trim() || DEFAULT_CATEGORY,
+ summary: summary.trim() || `${content.slice(0, 50)}...`,
+ tags: tagsArray,
+ content,
+ is_pinned: isPinned,
+ is_login_required: isLoginRequired,
     };
 
-    if (originalDate) {
-      payload.date = originalDate;
+ if (originalDate) {
+ payload.date = originalDate;
     }
 
-    setSaving(true);
-    setStatusMsg(id ? 'Updating article...' : 'Publishing article...');
+ setSaving(true);
+ setStatusMsg(id ? 'Updating article...' : 'Publishing article...');
 
-    try {
-      if (id) {
-        const updatePayload: UpdatePostPayload = { ...payload };
-        const updated = await blog.updatePost(id, updatePayload);
-        if (updated?.date) setOriginalDate(updated.date);
-        setStatusMsg('Article updated. Returning to the article list...');
-        setTimeout(() => navigate('/posts'), 600);
+ try {
+ if (id) {
+ const updatePayload: UpdatePostPayload = { ...payload };
+ const updated = await blog.updatePost(id, updatePayload);
+ if (updated?.date) setOriginalDate(updated.date);
+ setStatusMsg('Article updated. Returning to the article list...');
+ setTimeout(() => navigate('/posts'), 600);
       } else {
-        const created = await blog.createPost(payload);
+ const created = await blog.createPost(payload);
 
-        if (created && typeof created === 'object') {
-          if ((created as BlogPost).date) setOriginalDate((created as BlogPost).date);
-          if ((created as BlogPost).title) setTitle((created as BlogPost).title);
-          setCategory((created as BlogPost).category?.trim() || DEFAULT_CATEGORY);
-          if ((created as BlogPost).summary) setSummary((created as BlogPost).summary);
-          if (Array.isArray((created as BlogPost).tags)) setTags((created as BlogPost).tags.join(', '));
-          if ((created as BlogPost).content) setContent((created as BlogPost).content);
-          setIsPinned(Boolean((created as BlogPost).is_pinned));
-          setIsLoginRequired(Boolean((created as BlogPost).is_login_required));
+ if (created && typeof created === 'object') {
+ if ((created as BlogPost).date) setOriginalDate((created as BlogPost).date);
+ if ((created as BlogPost).title) setTitle((created as BlogPost).title);
+ setCategory((created as BlogPost).category?.trim() || DEFAULT_CATEGORY);
+ if ((created as BlogPost).summary) setSummary((created as BlogPost).summary);
+ if (Array.isArray((created as BlogPost).tags)) setTags((created as BlogPost).tags.join(', '));
+ if ((created as BlogPost).content) setContent((created as BlogPost).content);
+ setIsPinned(Boolean((created as BlogPost).is_pinned));
+ setIsLoginRequired(Boolean((created as BlogPost).is_login_required));
 
-          const newId = (created as BlogPost).id;
-          if (newId) {
-            setStatusMsg('Article published. Opening the new editor page...');
-            setTimeout(() => navigate(`/editor/${newId}`), 300);
-            return;
+ const newId = (created as BlogPost).id;
+ if (newId) {
+ setStatusMsg('Article published. Opening the new editor page...');
+ setTimeout(() => navigate(`/editor/${newId}`), 300);
+ return;
           }
         }
 
-        setStatusMsg('Article published. Returning to the article list...');
-        setTimeout(() => navigate('/posts'), 600);
+ setStatusMsg('Article published. Returning to the article list...');
+ setTimeout(() => navigate('/posts'), 600);
       }
     } catch (err: unknown) {
-      console.error('Save failed:', err);
-      setError(getErrorMessage(err, 'Something went wrong while saving the article.'));
-      setStatusMsg(null);
+ console.error('Save failed:', err);
+ setError(getErrorMessage(err, 'Something went wrong while saving the article.'));
+ setStatusMsg(null);
     } finally {
-      setSaving(false);
+ setSaving(false);
     }
   };
 
-  return (
+ return (
     <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
-      <div className="bg-white/30 dark:bg-gray-900/30 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 space-y-4">
+      <div className="bg-[color:var(--paper)] p-6 rounded-[0.16rem] border border-[color:var(--hair)] dark:border-[color:var(--hair)] space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-            <PenLine className="w-5 h-5 text-blue-500" />
+          <h2 className="text-xl font-bold text-[color:var(--ink)] flex items-center gap-2">
+            <PenLine className="w-5 h-5 text-[color:var(--seal)]" />
             {id ? 'Edit Article' : 'New Article'}
           </h2>
 
           <div className="flex items-center gap-3">
-            {loading && <div className="text-sm text-gray-500">Loading article...</div>}
-            {statusMsg && <div className="text-sm text-gray-700 dark:text-gray-300">{statusMsg}</div>}
-            {error && <div className="text-sm text-red-600 dark:text-red-400">{error}</div>}
+            {loading && <div className="text-sm text-[color:var(--ink-soft)]">Loading article...</div>}
+            {statusMsg && <div className="text-sm text-[color:var(--ink)] ">{statusMsg}</div>}
+            {error && <div className="text-sm text-[color:var(--seal)] dark:text-[color:var(--seal)]">{error}</div>}
             <button
-              onClick={handleSave}
-              disabled={loading || saving}
-              className={`flex items-center gap-2 px-6 py-2 rounded-lg transition-colors shadow-lg ${
-                saving
+ onClick={handleSave}
+ disabled={loading || saving}
+ className={`flex items-center gap-2 px-6 py-2 rounded-[0.14rem] transition-colors ${
+ saving
                   ? 'bg-gray-400 text-white cursor-default'
-                  : 'bg-blue-600 text-white hover:bg-blue-700 shadow-blue-500/30'
+                  : 'bg-[color:var(--seal)] text-white hover:bg-[color:var(--seal)] shadow-blue-500/30'
               }`}
-              aria-disabled={loading || saving}
+ aria-disabled={loading || saving}
             >
               <Save className="w-4 h-4" />
               {saving ? 'Saving...' : id ? 'Save Changes' : 'Publish Article'}
@@ -201,88 +201,88 @@ export default function Editor() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label className="block text-sm font-medium text-[color:var(--ink)] mb-1">
             Article Title
           </label>
           <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Write a compelling title..."
-            disabled={loading || saving}
-            className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white"
+ type="text"
+ value={title}
+ onChange={(e) => setTitle(e.target.value)}
+ placeholder="Write a compelling title..."
+ disabled={loading || saving}
+ className="w-full px-4 py-2 bg-[color:var(--paper)] border border-[color:var(--hair)] dark:border-[color:var(--hair)] rounded-[0.14rem] focus:ring-2 focus:ring-blue-500 focus:outline-none "
           />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 block">
+            <label className="text-sm font-medium text-[color:var(--ink)] mb-1 block">
               Category
             </label>
             <input
-              type="text"
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="For example: Tech, Notes, Galgame"
-              disabled={loading || saving}
-              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white"
+ type="text"
+ value={category}
+ onChange={(e) => setCategory(e.target.value)}
+ placeholder="For example: Tech, Notes, Galgame"
+ disabled={loading || saving}
+ className="w-full px-4 py-2 bg-[color:var(--paper)] border border-[color:var(--hair)] dark:border-[color:var(--hair)] rounded-[0.14rem] focus:ring-2 focus:ring-blue-500 focus:outline-none "
             />
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+            <label className="text-sm font-medium text-[color:var(--ink)] mb-1 flex items-center gap-1">
               <FileText className="w-3 h-3" /> Summary
             </label>
             <input
-              type="text"
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-              placeholder="Write a short introduction..."
-              disabled={loading || saving}
-              className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white"
+ type="text"
+ value={summary}
+ onChange={(e) => setSummary(e.target.value)}
+ placeholder="Write a short introduction..."
+ disabled={loading || saving}
+ className="w-full px-4 py-2 bg-[color:var(--paper)] border border-[color:var(--hair)] dark:border-[color:var(--hair)] rounded-[0.14rem] focus:ring-2 focus:ring-blue-500 focus:outline-none "
             />
           </div>
 
           <div className="md:col-span-1">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
+            <label className="text-sm font-medium text-[color:var(--ink)] mb-1 flex items-center gap-1">
               <Tag className="w-3 h-3" /> Tags (comma separated)
             </label>
             <div className="space-y-2">
               <input
-                type="text"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
-                placeholder="For example: Rust, React, Life"
-                disabled={loading || saving}
-                className="w-full px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none dark:text-white"
+ type="text"
+ value={tags}
+ onChange={(e) => setTags(e.target.value)}
+ placeholder="For example: Rust, React, Life"
+ disabled={loading || saving}
+ className="w-full px-4 py-2 bg-[color:var(--paper)] border border-[color:var(--hair)] dark:border-[color:var(--hair)] rounded-[0.14rem] focus:ring-2 focus:ring-blue-500 focus:outline-none "
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <button
-                  type="button"
-                  onClick={() => setIsPinned(!isPinned)}
-                  disabled={loading || saving}
-                  className={`inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                    isPinned
-                      ? 'bg-cyan-50 border-cyan-300 text-cyan-700 dark:bg-cyan-900/30 dark:border-cyan-600 dark:text-cyan-300'
-                      : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
+ type="button"
+ onClick={() => setIsPinned(!isPinned)}
+ disabled={loading || saving}
+ className={`inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 rounded-[0.14rem] border text-sm font-medium transition-colors ${
+ isPinned
+                      ? 'bg-[color:var(--paper)] border-[color:var(--hair)] text-[color:var(--ink-soft)] dark:bg-[color:var(--paper)]/30 dark:border-[color:var(--hair)] dark:text-[color:var(--ink-soft)]'
+                      : 'bg-[color:var(--paper)] border-[color:var(--hair)] text-[color:var(--ink-soft)] hover:border-[color:var(--hair)] dark:border-[color:var(--hair)] dark:text-[color:var(--ink-soft)]'
                   }`}
-                  title={isPinned ? 'Unpin article' : 'Pin article'}
+ title={isPinned ? 'Unpin article' : 'Pin article'}
                 >
-                  <Pin className={`w-4 h-4 ${isPinned ? 'text-cyan-500' : ''}`} />
+                  <Pin className={`w-4 h-4 ${isPinned ? 'text-[color:var(--ink-soft)]' : ''}`} />
                   {isPinned ? 'Pinned' : 'Pin'}
                 </button>
                 <button
-                  type="button"
-                  onClick={() => setIsLoginRequired(!isLoginRequired)}
-                  disabled={loading || saving}
-                  className={`inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 rounded-lg border text-sm font-medium transition-colors ${
-                    isLoginRequired
-                      ? 'bg-amber-50 border-amber-300 text-amber-700 dark:bg-amber-900/30 dark:border-amber-600 dark:text-amber-300'
-                      : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-400'
+ type="button"
+ onClick={() => setIsLoginRequired(!isLoginRequired)}
+ disabled={loading || saving}
+ className={`inline-flex w-full items-center justify-center gap-1.5 px-3 py-2 rounded-[0.14rem] border text-sm font-medium transition-colors ${
+ isLoginRequired
+                      ? 'bg-[color:var(--paper)] border-amber-300 text-[color:var(--seal)] dark:border-amber-600 dark:text-[color:var(--seal)]'
+                      : 'bg-[color:var(--paper)] border-[color:var(--hair)] text-[color:var(--ink-soft)] hover:border-[color:var(--hair)] dark:border-[color:var(--hair)] dark:text-[color:var(--ink-soft)]'
                   }`}
-                  title={isLoginRequired ? 'Remove login-only access' : 'Make this article login-only'}
+ title={isLoginRequired ? 'Remove login-only access' : 'Make this article login-only'}
                 >
-                  <Lock className={`w-4 h-4 ${isLoginRequired ? 'text-amber-500' : ''}`} />
+                  <Lock className={`w-4 h-4 ${isLoginRequired ? 'text-[color:var(--seal)]' : ''}`} />
                   {isLoginRequired ? 'Login only' : 'Public'}
                 </button>
               </div>
@@ -292,33 +292,33 @@ export default function Editor() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-200">
-        <div className="flex flex-col bg-white/30 dark:bg-gray-900/30 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 overflow-hidden">
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 font-medium text-sm text-gray-500">
+        <div className="flex flex-col bg-[color:var(--paper)] rounded-[0.16rem] border border-[color:var(--hair)] dark:border-[color:var(--hair)] overflow-hidden">
+          <div className="p-3 border-b border-[color:var(--hair)] dark:border-[color:var(--hair)] bg-[color:var(--paper)]/50 font-medium text-sm text-[color:var(--ink-soft)]">
             Markdown Source
           </div>
           <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="grow w-full p-4 bg-transparent resize-none focus:outline-none font-mono text-sm text-gray-800 dark:text-gray-200"
-            placeholder="Write Markdown here..."
-            disabled={loading || saving}
-            aria-label="Markdown editor"
+ value={content}
+ onChange={(e) => setContent(e.target.value)}
+ className="grow w-full p-4 bg-transparent resize-none focus:outline-none font-mono text-sm text-[color:var(--ink)] "
+ placeholder="Write Markdown here..."
+ disabled={loading || saving}
+ aria-label="Markdown editor"
           />
         </div>
 
-        <div className="flex flex-col bg-white/30 dark:bg-gray-900/30 backdrop-blur-md rounded-2xl shadow-sm border border-white/20 dark:border-gray-700/30 overflow-hidden">
-          <div className="p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 font-medium text-sm text-gray-500 flex items-center gap-2">
+        <div className="flex flex-col bg-[color:var(--paper)] rounded-[0.16rem] border border-[color:var(--hair)] dark:border-[color:var(--hair)] overflow-hidden">
+          <div className="p-3 border-b border-[color:var(--hair)] dark:border-[color:var(--hair)] bg-[color:var(--paper)]/50 font-medium text-sm text-[color:var(--ink-soft)] flex items-center gap-2">
             <Eye className="w-4 h-4" /> Live Preview
           </div>
 
           <div className="post-markdown grow p-6 overflow-y-auto prose prose-blue dark:prose-invert max-w-none">
             <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkMath]}
-              rehypePlugins={[rehypeKatex]}
-              components={{
-                code({ inline, className, children }: MarkdownCodeProps) {
-                  const match = /language-(\w+)/.exec(className || '');
-                  return !inline && match ? (
+ remarkPlugins={[remarkGfm, remarkMath]}
+ rehypePlugins={[rehypeKatex]}
+ components={{
+ code({ inline, className, children }: MarkdownCodeProps) {
+ const match = /language-(\w+)/.exec(className || '');
+ return !inline && match ? (
                     <SyntaxHighlighter style={vscDarkPlus} language={match[1]} PreTag="div">
                       {String(children).replace(/\n$/, '')}
                     </SyntaxHighlighter>
@@ -326,9 +326,9 @@ export default function Editor() {
                     <code className={className}>{children}</code>
                   );
                 },
-                table({ children }) {
-                  return (
-                    <div className="post-markdown-table my-6 overflow-x-auto rounded-2xl border border-[#d6d2c8] bg-[#faf8f1] shadow-sm dark:border-gray-700 dark:bg-gray-900/70">
+ table({ children }) {
+ return (
+                    <div className="post-markdown-table my-6 overflow-x-auto rounded-[0.16rem] border border-[#d6d2c8] bg-[#faf8f1] dark:border-[color:var(--hair)] ">
                       <table className="w-full min-w-full border-collapse text-sm md:text-base">
                         {children}
                       </table>

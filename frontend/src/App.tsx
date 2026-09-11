@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, useLocation, matchPath, Navigate, usePara
 import Header from './components/Header';
 import Footer from './components/Footer';
 import Sidebar from './components/Sidebar';
-import ArchiveWidget from './components/ArchiveWidget';
 import { useAuth } from './hooks/useAuth';
 import { useScrollRestore } from './hooks/useScrollRestore';
 
@@ -42,16 +41,14 @@ function AppLayout() {
   const isMomentsPage = location.pathname === '/moments';
   const isPostPage = Boolean(matchPath('/post/:id', location.pathname));
   const isGuestbookPage = location.pathname === '/guestbook';
-  const useFullBleedShell = isLanding || isMomentsPage || isPostPage || isGuestbookPage;
+  const isPostsPage = location.pathname === '/posts';
+  const isFriendsPage = location.pathname === '/friends';
+  const useFullBleedShell =
+    isLanding || isMomentsPage || isPostPage || isGuestbookPage || isPostsPage || isFriendsPage;
   const showSidebar = Boolean(
     location.pathname === '/about',
   );
-  const showArchive = Boolean(
-    location.pathname === '/posts',
-  );
-  const contentShellClass = showArchive
-    ? 'grow w-full max-w-[92rem] mx-auto px-5 lg:px-6 py-10 lg:py-12'
-    : 'grow w-full max-w-7xl mx-auto px-4 py-8';
+  const contentShellClass = 'grow w-full max-w-7xl mx-auto px-4 py-8';
   const routes = (
     <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-500">Loading...</div>}>
       <Routes>
@@ -137,18 +134,7 @@ function AppLayout() {
       {useFullBleedShell ? (
         <main className="grow w-full">{routes}</main>
       ) : (
-        <div className="grow flex">
-          {showArchive && (
-            <aside
-              className="hidden lg:block w-80 shrink-0 border-r border-gray-200 dark:border-gray-800 bg-slate-100/50 dark:bg-gray-900/30 backdrop-blur-sm overflow-y-auto sticky"
-              style={{ top: '1.5rem', height: 'calc(100vh - 3rem)' }}
-            >
-              <div className="pt-4 px-6 pb-8">
-                <ArchiveWidget />
-              </div>
-            </aside>
-          )}
-
+        <div className="paper-page grow flex">
           <div className={contentShellClass}>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
               <main className={showSidebar ? 'lg:col-span-8' : 'lg:col-span-12'}>{routes}</main>

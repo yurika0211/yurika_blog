@@ -147,22 +147,19 @@ export default function ArchiveWidget() {
   if (archive.length === 0 && categories.length === 0 && tags.length === 0) return null;
 
   return (
-    <nav className="space-y-7">
+    <nav className="paper-archive">
       {categories.length > 0 ? (
         <section>
-          <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-gray-900 dark:text-white">
-            <FolderTree className="h-5 w-5 text-emerald-500" />
+          <h3 className="paper-kicker mb-3 flex items-center gap-2">
+            <FolderTree className="h-4 w-4" aria-hidden="true" />
             Categories
           </h3>
 
-          <div className="space-y-1.5">
+          <div className="paper-entry-list">
             <Link
               to="/posts"
-              className={`flex items-center justify-between rounded px-2.5 py-1.5 text-sm transition-colors ${
-                !currentCategory && !currentTag && !currentArchive
-                  ? 'bg-emerald-100 font-medium text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
-              }`}
+              className="paper-entry"
+              data-active={!currentCategory && !currentTag && !currentArchive ? "true" : "false"}
             >
               <span>All posts</span>
             </Link>
@@ -173,14 +170,11 @@ export default function ArchiveWidget() {
                 <div key={name}>
                   <Link
                     to={buildCategoryLink(name)}
-                    className={`flex min-w-0 items-center justify-between rounded px-2.5 py-1.5 text-sm font-semibold transition-colors ${
-                      isCategoryActive
-                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300'
-                        : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-gray-800 dark:hover:text-gray-100'
-                    }`}
+                    className="paper-entry"
+                    data-active={isCategoryActive ? "true" : "false"}
                   >
                     <span className="truncate">{name}</span>
-                    <span className="ml-3 text-xs font-normal text-gray-400">{total}</span>
+                    <span className="paper-entry-count">{total}</span>
                   </Link>
                 </div>
               );
@@ -191,26 +185,23 @@ export default function ArchiveWidget() {
 
       {tags.length > 0 ? (
         <section>
-          <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-gray-900 dark:text-white">
-            <Hash className="h-5 w-5 text-blue-500" />
+          <h3 className="paper-kicker mb-3 flex items-center gap-2">
+            <Hash className="h-4 w-4" aria-hidden="true" />
             Tags
           </h3>
 
-          <div className="space-y-1.5">
+          <div className="paper-entry-list">
             {tags.map(({ name, count }) => {
               const isActive = currentTag === name;
               return (
                 <Link
                   key={name}
                   to={buildTagLink(name)}
-                  className={`flex items-center justify-between rounded px-2.5 py-1.5 text-sm transition-colors ${
-                    isActive
-                      ? 'bg-blue-100 font-medium text-blue-600 dark:bg-blue-900/40 dark:text-blue-300'
-                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
-                  }`}
+                  className="paper-entry"
+                  data-active={isActive ? "true" : "false"}
                 >
                   <span className="truncate">#{name}</span>
-                  <span className="ml-3 text-xs text-gray-400">{count}</span>
+                  <span className="paper-entry-count">{count}</span>
                 </Link>
               );
             })}
@@ -220,12 +211,12 @@ export default function ArchiveWidget() {
 
       {archive.length > 0 ? (
         <section>
-          <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-gray-900 dark:text-white">
-            <Archive className="h-5 w-5 text-orange-500" />
+          <h3 className="paper-kicker mb-3 flex items-center gap-2">
+            <Archive className="h-4 w-4" aria-hidden="true" />
             Archive
           </h3>
 
-          <div className="space-y-1.5">
+          <div className="paper-entry-list">
             {archive.map(({ year, months, total }) => {
               const isYearCollapsed = collapsedYears.has(year);
               return (
@@ -233,7 +224,7 @@ export default function ArchiveWidget() {
                   <button
                     type="button"
                     onClick={() => toggleYear(year)}
-                    className="flex w-full items-center gap-1.5 py-1.5 text-sm font-semibold text-gray-700 transition-colors whitespace-nowrap hover:text-blue-600 dark:text-gray-200 dark:hover:text-blue-400"
+                    className="paper-entry paper-entry--head"
                   >
                     {isYearCollapsed ? (
                       <ChevronRight className="h-4 w-4 shrink-0" />
@@ -241,13 +232,13 @@ export default function ArchiveWidget() {
                       <ChevronDown className="h-4 w-4 shrink-0" />
                     )}
                     <span>{year}</span>
-                    <span className="ml-auto text-xs font-normal text-gray-400">
+                    <span className="paper-entry-count">
                       {total}
                     </span>
                   </button>
 
                   {!isYearCollapsed ? (
-                    <div className="ml-5 space-y-1">
+                    <div className="paper-entry-list ml-4">
                       {months.map(({ month, count }) => {
                         const key = `${year}-${String(month).padStart(2, '0')}`;
                         const isActive = currentArchive === key;
@@ -255,14 +246,11 @@ export default function ArchiveWidget() {
                           <Link
                             key={key}
                             to={buildArchiveLink(key)}
-                            className={`flex items-center justify-between rounded px-2.5 py-1.5 text-sm whitespace-nowrap transition-colors ${
-                              isActive
-                                ? 'bg-blue-100 font-medium text-blue-600 dark:bg-blue-900/40 dark:text-blue-300'
-                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-200'
-                            }`}
+                            className="paper-entry"
+                            data-active={isActive ? "true" : "false"}
                           >
                             <span>{MONTH_NAMES[month - 1]}</span>
-                            <span className="text-xs text-gray-400">{count}</span>
+                            <span className="paper-entry-count">{count}</span>
                           </Link>
                         );
                       })}

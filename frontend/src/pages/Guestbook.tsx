@@ -116,21 +116,12 @@ export default function Guestbook() {
   }, []);
 
   return (
-    <section className="guestbook-page-shell reading-wall-section relative overflow-hidden bg-[#f5efe2] dark:bg-[#16110c]">
-      <div className="hero-grid absolute inset-0 opacity-[0.14] mix-blend-multiply dark:opacity-[0.08]" />
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,242,231,0.98)_0%,rgba(242,234,219,0.95)_46%,rgba(238,229,211,0.98)_100%)] dark:bg-[linear-gradient(180deg,rgba(24,18,13,0.98)_0%,rgba(20,15,11,0.95)_48%,rgba(16,12,9,0.98)_100%)]" />
-        <div className="absolute inset-x-[6%] top-[6%] h-px bg-[linear-gradient(90deg,transparent,rgba(120,88,49,0.16),transparent)] dark:bg-[linear-gradient(90deg,transparent,rgba(180,145,98,0.14),transparent)]" />
-        <div className="absolute inset-x-[8%] bottom-[8%] h-px bg-[linear-gradient(90deg,transparent,rgba(120,88,49,0.1),transparent)] dark:bg-[linear-gradient(90deg,transparent,rgba(180,145,98,0.1),transparent)]" />
-        <div className="absolute left-[-7rem] top-[10%] h-64 w-96 rounded-full bg-[radial-gradient(circle,rgba(84,61,34,0.12)_0%,rgba(84,61,34,0.06)_26%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(164,130,82,0.08)_0%,rgba(164,130,82,0.04)_22%,transparent_66%)]" />
-        <div className="absolute right-[-5rem] top-[18%] h-72 w-80 rounded-full bg-[radial-gradient(circle,rgba(126,94,52,0.1)_0%,rgba(126,94,52,0.04)_24%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(150,118,73,0.08)_0%,rgba(150,118,73,0.04)_24%,transparent_68%)]" />
-      </div>
+    <section className="guestbook-page-shell scroll-stage">
+      <div ref={railRef} className="scroll-rail" aria-label="留札手卷">
+        <div className={`scroll-mount guestbook-bookmark-board ${composerCollapsed ? "is-collapsed" : ""}`}>
+          <div className="scroll-rod scroll-rod--head" aria-hidden="true" />
 
-      <div className="relative z-10 mx-auto flex h-full w-full max-w-[120rem] items-stretch px-3 py-4 md:px-5 md:py-6 xl:px-8">
-        <div className="guestbook-bookmark-frame">
-          <div ref={railRef} className="guestbook-reading-wall-rail" aria-label="Guestbook reading wall">
-            <div className={`guestbook-bookmark-board ${composerCollapsed ? "is-collapsed" : ""}`}>
-              <section className="guestbook-bookmark-panel guestbook-bookmark-composer-panel">
+              <section className="scroll-leaf guestbook-bookmark-composer-panel">
                 <div className="guestbook-bookmark-composer">
                   <div className="guestbook-bookmark-composer-rail">
                     <div className="guestbook-bookmark-strip">
@@ -193,7 +184,7 @@ export default function Guestbook() {
                         type="button"
                         onClick={() => void handleSubmit()}
                         disabled={!content.trim() || submitting || hasPosted}
-                        className="guestbook-bookmark-post-button"
+                        className="scroll-button"
                       >
                         {submitting ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -218,7 +209,7 @@ export default function Guestbook() {
                 </div>
               </section>
 
-              <section className="guestbook-bookmark-panel guestbook-bookmark-messages-panel">
+              <section className="scroll-leaf guestbook-bookmark-messages-panel">
                 <div className="guestbook-bookmark-messages">
                   <div className="guestbook-bookmark-messages-meta">
                     <span className="guestbook-bookmark-chip">留言回览</span>
@@ -265,8 +256,8 @@ export default function Guestbook() {
 
                 </div>
               </section>
-            </div>
-          </div>
+
+          <div className="scroll-rod scroll-rod--tail" aria-hidden="true" />
         </div>
       </div>
     </section>

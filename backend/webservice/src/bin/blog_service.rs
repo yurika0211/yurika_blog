@@ -33,8 +33,17 @@ async fn main() -> io::Result<()> {
     let _ = dotenv::from_filename("../.env");
     dotenv().ok();
 
+    auth::jwt_secret().expect("JWT_SECRET must be configured with at least 32 bytes");
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL is not set in .env file");
+    let cors_allowed_origin =
+        env::var("CORS_ALLOWED_ORIGIN").unwrap_or_else(|_| "http://localhost:5173".into());
     let db_pool = PgPool::connect(&database_url).await.unwrap();
+    db_access::user::ensure_users_schema_db(&db_pool)
+        .await
+        .unwrap();
+    db_access::user::bootstrap_admin_user_db(&db_pool)
+        .await
+        .unwrap();
     db_access::moments::ensure_moments_schema_db(&db_pool)
         .await
         .unwrap();
@@ -45,14 +54,15 @@ async fn main() -> io::Result<()> {
     let shared_data = web::Data::new(AppState {
         health_check_response: "I'm OK.".to_string(),
         visit_count: Mutex::new(0),
+        login_rate_limiter: Default::default(),
         //     courses: Mutex::new(vec![]),
         db: db_pool,
     });
     HttpServer::new(move || {
         // 配置 CORS
+        let cors_allowed_origin = cors_allowed_origin.clone();
         let cors = Cors::default()
-            .allow_any_origin() // 允许任何来源 (开发阶段最方便)
-            // 或者指定前端地址: .allowed_origin("http://localhost:5173")
+            .allowed_origin(&cors_allowed_origin)
             .allow_any_method() // 允许 GET, POST, DELETE 等
             .allow_any_header() // 允许 Content-Type 等 Header
             .max_age(3600);
@@ -60,7 +70,7 @@ async fn main() -> io::Result<()> {
         App::new()
             .wrap(cors) // <--- 3. 重点：把 Cors 中间件 wrap 进去
             .app_data(shared_data.clone())
-            .app_data(web::JsonConfig::default().limit(10 * 1024 * 1024))
+            .app_data(web::JsonConfig::default().limit(64 * 1024))
             .configure(general_routes)
             .configure(articles_routes)
             .configure(comments_routes)

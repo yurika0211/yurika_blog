@@ -28,6 +28,7 @@
 | `SERVER_PORT` | SSH 端口（默认22可不填） | `22` |
 | `GHCR_PAT` | GitHub Personal Access Token（需要 `read:packages` 权限），用于服务器拉取镜像 | `ghp_xxxx` |
 | `POSTGRES_PASSWORD` | 生产数据库密码 | `your_secure_password` |
+| `JWT_SECRET` | JWT 签名密钥，至少 32 字节随机值 | `openssl rand -base64 48` |
 
 **可选 Secret（前端构建时用到）：**
 
@@ -56,8 +57,9 @@ mkdir -p /opt/blog/init-sql
 # 把 docker-compose.prod.yml 放到 /opt/blog/
 # 把数据库初始化 SQL 放到 /opt/blog/init-sql/
 
-# 创建 .env 文件（数据库密码等）
+# 创建 .env 文件（数据库密码、JWT 密钥等）
 cat > /opt/blog/.env << 'EOF'
 POSTGRES_PASSWORD=your_secure_password
+JWT_SECRET=replace_with_a_random_secret_at_least_32_bytes
 EOF
 ```

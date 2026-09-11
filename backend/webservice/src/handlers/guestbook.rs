@@ -28,12 +28,6 @@ fn normalize_ip_candidate(value: &str) -> Option<String> {
 }
 
 fn extract_client_ip(req: &HttpRequest) -> Result<String, MyError> {
-    let forwarded = req
-        .headers()
-        .get("X-Forwarded-For")
-        .and_then(|value| value.to_str().ok())
-        .and_then(normalize_ip_candidate);
-
     let real_ip = req
         .headers()
         .get("X-Real-IP")
@@ -45,8 +39,7 @@ fn extract_client_ip(req: &HttpRequest) -> Result<String, MyError> {
         .realip_remote_addr()
         .and_then(normalize_ip_candidate);
 
-    forwarded
-        .or(real_ip)
+    real_ip
         .or(connection_ip)
         .ok_or_else(|| MyError::BadRequest("Unable to determine client IP address".into()))
 }

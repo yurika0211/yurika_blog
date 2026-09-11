@@ -2,12 +2,18 @@ package auth
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-const JWTSecret = "shiokou"
+const (
+	minJWTSecretBytes = 32
+	jwtIssuer         = "yurika-blog"
+	jwtAudience       = "yurika-client"
+)
 
 type Claims struct {
 	Sub string `json:"sub"`
@@ -29,10 +35,17 @@ func ParseUserIDFromToken(tokenString string) (string, error) {
 	if strings.TrimSpace(tokenString) == "" {
 		return "", errors.New("missing token")
 	}
+	secret, err := configuredSecret()
+	if err != nil {
+		return "", err
+	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return []byte(JWTSecret), nil
-	})
+		if token.Method.Alg() != jwt.SigningMethodHS256.Alg() {
+			return nil, fmt.Errorf("unexpected signing algorithm: %s", token.Method.Alg())
+		}
+		return []byte(secret), nil
+	}, jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Alg()}), jwt.WithIssuer(jwtIssuer), jwt.WithAudience(jwtAudience))
 	if err != nil {
 		return "", err
 	}
@@ -43,4 +56,21 @@ func ParseUserIDFromToken(tokenString string) (string, error) {
 	}
 
 	return claims.Sub, nil
+}
+
+func ValidateConfiguration() error {
+	_, err := configuredSecret()
+	return err
+}
+
+func configuredSecret() (string, error) {
+	raw := os.Getenv("JWT_SECRET")
+	secret := strings.TrimSpace(raw)
+	if raw != secret {
+		return "", errors.New("JWT_SECRET must not start or end with whitespace")
+	}
+	if len(secret) < minJWTSecretBytes {
+		return "", fmt.Errorf("JWT_SECRET must be configured with at least %d bytes", minJWTSecretBytes)
+	}
+	return secret, nil
 }

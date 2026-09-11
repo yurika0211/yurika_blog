@@ -161,32 +161,10 @@ const getMomentParagraphs = (content?: string | null) =>
 
 const MOMENT_PANEL_TITLES = ["片羽", "短札", "留痕", "潮声", "水纹", "小记"];
 
-const getMomentPanelConfig = (moment: BlogMoment, index: number) => {
-  if (moment.images.length > 0) {
-    return {
-      widthClass: "reading-wall-panel-scroll",
-      layoutClass: "reading-wall-panel-scroll",
-      title: MOMENT_PANEL_TITLES[index % MOMENT_PANEL_TITLES.length],
-      titleKun: "モーメント",
-    };
-  }
-
-  if ((moment.content?.length ?? 0) > 110) {
-    return {
-      widthClass: "reading-wall-panel-wide",
-      layoutClass: "reading-wall-panel-scroll",
-      title: MOMENT_PANEL_TITLES[index % MOMENT_PANEL_TITLES.length],
-      titleKun: "モーメント",
-    };
-  }
-
-  return {
-    widthClass: "reading-wall-panel-medium",
-    layoutClass: index % 2 === 0 ? "reading-wall-panel-folio-mid" : "reading-wall-panel-folio-low",
-    title: MOMENT_PANEL_TITLES[index % MOMENT_PANEL_TITLES.length],
-    titleKun: "モーメント",
-  };
-};
+const getMomentPanelConfig = (index: number) => ({
+  title: MOMENT_PANEL_TITLES[index % MOMENT_PANEL_TITLES.length],
+  titleKun: "モーメント",
+});
 
 export default function MomentsSection() {
   const navigate = useNavigate();
@@ -484,132 +462,86 @@ export default function MomentsSection() {
   };
 
   return (
-    <section className="reading-wall-section relative min-h-screen overflow-hidden bg-[#f5efe2] dark:bg-[#16110c]">
-      <div className="hero-grid absolute inset-0 opacity-[0.14] mix-blend-multiply dark:opacity-[0.08]" />
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,242,231,0.98)_0%,rgba(242,234,219,0.95)_46%,rgba(238,229,211,0.98)_100%)] dark:bg-[linear-gradient(180deg,rgba(24,18,13,0.98)_0%,rgba(20,15,11,0.95)_48%,rgba(16,12,9,0.98)_100%)]" />
-        <div className="absolute inset-x-[6%] top-[6%] h-px bg-[linear-gradient(90deg,transparent,rgba(120,88,49,0.16),transparent)] dark:bg-[linear-gradient(90deg,transparent,rgba(180,145,98,0.14),transparent)]" />
-        <div className="absolute inset-x-[8%] bottom-[8%] h-px bg-[linear-gradient(90deg,transparent,rgba(120,88,49,0.1),transparent)] dark:bg-[linear-gradient(90deg,transparent,rgba(180,145,98,0.1),transparent)]" />
-        <div className="absolute left-[-7rem] top-[10%] h-64 w-96 rounded-full bg-[radial-gradient(circle,rgba(84,61,34,0.12)_0%,rgba(84,61,34,0.06)_26%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(164,130,82,0.08)_0%,rgba(164,130,82,0.04)_22%,transparent_66%)]" />
-        <div className="absolute right-[-5rem] top-[18%] h-72 w-80 rounded-full bg-[radial-gradient(circle,rgba(126,94,52,0.1)_0%,rgba(126,94,52,0.04)_24%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(150,118,73,0.08)_0%,rgba(150,118,73,0.04)_24%,transparent_68%)]" />
-      </div>
+    <section className="scroll-stage">
+      <div ref={railRef} className="scroll-rail" aria-label="近札手卷">
+        <div className="scroll-mount">
+          <div className="scroll-rod scroll-rod--head" aria-hidden="true" />
 
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[120rem] items-stretch px-3 py-4 md:px-5 md:py-6 xl:px-8">
-        <div
-          ref={railRef}
-          className="reading-wall-rail reading-wall-rail-full moments-reading-wall-rail"
-          aria-label="Moments reading wall"
-        >
-          <article className="reading-wall-panel reading-wall-panel-narrow reading-wall-panel-plaque">
-            <div className="reading-wall-panel-surface">
-              <div className="reading-wall-panel-shell">
-                <div className="reading-wall-column reading-wall-title-column">
-                  <div className="reading-wall-title-stack">
-                    <h2 className="reading-wall-vertical-title">
-                      <span className="reading-wall-title-char">近</span>
-                      <span className="reading-wall-title-char">札</span>
-                    </h2>
-                    <p className="reading-wall-title-kun">モーメント</p>
-                  </div>
-                </div>
-                <div className="reading-wall-rule" />
-                <div className="reading-wall-column reading-wall-copy-column">
-                  <div className="moments-reading-wall-intro">
-                    <p className="reading-wall-vertical-copy">
-                      这里收起的是零碎的短句、片刻的心情与顺手记下的日常。沿着长卷向右翻，每一则动态便是一页小札。
-                    </p>
-                  </div>
-                </div>
-              </div>
+          <section className="scroll-leaf scroll-leaf--mid">
+            <div className="scroll-label">
+              <h2 className="scroll-title">近札</h2>
+              <p className="scroll-title-kana">モーメント</p>
             </div>
-          </article>
-
-          <article className="reading-wall-panel reading-wall-panel-medium reading-wall-panel-folio-tall">
-            <div className="reading-wall-panel-surface">
-              <div className="reading-wall-panel-shell">
-                <div className="reading-wall-column reading-wall-title-column">
-                  <div className="reading-wall-title-stack">
-                    <h2 className="reading-wall-vertical-title">
-                      <span className="reading-wall-title-char">卷</span>
-                      <span className="reading-wall-title-char">览</span>
-                    </h2>
-                    <p className="reading-wall-title-kun">インデックス</p>
-                  </div>
-                </div>
-                <div className="reading-wall-rule" />
-                <div className="reading-wall-column reading-wall-copy-column">
-                  <div className="moments-reading-wall-overview">
-                    <div className="rounded-full border border-gray-200 bg-white/80 px-4 py-2 text-sm text-gray-500 shadow-sm dark:border-gray-800 dark:bg-gray-950/30 dark:text-gray-400">
-                      {moments.length} moments
-                    </div>
-
-                    {feedError && (
-                      <div className="rounded-[1.25rem] border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
-                        {feedError}
-                      </div>
-                    )}
-
-                    {!isLoggedIn ? (
-                      <Link
-                        to={`/login?redirect=${encodeURIComponent("/moments")}`}
-                        className="inline-flex w-fit items-center gap-2 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700"
-                      >
-                        Log in to post
-                      </Link>
-                    ) : showComposer ? (
-                      <button
-                        type="button"
-                        onClick={() => setIsComposerOpen(false)}
-                        className="inline-flex w-fit items-center gap-2 rounded-full border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-950/60 dark:text-gray-300 dark:hover:bg-gray-950"
-                      >
-                        <X className="h-4 w-4" />
-                        Hide composer
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setIsComposerOpen(true)}
-                        aria-expanded={false}
-                        aria-controls="moments-composer"
-                        className="inline-flex w-fit items-center gap-2 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700"
-                      >
-                        <ImagePlus className="h-4 w-4" />
-                        {hasDraft ? "Resume draft" : "Post a moment"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
+            <div className="scroll-copy-col">
+              <p className="scroll-copy">
+                这里收起的是零碎的短句、片刻的心情与顺手记下的日常。沿着长卷向右翻，每一则动态便是一页小札。
+              </p>
             </div>
-          </article>
+          </section>
+
+          <section className="scroll-leaf scroll-leaf--mid">
+            <div className="scroll-label">
+              <h2 className="scroll-title">卷览</h2>
+              <p className="scroll-title-kana">インデックス</p>
+            </div>
+            <div className="scroll-plain scroll-plain--center">
+              <p className="text-sm text-[color:var(--ink-soft)]">
+                {moments.length} moments
+              </p>
+
+              {feedError && (
+                <p className="scroll-inline-error">{feedError}</p>
+              )}
+
+              {!isLoggedIn ? (
+                <Link
+                  to={`/login?redirect=${encodeURIComponent("/moments")}`}
+                  className="scroll-button"
+                >
+                  Log in to post
+                </Link>
+              ) : showComposer ? (
+                <button
+                  type="button"
+                  onClick={() => setIsComposerOpen(false)}
+                  className="scroll-button scroll-button--quiet"
+                >
+                  <X className="h-4 w-4" />
+                  Hide composer
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsComposerOpen(true)}
+                  aria-expanded={false}
+                  aria-controls="moments-composer"
+                  className="scroll-button"
+                >
+                  <ImagePlus className="h-4 w-4" />
+                  {hasDraft ? "Resume draft" : "Post a moment"}
+                </button>
+              )}
+            </div>
+          </section>
 
           {isLoggedIn && showComposer && (
-            <article className="reading-wall-panel reading-wall-panel-scroll reading-wall-panel-scroll">
-              <div className="reading-wall-panel-surface">
-                <div className="reading-wall-panel-shell">
-                  <div className="reading-wall-column reading-wall-title-column">
-                    <div className="reading-wall-title-stack">
-                      <h2 className="reading-wall-vertical-title">
-                        <span className="reading-wall-title-char">发</span>
-                        <span className="reading-wall-title-char">札</span>
-                      </h2>
-                      <p className="reading-wall-title-kun">エディタ</p>
-                    </div>
-                  </div>
-                  <div className="reading-wall-rule" />
-                  <div className="reading-wall-column reading-wall-copy-column">
-                    <form
-                      id="moments-composer"
-                      onSubmit={handleSubmit}
-                      className="moments-reading-wall-composer"
-                    >
+            <section className="scroll-leaf scroll-leaf--wide">
+              <div className="scroll-label">
+                <h2 className="scroll-title">发札</h2>
+                <p className="scroll-title-kana">エディタ</p>
+              </div>
+              <form
+                id="moments-composer"
+                onSubmit={handleSubmit}
+                className="scroll-plain scroll-plain--sheet"
+              >
                       <textarea
                         ref={composerTextareaRef}
                         value={content}
                         onChange={(event) => setContent(event.target.value)}
                         placeholder="What's happening today?"
                         rows={5}
-                        className="w-full resize-none rounded-3xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-900 outline-none transition-colors focus:border-sky-400 dark:border-gray-700 dark:bg-gray-950/70 dark:text-gray-100"
+                        className="scroll-field"
                       />
 
                       <div className="space-y-3">
@@ -680,11 +612,7 @@ export default function MomentsSection() {
 
                       {submissionState && (
                         <div
-                          className={`rounded-2xl border px-4 py-3 text-sm ${
-                            submissionState.status === "success"
-                              ? "border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-300"
-                              : "border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300"
-                          }`}
+                          className="scroll-inline-error"
                         >
                           {submissionState.message}
                         </div>
@@ -698,7 +626,7 @@ export default function MomentsSection() {
                         <button
                           type="submit"
                           disabled={!canSubmit}
-                          className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+                          className="scroll-button"
                         >
                           {submitting ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -708,67 +636,40 @@ export default function MomentsSection() {
                           {submitting ? "Posting..." : "Post Moment"}
                         </button>
                       </div>
-                    </form>
-                  </div>
-                </div>
-              </div>
-            </article>
+              </form>
+            </section>
           )}
 
           {loading ? (
-            <article className="reading-wall-panel reading-wall-panel-medium reading-wall-panel-folio-mid">
-              <div className="reading-wall-panel-surface">
-                <div className="reading-wall-panel-shell">
-                  <div className="reading-wall-column reading-wall-title-column">
-                    <div className="reading-wall-title-stack">
-                      <h2 className="reading-wall-vertical-title">
-                        <span className="reading-wall-title-char">待</span>
-                        <span className="reading-wall-title-char">载</span>
-                      </h2>
-                      <p className="reading-wall-title-kun">ロード</p>
-                    </div>
-                  </div>
-                  <div className="reading-wall-rule" />
-                  <div className="reading-wall-column reading-wall-copy-column">
-                    <div className="flex h-full items-center justify-center text-gray-600 dark:text-gray-300">
-                      <div className="inline-flex items-center gap-3 rounded-[1.75rem] border border-gray-200/80 bg-white/60 px-6 py-10 shadow-sm backdrop-blur-sm dark:border-gray-800 dark:bg-[#0f1419]/70">
-                        <Loader2 className="h-5 w-5 animate-spin" />
-                        Loading moments...
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <section className="scroll-leaf scroll-leaf--mid">
+              <div className="scroll-label">
+                <h2 className="scroll-title">待载</h2>
+                <p className="scroll-title-kana">ロード</p>
               </div>
-            </article>
+              <div className="scroll-copy-col">
+                <p className="scroll-note">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  正在展卷…
+                </p>
+              </div>
+            </section>
           ) : moments.length === 0 ? (
-            <article className="reading-wall-panel reading-wall-panel-medium reading-wall-panel-folio-mid">
-              <div className="reading-wall-panel-surface">
-                <div className="reading-wall-panel-shell">
-                  <div className="reading-wall-column reading-wall-title-column">
-                    <div className="reading-wall-title-stack">
-                      <h2 className="reading-wall-vertical-title">
-                        <span className="reading-wall-title-char">空</span>
-                        <span className="reading-wall-title-char">卷</span>
-                      </h2>
-                      <p className="reading-wall-title-kun">ブランク</p>
-                    </div>
-                  </div>
-                  <div className="reading-wall-rule" />
-                  <div className="reading-wall-column reading-wall-copy-column">
-                    <div className="flex h-full items-center justify-center rounded-[1.75rem] border border-dashed border-gray-300 bg-white/60 px-6 py-14 text-center text-gray-500 shadow-sm backdrop-blur-sm dark:border-gray-700 dark:bg-[#0f1419]/70 dark:text-gray-400">
-                      No moments yet. The first photo post will appear here.
-                    </div>
-                  </div>
-                </div>
+            <section className="scroll-leaf scroll-leaf--mid">
+              <div className="scroll-label">
+                <h2 className="scroll-title">空卷</h2>
+                <p className="scroll-title-kana">ブランク</p>
               </div>
-            </article>
+              <div className="scroll-copy-col">
+                <p className="scroll-note">尚无近札，第一则会落在这里。</p>
+              </div>
+            </section>
           ) : (
             moments.map((moment, index) => {
               const commentsOpen = Boolean(expandedComments[moment.id]);
               const bodyExpanded = expandedBodies[moment.id] ?? false;
               const likeBusy = togglingLikeId === moment.id;
               const commentDraft = commentDrafts[moment.id] ?? "";
-              const panelConfig = getMomentPanelConfig(moment, index);
+              const panelConfig = getMomentPanelConfig(index);
               const paragraphs = getMomentParagraphs(moment.content);
               const previewComments = moment.comments.slice(0, 2);
               const bookmarkLead =
@@ -780,11 +681,10 @@ export default function MomentsSection() {
               return (
                 <article
                   key={moment.id}
-                  className={`reading-wall-panel moments-bookmark-panel ${
+                  className={`scroll-leaf moments-bookmark-panel ${
                     bodyExpanded ? "moments-bookmark-panel-open" : "moments-bookmark-panel-closed"
                   }`}
                 >
-                  <div className="reading-wall-panel-surface">
                     <div className="moments-bookmark-stage">
                       <div className="moments-bookmark-assembly">
                         <div className="moments-bookmark-strip">
@@ -968,7 +868,7 @@ export default function MomentsSection() {
                                           type="button"
                                           onClick={() => void handleAddComment(moment.id)}
                                           disabled={!commentDraft.trim() || submittingCommentId === moment.id}
-                                          className="inline-flex items-center gap-2 rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                          className="scroll-button"
                                         >
                                           {submittingCommentId === moment.id ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -984,7 +884,7 @@ export default function MomentsSection() {
                                       Log in to reply in this thread.
                                       <Link
                                         to={`/login?redirect=${encodeURIComponent("/moments")}`}
-                                        className="ml-2 text-sky-600 hover:underline dark:text-sky-400"
+                                        className="ml-2 text-[color:var(--seal)] hover:underline"
                                       >
                                         Log in
                                       </Link>
@@ -1059,11 +959,12 @@ export default function MomentsSection() {
                         </div>
                       )}
                     </div>
-                  </div>
                 </article>
               );
             })
           )}
+
+          <div className="scroll-rod scroll-rod--tail" aria-hidden="true" />
         </div>
       </div>
 

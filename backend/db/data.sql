@@ -1,23 +1,13 @@
-drop table if exists users;
-
-create table users (
-    id serial primary key,
-    username varchar(255) not null,
-    password_hash text not null,
+-- Optional authentication schema for manual imports.
+-- Do not add default credentials here. Set ADMIN_USERNAME and ADMIN_PASSWORD
+-- before starting the backend to bootstrap the first administrator securely.
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    password_hash TEXT NOT NULL,
+    role VARCHAR(32) NOT NULL DEFAULT 'user',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-insert into users(username, password_hash)
-values
-    ('SHIOKOU', '123456');
-
-drop table if exists users;
-
-create table users (
-    id serial primary key,
-    username varchar(255) not null,
-    password_hash text not null
-);
-
-insert into users (username, password_hash)
-values
-    ('SHIOKOU', '这里放真正的密码哈希值');
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_username_lower
+ON users (LOWER(username));

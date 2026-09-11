@@ -89,7 +89,8 @@ test -f .env || cp .env.example .env
 ```
 
 说明：
-- 根目录 `.env` 是唯一主配置源，至少需要补齐 `POSTGRES_PASSWORD`、`DATABASE_URL`、`OPENAI_*`、`SYSTEM_CONTENT`
+- 根目录 `.env` 是唯一主配置源，至少需要补齐 `POSTGRES_PASSWORD`、`DATABASE_URL`、`JWT_SECRET`、`OPENAI_*`、`SYSTEM_CONTENT`
+- 首次启动空数据库时，设置 `ADMIN_USERNAME` 和长度至少 12 位的 `ADMIN_PASSWORD`，后端会只保存 Argon2 哈希并创建管理员；不会生成默认密码
 - `frontend/.env.*` 和 `chat-ai/.env` 仅作为局部覆盖/兼容回退，不建议再作为主配置维护
 - 前端本地开发默认通过 `Vite proxy` 转发 `/api` 和 `/api/v1`
 
@@ -97,11 +98,11 @@ test -f .env || cp .env.example .env
 
 ```bash
 cd backend
-docker compose up -d db
-docker compose ps
+docker compose --env-file ../.env up -d db
+docker compose --env-file ../.env ps
 ```
 
-数据库默认监听：`localhost:${DB_PORT:-5432}`
+数据库默认监听：`localhost:${DB_PORT:-5433}`
 
 ### 3. 启动 Rust 后端
 
@@ -150,8 +151,8 @@ npm run dev -- --host 0.0.0.0
 
 ```bash
 cd backend
-docker compose up -d --build
-docker compose logs -f webservice
+docker compose --env-file ../.env up -d --build
+docker compose --env-file ../.env logs -f webservice
 ```
 
 ### 常用维护命令
@@ -159,14 +160,14 @@ docker compose logs -f webservice
 ```bash
 # 查看数据库日志
 cd backend
-docker compose logs -f db
+docker compose --env-file ../.env logs -f db
 
 # 停止后端目录下的容器
-docker compose down
+docker compose --env-file ../.env down
 
 # 备份数据库
-docker compose exec -T db pg_dump -U admin -d postgres > ../DB/pre_import_backup_$(date +%Y%m%d_%H%M%S).sql
+docker compose --env-file ../.env exec -T db pg_dump -U admin -d postgres > ../DB/pre_import_backup_$(date +%Y%m%d_%H%M%S).sql
 
 # 导入数据库备份
-docker compose exec -T db psql -U admin -d postgres -v ON_ERROR_STOP=1 < ../DB/my_database_backup.sql
+docker compose --env-file ../.env exec -T db psql -U admin -d postgres -v ON_ERROR_STOP=1 < ../DB/my_database_backup.sql
 ```

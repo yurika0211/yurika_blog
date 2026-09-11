@@ -1,6 +1,5 @@
 import { normalizeDisplayName } from "./displayName";
 
-export const AUTH_STORAGE_KEY = "blog.auth.session";
 const AUTH_CHANGED_EVENT = "blog-auth-changed";
 
 export interface AuthSession {
@@ -10,28 +9,7 @@ export interface AuthSession {
 }
 
 const canUseWindow = () => typeof window !== "undefined";
-
-const parseSession = (raw: string | null): AuthSession | null => {
-  if (!raw) {
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(raw) as Partial<AuthSession>;
-    const username = normalizeDisplayName(
-      typeof parsed.username === "string" ? parsed.username : "",
-      "",
-    );
-    const loginAt = typeof parsed.loginAt === "string" ? parsed.loginAt : "";
-    const token = typeof parsed.token === "string" ? parsed.token.trim() : "";
-    if (!username || !loginAt || !token) {
-      return null;
-    }
-    return { username, loginAt, token };
-  } catch {
-    return null;
-  }
-};
+let authSession: AuthSession | null = null;
 
 const emitAuthChanged = () => {
   if (!canUseWindow()) {
@@ -45,7 +23,7 @@ export const getAuthSession = (): AuthSession | null => {
     return null;
   }
 
-  return parseSession(window.localStorage.getItem(AUTH_STORAGE_KEY));
+  return authSession;
 };
 
 export const isAuthenticated = () => Boolean(getAuthSession());
@@ -71,7 +49,7 @@ export const setAuthSession = (username: string, token: string) => {
     token: safeToken,
   };
 
-  window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+  authSession = session;
   emitAuthChanged();
 };
 
@@ -80,7 +58,7 @@ export const clearAuthSession = () => {
     return;
   }
 
-  window.localStorage.removeItem(AUTH_STORAGE_KEY);
+  authSession = null;
   emitAuthChanged();
 };
 
@@ -89,20 +67,13 @@ export const subscribeAuthChange = (listener: () => void) => {
     return () => undefined;
   }
 
-  const onStorage = (event: StorageEvent) => {
-    if (event.key === AUTH_STORAGE_KEY) {
-      listener();
-    }
-  };
   const onCustom = () => {
     listener();
   };
 
-  window.addEventListener("storage", onStorage);
   window.addEventListener(AUTH_CHANGED_EVENT, onCustom);
 
   return () => {
-    window.removeEventListener("storage", onStorage);
     window.removeEventListener(AUTH_CHANGED_EVENT, onCustom);
   };
 };

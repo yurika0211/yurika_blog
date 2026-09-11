@@ -1,20 +1,33 @@
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  AlertCircle,
-  ArrowRight,
-  BookOpen,
-  Clock3,
-  ExternalLink,
-  Github,
-  Loader,
-  Newspaper,
-  Pin,
-  Star,
-  Workflow,
-} from 'lucide-react';
+import { AlertCircle, ArrowRight, ExternalLink, Github, Loader, Star } from 'lucide-react';
 import { formatDate } from '../utils/date';
 import { attachHorizontalWheel, lockDocumentScroll } from '../utils/scroll';
+
+/**
+ * 旧卷的诗文原稿。手卷的引首本来只有一小段题字，六屏诗文会把节奏拖垮，
+ * 所以画心让给了文章与项目，这几段留在这里备查，随时可以换回引首。
+ *
+ *   〈水仙女〉    凌波照影，素袖生香。
+ *
+ *   〈临波序〉    晨雾初开，水面像一封刚被揭开的信。她自浅汀回眸，
+ *                白瓣拢着月色，金盏藏着微光，连风也只敢轻轻掠过裙角。
+ *                清波不语，却把天光与花影一并收留。人若驻足太久，
+ *                便会误以为春色本来就生在水面，而不是从她的肩侧慢慢醒来。
+ *
+ *   〈五言〉      清波涵曉月，素影立寒汀。
+ *                金盞盛レ春色，香痕著（チャク）水青。
+ *                風來衣袂動，露落佩聲輕。
+ *                若問芳名處，人間喚水靈。
+ *
+ *   〈香雾〉      她不是浓烈的花神，更像一缕被清水养大的气息。靠近时先闻见冷香，
+ *                再看见雪白花瓣层层展开，像把春天折成一支细长的灯。
+ *
+ *   〈晓岸小札〉  若把清晨的池岸写成一封情书，第一句该是薄雾，第二句该是花影，
+ *                第三句便是她停在水边时，整片天空都安静下来。
+ *
+ *   〈余波〉      一泓秋水，照見芳魂。／ 卷尽向东，灯影未央。
+ */
 
 export type ReadingWallPostCard = {
   id: string;
@@ -36,119 +49,67 @@ export type ReadingWallRepoCard = {
   stargazers_count: number;
 };
 
-type ReadingWallPanel = {
+type ScrollLeaf = {
   id: string;
-  widthClass: string;
-  layoutClass: string;
-  title?: string;
-  titleKun?: string;
+  width: 'slim' | 'mid' | 'wide';
+  title: string;
+  kana: string;
   body: ReactNode;
 };
 
-function Ruby({ base, note }: { base: string; note: string }) {
-  return (
-    <ruby className="reading-wall-ruby">
-      {base}
-      <rt>{note}</rt>
-    </ruby>
-  );
-}
-
-function Kaeri({ mark }: { mark: string }) {
-  return <span className="reading-wall-kaeri">{mark}</span>;
-}
-
-function Paragraph({ children }: { children: ReactNode }) {
-  return <p className="reading-wall-vertical-copy">{children}</p>;
-}
-
-function CopyStack({ children }: { children: ReactNode }) {
-  return <div className="reading-wall-copy-stack">{children}</div>;
-}
-
-function VerticalTitle({ title }: { title: string }) {
-  return (
-    <h2 className="reading-wall-vertical-title" aria-label={title}>
-      {Array.from(title).map((char, index) => (
-        <span
-          key={`${title}-${index}`}
-          className="reading-wall-title-char"
-        >
-          {char}
-        </span>
-      ))}
-    </h2>
-  );
-}
-
-function RichStatus({
+function ScrollNote({
   loading,
   error,
   loadingLabel,
+  emptyLabel,
+  isEmpty,
 }: {
   loading: boolean;
   error: string | null;
   loadingLabel: string;
+  emptyLabel: string;
+  isEmpty: boolean;
 }) {
   if (loading) {
     return (
-      <div className="reading-wall-rich-status">
-        <Loader className="h-4 w-4 animate-spin" />
+      <p className="scroll-note">
+        <Loader className="h-4 w-4 animate-spin" aria-hidden="true" />
         <span>{loadingLabel}</span>
-      </div>
+      </p>
     );
   }
 
   if (error) {
     return (
-      <div className="reading-wall-rich-status reading-wall-rich-status-error">
-        <AlertCircle className="h-4 w-4" />
+      <p className="scroll-note scroll-note--error">
+        <AlertCircle className="h-4 w-4" aria-hidden="true" />
         <span>{error}</span>
-      </div>
+      </p>
     );
+  }
+
+  if (isEmpty) {
+    return <p className="scroll-note">{emptyLabel}</p>;
   }
 
   return null;
 }
 
-function ArticleSlip({ post, mode }: { post: ReadingWallPostCard; mode: 'featured' | 'recent' }) {
+function ArticleSlip({ post }: { post: ReadingWallPostCard }) {
   return (
-    <Link to={`/post/${post.id}`} className="reading-wall-rich-card group">
-      <div className="reading-wall-rich-card-cover">
+    <Link to={`/post/${post.id}`} className="scroll-slip">
+      <div className="scroll-slip-cover">
         {post.cover ? (
-          <img
-            src={post.cover}
-            alt={post.title}
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
+          <img src={post.cover} alt="" loading="lazy" />
         ) : (
-          <div className={`h-full w-full bg-gradient-to-br ${post.coverBg}`} />
+          <div className={`bg-gradient-to-br ${post.coverBg}`} />
         )}
       </div>
 
-      <div className="reading-wall-rich-card-copy">
-        <div className="reading-wall-rich-card-meta">
-          <span className="inline-flex items-center gap-1">
-            {mode === 'featured' ? <Pin className="h-3.5 w-3.5" /> : <Newspaper className="h-3.5 w-3.5" />}
-            {mode === 'featured' ? '置顶' : '更新'}
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Clock3 className="h-3.5 w-3.5" />
-            {formatDate(post.date)}
-          </span>
-        </div>
-
-        <h3 className="reading-wall-rich-card-title">{post.title}</h3>
-        <p className="reading-wall-rich-card-summary">
-          {post.summary || 'No summary yet.'}
-        </p>
-        <div className="reading-wall-rich-card-footer">
-          <span className="truncate">{post.tags.slice(0, 2).join(' / ') || post.category || 'Article'}</span>
-          <span className="inline-flex items-center gap-1 text-cyan-700 dark:text-cyan-300">
-            <BookOpen className="h-3.5 w-3.5" />
-            阅读
-          </span>
-        </div>
+      <div className="scroll-slip-text">
+        <h3 className="scroll-slip-title">{post.title}</h3>
+        <p className="scroll-slip-summary">{post.summary || '未著小序。'}</p>
+        <p className="scroll-slip-mark">{formatDate(post.date)}</p>
       </div>
     </Link>
   );
@@ -160,102 +121,80 @@ function RepoSlip({ repo }: { repo: ReadingWallRepoCard }) {
       href={repo.html_url}
       target="_blank"
       rel="noopener noreferrer"
-      className="reading-wall-rich-card group"
+      className="scroll-slip"
     >
-      <div className="reading-wall-rich-card-copy reading-wall-rich-card-copy-project">
-        <div className="reading-wall-rich-card-meta">
-          <span className="inline-flex items-center gap-1">
-            <Workflow className="h-3.5 w-3.5" />
-            {repo.language || 'Project'}
-          </span>
-          <span className="inline-flex items-center gap-1 text-amber-700 dark:text-amber-300">
-            <Star className="h-3.5 w-3.5" />
-            {repo.stargazers_count}
-          </span>
-        </div>
-
-        <h3 className="reading-wall-rich-card-title">{repo.name}</h3>
-        <p className="reading-wall-rich-card-summary">
-          {repo.description || 'No description'}
+      <div className="scroll-slip-text">
+        <h3 className="scroll-slip-title">{repo.name}</h3>
+        <p className="scroll-slip-summary">{repo.description || '未著说明。'}</p>
+        <p className="scroll-slip-mark">
+          <Star className="h-3 w-3" aria-hidden="true" />
+          {`${repo.stargazers_count}${repo.language ? ` · ${repo.language}` : ''}`}
         </p>
-        <div className="reading-wall-rich-card-footer">
-          <span className="truncate">GitHub Repository</span>
-          <span className="inline-flex items-center gap-1 text-cyan-700 dark:text-cyan-300">
-            打开
-            <ExternalLink className="h-3.5 w-3.5" />
-          </span>
-        </div>
       </div>
     </a>
   );
 }
 
-function RichPanel({
-  kicker,
-  title,
-  action,
+function ScrollIndex({
   loading,
   error,
   loadingLabel,
   emptyLabel,
+  action,
   children,
 }: {
-  kicker: string;
-  title: string;
-  action?: ReactNode;
   loading: boolean;
   error: string | null;
   loadingLabel: string;
   emptyLabel: string;
-  children: ReactNode;
+  action: ReactNode;
+  children: ReactNode[];
 }) {
-  const childItems = Array.isArray(children) ? children : children == null ? [] : [children];
-  const hasChildren = childItems.length > 0;
+  const ready = !loading && !error && children.length > 0;
 
   return (
-    <div className="reading-wall-rich-column">
-      <div className="reading-wall-rich-layout">
-        <div className="reading-wall-rich-body">
-          <RichStatus loading={loading} error={error} loadingLabel={loadingLabel} />
+    <div className="scroll-index">
+      {ready ? (
+        children
+      ) : (
+        <ScrollNote
+          loading={loading}
+          error={error}
+          loadingLabel={loadingLabel}
+          emptyLabel={emptyLabel}
+          isEmpty={children.length === 0}
+        />
+      )}
 
-          {!loading && !error ? (
-            hasChildren ? (
-              <div className="reading-wall-rich-list">{children}</div>
-            ) : (
-              <div className="reading-wall-rich-empty">{emptyLabel}</div>
-            )
-          ) : null}
-        </div>
-
-        <div className="reading-wall-rich-side">
-          <p className="reading-wall-rich-kicker">{kicker}</p>
-          <h3 className="reading-wall-rich-title">{title}</h3>
-          {action ? (
-            <div className="reading-wall-rich-side-action">{action}</div>
-          ) : null}
-        </div>
-      </div>
+      <div className="scroll-index-tail">{action}</div>
     </div>
   );
 }
 
-function HomeFooterRoll({ year }: { year: number }) {
+function Colophon({ year, latestPostDate }: { year: number; latestPostDate: string }) {
   return (
-    <div className="reading-wall-home-footer">
-      <div className="reading-wall-home-footer-copy">
-        <p>Copyright © {year} My DevBlog. All rights reserved.</p>
-      </div>
+    <div className="scroll-colophon">
+      <p className="scroll-colophon-copy scroll-colophon-copy--lead">
+        卷尽向东，灯影未央。
+      </p>
+      <p className="scroll-colophon-copy">
+        最近一笔记于{latestPostDate || '未定之日'}。
+        {` Copyright © ${year} My DevBlog. All rights reserved.`}
+      </p>
 
-      <div className="reading-wall-home-footer-icons" aria-label="Social links">
+      <div className="scroll-colophon-marks">
         <a
           href="https://github.com/yurika0211"
           target="_blank"
           rel="noopener noreferrer"
-          className="reading-wall-home-footer-icon"
-          title="GitHub"
+          className="scroll-link"
+          aria-label="GitHub"
         >
-          <Github className="h-4 w-4" />
+          <Github aria-hidden="true" />
         </a>
+        <span className="scroll-seal scroll-seal--solid" aria-hidden="true">
+          余波
+        </span>
       </div>
     </div>
   );
@@ -297,270 +236,150 @@ export default function HeroReadingWall({
     return attachHorizontalWheel(rail);
   }, []);
 
-  const panels = useMemo<ReadingWallPanel[]>(
+  const leaves = useMemo<ScrollLeaf[]>(
     () => [
       {
-        id: 'water-fairy-intro',
-        widthClass: 'reading-wall-panel-narrow',
-        layoutClass: 'reading-wall-panel-plaque',
+        id: 'title-slip',
+        width: 'slim',
         title: '水仙女',
-        titleKun: 'スイセンジョ',
+        kana: 'スイセンジョ',
         body: (
-          <Paragraph>
-            凌波照影，素袖生香。
-          </Paragraph>
+          <div className="scroll-copy-col">
+            <p className="scroll-copy">凌波照影，素袖生香。</p>
+            <span className="scroll-seal" aria-hidden="true">水僊</span>
+          </div>
         ),
       },
       {
-        id: 'water-fairy-prologue',
-        widthClass: 'reading-wall-panel-medium',
-        layoutClass: 'reading-wall-panel-folio-tall',
+        id: 'frontispiece',
+        width: 'mid',
         title: '临波序',
-        titleKun: 'リンパノジョ',
+        kana: 'リンパノジョ',
         body: (
-          <CopyStack>
-            <Paragraph>
+          <div className="scroll-copy-col">
+            <p className="scroll-copy">
               晨雾初开，水面像一封刚被揭开的信。她自浅汀回眸，白瓣拢着月色，金盏藏着微光，连风也只敢轻轻掠过裙角。
-            </Paragraph>
-            <Paragraph>
-              清波不语，却把天光与花影一并收留。人若驻足太久，便会误以为春色本来就生在水面，而不是从她的肩侧慢慢醒来。
-            </Paragraph>
-          </CopyStack>
-        ),
-      },
-      {
-        id: 'water-fairy-poem',
-        widthClass: 'reading-wall-panel-wide',
-        layoutClass: 'reading-wall-panel-scroll',
-        body: (
-          <CopyStack>
-            <Paragraph>
-              清波涵曉月，素影立寒汀。
-            </Paragraph>
-            <Paragraph>
-              金盞盛<Kaeri mark="レ" />
-              春色，香痕
-              <Ruby base="著" note="チャク" />
-              水青。
-            </Paragraph>
-            <Paragraph>
-              風來衣袂動，露落佩聲輕。
-            </Paragraph>
-            <Paragraph>
-              若問芳名處，人間喚水靈。
-            </Paragraph>
-          </CopyStack>
-        ),
-      },
-      {
-        id: 'water-fairy-scent',
-        widthClass: 'reading-wall-panel-medium',
-        layoutClass: 'reading-wall-panel-folio-mid',
-        title: '香雾',
-        titleKun: 'コウム',
-        body: (
-          <Paragraph>
-            她不是浓烈的花神，更像一缕被清水养大的气息。靠近时先闻见冷香，再看见雪白花瓣层层展开，像把春天折成一支细长的灯。
-          </Paragraph>
-        ),
-      },
-      {
-        id: 'water-fairy-note',
-        widthClass: 'reading-wall-panel-medium',
-        layoutClass: 'reading-wall-panel-folio-low',
-        title: '晓岸小札',
-        titleKun: 'ギョウガンショウサツ',
-        body: (
-          <Paragraph>
-            若把清晨的池岸写成一封情书，第一句该是薄雾，第二句该是花影，第三句便是她停在水边时，整片天空都安静下来。
-          </Paragraph>
-        ),
-      },
-      {
-        id: 'water-fairy-epilogue',
-        widthClass: 'reading-wall-panel-narrow',
-        layoutClass: 'reading-wall-panel-colophon',
-        body: (
-          <Paragraph>
-            一泓秋水，照見芳魂。
-          </Paragraph>
-        ),
-      },
-      {
-        id: 'home-bridge',
-        widthClass: 'reading-wall-panel-medium',
-        layoutClass: 'reading-wall-panel-folio-tall',
-        title: '别卷',
-        titleKun: 'ベッカン',
-        body: (
-          <CopyStack>
-            <Paragraph>
-              水畔的花影写到这里，纸卷却还没有收束。再向右缓缓展开，便不是香雾与月色，而是这些年留下的文章、项目与近来的笔记。
-            </Paragraph>
-            <Paragraph>
-              最近一笔记于{latestPostDate || '未定之日'}。若只想先看风景，停在此处即可；若还想继续翻阅，便请沿着卷尾再行几步。
-            </Paragraph>
-          </CopyStack>
+            </p>
+            <span className="scroll-seal" aria-hidden="true">臨波</span>
+          </div>
         ),
       },
       {
         id: 'featured-posts',
-        widthClass: 'reading-wall-panel-scroll',
-        layoutClass: 'reading-wall-panel-scroll',
+        width: 'wide',
         title: '置顶',
-        titleKun: 'チョウカン',
+        kana: 'チョウカン',
         body: (
-          <RichPanel
-            kicker="置顶"
-            title="卷中置顶文章"
-            action={(
-              <Link to="/posts" className="reading-wall-rich-link">
-                全部文章
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            )}
+          <ScrollIndex
             loading={postsLoading}
             error={postsError}
-            loadingLabel="loading featured posts..."
+            loadingLabel="正在展卷…"
             emptyLabel="暂时没有置顶文章。"
+            action={(
+              <Link to="/posts" className="scroll-link">
+                全部文章
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            )}
           >
             {featuredPosts.map((post) => (
-              <ArticleSlip key={`featured-${post.id}`} post={post} mode="featured" />
+              <ArticleSlip key={`featured-${post.id}`} post={post} />
             ))}
-          </RichPanel>
+          </ScrollIndex>
         ),
       },
       {
         id: 'recent-posts',
-        widthClass: 'reading-wall-panel-scroll',
-        layoutClass: 'reading-wall-panel-scroll',
+        width: 'wide',
         title: '新稿',
-        titleKun: 'シンコウ',
+        kana: 'シンコウ',
         body: (
-          <RichPanel
-            kicker="更新"
-            title="卷中新近更新"
-            action={(
-              <Link to="/posts" className="reading-wall-rich-link">
-                前往列表
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            )}
+          <ScrollIndex
             loading={postsLoading}
             error={postsError}
-            loadingLabel="loading recent posts..."
+            loadingLabel="正在展卷…"
             emptyLabel="最近还没有新稿。"
+            action={(
+              <Link to="/posts" className="scroll-link">
+                前往列表
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            )}
           >
             {recentPosts.map((post) => (
-              <ArticleSlip key={`recent-${post.id}`} post={post} mode="recent" />
+              <ArticleSlip key={`recent-${post.id}`} post={post} />
             ))}
-          </RichPanel>
+          </ScrollIndex>
         ),
       },
       {
-        id: 'project-posts',
-        widthClass: 'reading-wall-panel-scroll',
-        layoutClass: 'reading-wall-panel-scroll',
+        id: 'projects',
+        width: 'wide',
         title: '项目',
-        titleKun: 'コウモク',
+        kana: 'コウモク',
         body: (
-          <RichPanel
-            kicker="项目"
-            title="卷中项目札记"
+          <ScrollIndex
+            loading={reposLoading}
+            error={reposError}
+            loadingLabel="正在展卷…"
+            emptyLabel="暂时没有项目数据。"
             action={(
               <a
                 href="https://github.com/yurika0211"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="reading-wall-rich-link"
+                className="scroll-link"
               >
                 仓库
-                <ExternalLink className="h-4 w-4" />
+                <ExternalLink aria-hidden="true" />
               </a>
             )}
-            loading={reposLoading}
-            error={reposError}
-            loadingLabel="loading repositories..."
-            emptyLabel="暂时没有项目数据。"
           >
             {projects.map((repo) => (
               <RepoSlip key={repo.name} repo={repo} />
             ))}
-          </RichPanel>
+          </ScrollIndex>
         ),
       },
       {
-        id: 'home-epilogue',
-        widthClass: 'reading-wall-panel-narrow',
-        layoutClass: 'reading-wall-panel-colophon',
-        title: '余波',
-        titleKun: 'ヨハ',
-        body: (
-          <Paragraph>
-            卷尽向东，灯影未央。
-          </Paragraph>
-        ),
-      },
-      {
-        id: 'home-footer-roll',
-        widthClass: 'reading-wall-panel-narrow',
-        layoutClass: 'reading-wall-panel-colophon',
-        title: '页尾',
-        titleKun: 'ケツビ',
-        body: <HomeFooterRoll year={currentYear} />,
+        id: 'colophon',
+        width: 'mid',
+        title: '拖尾',
+        kana: 'タクビ',
+        body: <Colophon year={currentYear} latestPostDate={latestPostDate} />,
       },
     ],
-    [currentYear, featuredPosts, latestPostDate, postsError, postsLoading, projects, recentPosts, reposError, reposLoading],
+    [
+      currentYear,
+      featuredPosts,
+      latestPostDate,
+      postsError,
+      postsLoading,
+      projects,
+      recentPosts,
+      reposError,
+      reposLoading,
+    ],
   );
 
   return (
-    <section className="reading-wall-section relative min-h-screen overflow-hidden bg-[#f5efe2] dark:bg-[#16110c]">
-      <div className="hero-grid absolute inset-0 opacity-[0.14] mix-blend-multiply dark:opacity-[0.08]" />
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(247,242,231,0.98)_0%,rgba(242,234,219,0.95)_46%,rgba(238,229,211,0.98)_100%)] dark:bg-[linear-gradient(180deg,rgba(24,18,13,0.98)_0%,rgba(20,15,11,0.95)_48%,rgba(16,12,9,0.98)_100%)]" />
-        <div className="absolute inset-x-[6%] top-[6%] h-px bg-[linear-gradient(90deg,transparent,rgba(120,88,49,0.16),transparent)] dark:bg-[linear-gradient(90deg,transparent,rgba(180,145,98,0.14),transparent)]" />
-        <div className="absolute inset-x-[8%] bottom-[8%] h-px bg-[linear-gradient(90deg,transparent,rgba(120,88,49,0.1),transparent)] dark:bg-[linear-gradient(90deg,transparent,rgba(180,145,98,0.1),transparent)]" />
-        <div className="absolute left-[-7rem] top-[10%] h-64 w-96 rounded-full bg-[radial-gradient(circle,rgba(84,61,34,0.12)_0%,rgba(84,61,34,0.06)_26%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(164,130,82,0.08)_0%,rgba(164,130,82,0.04)_22%,transparent_66%)]" />
-        <div className="absolute right-[-5rem] top-[18%] h-72 w-80 rounded-full bg-[radial-gradient(circle,rgba(126,94,52,0.1)_0%,rgba(126,94,52,0.04)_24%,transparent_68%)] blur-3xl dark:bg-[radial-gradient(circle,rgba(150,118,73,0.08)_0%,rgba(150,118,73,0.04)_24%,transparent_68%)]" />
-        <div className="absolute bottom-[-8rem] left-[24%] h-72 w-[34rem] bg-[radial-gradient(ellipse_at_center,rgba(109,80,42,0.08)_0%,rgba(109,80,42,0.04)_32%,transparent_72%)] blur-3xl dark:bg-[radial-gradient(ellipse_at_center,rgba(145,112,70,0.07)_0%,rgba(145,112,70,0.03)_28%,transparent_72%)]" />
-        <div className="absolute left-[12%] top-[22%] h-40 w-24 rotate-[-16deg] rounded-full border border-[rgba(126,90,48,0.08)] opacity-60 dark:border-[rgba(176,140,92,0.08)]" />
-        <div className="absolute right-[14%] top-[14%] h-52 w-28 rotate-[12deg] rounded-full border border-[rgba(126,90,48,0.06)] opacity-50 dark:border-[rgba(176,140,92,0.06)]" />
-      </div>
+    <section className="scroll-stage">
+      <div ref={railRef} className="scroll-rail" aria-label="手卷">
+        <div className="scroll-mount">
+          <div className="scroll-rod scroll-rod--head" aria-hidden="true" />
 
-      <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-[120rem] items-stretch px-3 py-4 md:px-5 md:py-6 xl:px-8">
-        <div
-          ref={railRef}
-          className="reading-wall-rail reading-wall-rail-full min-w-0"
-          aria-label="Vertical reading wall"
-        >
-          {panels.map((panel) => (
-            <article
-              key={panel.id}
-              className={`reading-wall-panel ${panel.widthClass} ${panel.layoutClass}`}
-            >
-              <div className="reading-wall-panel-surface">
-                <div className="reading-wall-panel-shell">
-                  {panel.title ? (
-                    <>
-                      <div className="reading-wall-column reading-wall-title-column">
-                        <div className="reading-wall-title-stack">
-                          <VerticalTitle title={panel.title} />
-                          {panel.titleKun ? (
-                            <p className="reading-wall-title-kun">{panel.titleKun}</p>
-                          ) : null}
-                        </div>
-                      </div>
-                      <div className="reading-wall-rule" />
-                    </>
-                  ) : null}
-
-                  <div className="reading-wall-column reading-wall-copy-column">
-                    {panel.body}
-                  </div>
-                </div>
+          {leaves.map((leaf) => (
+            <section key={leaf.id} className={`scroll-leaf scroll-leaf--${leaf.width}`}>
+              <div className="scroll-label">
+                <h2 className="scroll-title">{leaf.title}</h2>
+                <p className="scroll-title-kana">{leaf.kana}</p>
               </div>
-            </article>
+
+              {leaf.body}
+            </section>
           ))}
+
+          <div className="scroll-rod scroll-rod--tail" aria-hidden="true" />
         </div>
       </div>
     </section>
