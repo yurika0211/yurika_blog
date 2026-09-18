@@ -45,6 +45,14 @@ const getPostTimestamp = (dateInput: string): number => {
 
 type GitHubRepoCandidate = ReadingWallRepoCard & { fork?: boolean };
 
+const toRepoCard = (repo: GitHubRepoCandidate): ReadingWallRepoCard => ({
+  name: repo.name,
+  description: repo.description ?? null,
+  language: repo.language ?? null,
+  html_url: repo.html_url,
+  stargazers_count: repo.stargazers_count,
+});
+
 const isGitHubRepo = (value: unknown): value is GitHubRepoCandidate => {
   if (typeof value !== 'object' || value === null) return false;
   const repo = value as Partial<GitHubRepoCandidate>;
@@ -102,7 +110,7 @@ export default function Entry() {
               const cachedRepos = data
                 .filter(isGitHubRepo)
                 .filter((repo) => !repo.fork)
-                .map(({ fork: _fork, ...repo }) => repo);
+                .map(toRepoCard);
               setRepos(cachedRepos);
               setReposLoading(false);
               return;
@@ -125,7 +133,7 @@ export default function Entry() {
         const nextRepos = data
           .filter(isGitHubRepo)
           .filter((repo) => !repo.fork)
-          .map(({ fork: _fork, ...repo }) => repo);
+          .map(toRepoCard);
         setRepos(nextRepos);
         try {
           localStorage.setItem(CACHE_KEY, JSON.stringify({ data: nextRepos, ts: Date.now() }));

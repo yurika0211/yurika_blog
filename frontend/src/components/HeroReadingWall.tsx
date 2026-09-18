@@ -1,33 +1,14 @@
-import { useEffect, useMemo, useRef, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
-import { AlertCircle, ArrowRight, ExternalLink, Github, Loader, Star } from 'lucide-react';
-import { formatDate } from '../utils/date';
-import { attachHorizontalWheel, lockDocumentScroll } from '../utils/scroll';
-
-/**
- * 旧卷的诗文原稿。手卷的引首本来只有一小段题字，六屏诗文会把节奏拖垮，
- * 所以画心让给了文章与项目，这几段留在这里备查，随时可以换回引首。
- *
- *   〈水仙女〉    凌波照影，素袖生香。
- *
- *   〈临波序〉    晨雾初开，水面像一封刚被揭开的信。她自浅汀回眸，
- *                白瓣拢着月色，金盏藏着微光，连风也只敢轻轻掠过裙角。
- *                清波不语，却把天光与花影一并收留。人若驻足太久，
- *                便会误以为春色本来就生在水面，而不是从她的肩侧慢慢醒来。
- *
- *   〈五言〉      清波涵曉月，素影立寒汀。
- *                金盞盛レ春色，香痕著（チャク）水青。
- *                風來衣袂動，露落佩聲輕。
- *                若問芳名處，人間喚水靈。
- *
- *   〈香雾〉      她不是浓烈的花神，更像一缕被清水养大的气息。靠近时先闻见冷香，
- *                再看见雪白花瓣层层展开，像把春天折成一支细长的灯。
- *
- *   〈晓岸小札〉  若把清晨的池岸写成一封情书，第一句该是薄雾，第二句该是花影，
- *                第三句便是她停在水边时，整片天空都安静下来。
- *
- *   〈余波〉      一泓秋水，照見芳魂。／ 卷尽向东，灯影未央。
- */
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUpRight,
+  Github,
+  Star,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { useHandscroll } from "../hooks/useHandscroll";
+import { formatDate } from "../utils/date";
+import "../styles/handscroll.css";
 
 export type ReadingWallPostCard = {
   id: string;
@@ -49,153 +30,55 @@ export type ReadingWallRepoCard = {
   stargazers_count: number;
 };
 
-type ScrollLeaf = {
-  id: string;
-  width: 'slim' | 'mid' | 'wide';
-  title: string;
-  kana: string;
-  body: ReactNode;
-};
+const CHAPTERS = ["引首", "文录", "造物", "余白"];
 
-function ScrollNote({
+function IndexState({
   loading,
   error,
-  loadingLabel,
-  emptyLabel,
-  isEmpty,
+  empty,
 }: {
   loading: boolean;
   error: string | null;
-  loadingLabel: string;
-  emptyLabel: string;
-  isEmpty: boolean;
+  empty: string;
 }) {
-  if (loading) {
-    return (
-      <p className="scroll-note">
-        <Loader className="h-4 w-4 animate-spin" aria-hidden="true" />
-        <span>{loadingLabel}</span>
-      </p>
-    );
-  }
-
-  if (error) {
-    return (
-      <p className="scroll-note scroll-note--error">
-        <AlertCircle className="h-4 w-4" aria-hidden="true" />
-        <span>{error}</span>
-      </p>
-    );
-  }
-
-  if (isEmpty) {
-    return <p className="scroll-note">{emptyLabel}</p>;
-  }
-
-  return null;
-}
-
-function ArticleSlip({ post }: { post: ReadingWallPostCard }) {
   return (
-    <Link to={`/post/${post.id}`} className="scroll-slip">
-      <div className="scroll-slip-cover">
-        {post.cover ? (
-          <img src={post.cover} alt="" loading="lazy" />
-        ) : (
-          <div className={`bg-gradient-to-br ${post.coverBg}`} />
-        )}
-      </div>
-
-      <div className="scroll-slip-text">
-        <h3 className="scroll-slip-title">{post.title}</h3>
-        <p className="scroll-slip-summary">{post.summary || '未著小序。'}</p>
-        <p className="scroll-slip-mark">{formatDate(post.date)}</p>
-      </div>
-    </Link>
-  );
-}
-
-function RepoSlip({ repo }: { repo: ReadingWallRepoCard }) {
-  return (
-    <a
-      href={repo.html_url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="scroll-slip"
-    >
-      <div className="scroll-slip-text">
-        <h3 className="scroll-slip-title">{repo.name}</h3>
-        <p className="scroll-slip-summary">{repo.description || '未著说明。'}</p>
-        <p className="scroll-slip-mark">
-          <Star className="h-3 w-3" aria-hidden="true" />
-          {`${repo.stargazers_count}${repo.language ? ` · ${repo.language}` : ''}`}
-        </p>
-      </div>
-    </a>
-  );
-}
-
-function ScrollIndex({
-  loading,
-  error,
-  loadingLabel,
-  emptyLabel,
-  action,
-  children,
-}: {
-  loading: boolean;
-  error: string | null;
-  loadingLabel: string;
-  emptyLabel: string;
-  action: ReactNode;
-  children: ReactNode[];
-}) {
-  const ready = !loading && !error && children.length > 0;
-
-  return (
-    <div className="scroll-index">
-      {ready ? (
-        children
+    <div className="handscroll-state" role="status">
+      {loading ? (
+        <>
+          <span className="handscroll-state__ink" aria-hidden="true" />
+          <p>墨迹将至，请稍候。</p>
+        </>
       ) : (
-        <ScrollNote
-          loading={loading}
-          error={error}
-          loadingLabel={loadingLabel}
-          emptyLabel={emptyLabel}
-          isEmpty={children.length === 0}
-        />
+        <>
+          <span className="handscroll-state__mark" aria-hidden="true">
+            {error ? "候" : "白"}
+          </span>
+          <p>{error ? "暂时未能取回内容。" : empty}</p>
+          <p className="handscroll-state__note">
+            {error
+              ? "稍后再来，或由下方入口继续阅读。"
+              : "留一些空白，等下一次落笔。"}
+          </p>
+        </>
       )}
-
-      <div className="scroll-index-tail">{action}</div>
     </div>
   );
 }
 
-function Colophon({ year, latestPostDate }: { year: number; latestPostDate: string }) {
+function ChapterTitle({
+  number,
+  title,
+  note,
+}: {
+  number: string;
+  title: string;
+  note: string;
+}) {
   return (
-    <div className="scroll-colophon">
-      <p className="scroll-colophon-copy scroll-colophon-copy--lead">
-        卷尽向东，灯影未央。
-      </p>
-      <p className="scroll-colophon-copy">
-        最近一笔记于{latestPostDate || '未定之日'}。
-        {` Copyright © ${year} My DevBlog. All rights reserved.`}
-      </p>
-
-      <div className="scroll-colophon-marks">
-        <a
-          href="https://github.com/yurika0211"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="scroll-link"
-          aria-label="GitHub"
-        >
-          <Github aria-hidden="true" />
-        </a>
-        <span className="scroll-seal scroll-seal--solid" aria-hidden="true">
-          余波
-        </span>
-      </div>
+    <div className="handscroll-chapter-title" data-drag-surface>
+      <span className="handscroll-kicker">{number}</span>
+      <h2>{title}</h2>
+      <p>{note}</p>
     </div>
   );
 }
@@ -219,167 +102,291 @@ export default function HeroReadingWall({
   reposLoading: boolean;
   reposError: string | null;
 }) {
-  const railRef = useRef<HTMLDivElement | null>(null);
-  const currentYear = new Date().getFullYear();
+  const { railRef, stageRef, progressRef, chapter, goTo } = useHandscroll();
+  const posts = [
+    ...new Map(
+      [...featuredPosts, ...recentPosts].map((post) => [post.id, post]),
+    ).values(),
+  ].slice(0, 3);
 
-  useEffect(() => {
-    window.scrollTo({ left: 0, top: 0, behavior: 'auto' });
-    return lockDocumentScroll();
-  }, []);
-
-  useEffect(() => {
-    const rail = railRef.current;
-    if (!rail) {
-      return;
-    }
-
-    return attachHorizontalWheel(rail);
-  }, []);
-
-  const leaves = useMemo<ScrollLeaf[]>(
-    () => [
-      {
-        id: 'title-slip',
-        width: 'slim',
-        title: '水仙女',
-        kana: 'スイセンジョ',
-        body: (
-          <div className="scroll-copy-col">
-            <p className="scroll-copy">凌波照影，素袖生香。</p>
-            <span className="scroll-seal" aria-hidden="true">水僊</span>
-          </div>
-        ),
-      },
-      {
-        id: 'frontispiece',
-        width: 'mid',
-        title: '临波序',
-        kana: 'リンパノジョ',
-        body: (
-          <div className="scroll-copy-col">
-            <p className="scroll-copy">
-              晨雾初开，水面像一封刚被揭开的信。她自浅汀回眸，白瓣拢着月色，金盏藏着微光，连风也只敢轻轻掠过裙角。
-            </p>
-            <span className="scroll-seal" aria-hidden="true">臨波</span>
-          </div>
-        ),
-      },
-      {
-        id: 'featured-posts',
-        width: 'wide',
-        title: '置顶',
-        kana: 'チョウカン',
-        body: (
-          <ScrollIndex
-            loading={postsLoading}
-            error={postsError}
-            loadingLabel="正在展卷…"
-            emptyLabel="暂时没有置顶文章。"
-            action={(
-              <Link to="/posts" className="scroll-link">
-                全部文章
-                <ArrowRight aria-hidden="true" />
-              </Link>
-            )}
+  return (
+    <section
+      ref={stageRef}
+      className="scroll-stage handscroll"
+      aria-label="山水之间，一卷日常"
+    >
+      <div className="handscroll-edition" aria-hidden="true">
+        <span>山水之间 · 一卷日常</span>
+        <span>YURIKA’S JOURNAL</span>
+      </div>
+      <div
+        ref={railRef}
+        className="scroll-rail handscroll-rail"
+        tabIndex={0}
+        role="region"
+        aria-label="横向手卷，可滚动、左右滑动或使用方向键翻阅"
+        aria-describedby="handscroll-hint"
+      >
+        <div className="scroll-mount handscroll-mount">
+          <div className="scroll-rod scroll-rod--head" aria-hidden="true" />
+          <section
+            className="handscroll-panel handscroll-cover"
+            data-chapter
+            data-drag-surface
+            aria-labelledby="handscroll-title"
           >
-            {featuredPosts.map((post) => (
-              <ArticleSlip key={`featured-${post.id}`} post={post} />
-            ))}
-          </ScrollIndex>
-        ),
-      },
-      {
-        id: 'recent-posts',
-        width: 'wide',
-        title: '新稿',
-        kana: 'シンコウ',
-        body: (
-          <ScrollIndex
-            loading={postsLoading}
-            error={postsError}
-            loadingLabel="正在展卷…"
-            emptyLabel="最近还没有新稿。"
-            action={(
-              <Link to="/posts" className="scroll-link">
-                前往列表
-                <ArrowRight aria-hidden="true" />
-              </Link>
-            )}
+            <img
+              className="handscroll-cover__art"
+              src="/scroll-landscape.webp"
+              alt=""
+              width="1536"
+              height="1024"
+              fetchPriority="high"
+              draggable={false}
+            />
+            <div className="handscroll-cover__writing">
+              <span className="handscroll-cover__eyebrow">ユリカの手帖</span>
+              <h1 id="handscroll-title">水仙女</h1>
+              <div className="handscroll-cover__verse">
+                <p>凌波照影，</p>
+                <p>素袖生香。</p>
+                <span
+                  className="scroll-seal scroll-seal--solid"
+                  aria-hidden="true"
+                >
+                  水僊
+                </span>
+              </div>
+            </div>
+            <div className="handscroll-cover__invitation">
+              <p>把寻常日子，慢慢写成一卷。</p>
+              <button className="handscroll-text-link" onClick={() => goTo(1)}>
+                展卷 · 读近作 <ArrowRight size={18} aria-hidden="true" />
+              </button>
+            </div>
+            <span className="handscroll-cover__caption" aria-hidden="true">
+              清风徐来 · 此间有字
+            </span>
+          </section>
+          <section
+            className="handscroll-panel handscroll-collection"
+            data-chapter
+            aria-label="文录"
           >
-            {recentPosts.map((post) => (
-              <ArticleSlip key={`recent-${post.id}`} post={post} />
-            ))}
-          </ScrollIndex>
-        ),
-      },
-      {
-        id: 'projects',
-        width: 'wide',
-        title: '项目',
-        kana: 'コウモク',
-        body: (
-          <ScrollIndex
-            loading={reposLoading}
-            error={reposError}
-            loadingLabel="正在展卷…"
-            emptyLabel="暂时没有项目数据。"
-            action={(
+            <ChapterTitle
+              number="壹 / JOURNAL"
+              title="文录"
+              note="写过的字，走过的路。"
+            />
+            <div className="handscroll-collection__body">
+              <div className="handscroll-list" aria-busy={postsLoading}>
+                {!postsLoading && !postsError && posts.length ? (
+                  posts.map((post, index) => (
+                    <Link
+                      key={post.id}
+                      to={`/post/${post.id}`}
+                      className="handscroll-entry"
+                    >
+                      <span className="handscroll-entry__number">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <div className="handscroll-entry__copy">
+                        <p className="handscroll-entry__meta">
+                          <span>{formatDate(post.date)}</span>
+                          {post.is_pinned ? (
+                            <span className="handscroll-entry__pinned">
+                              精选
+                            </span>
+                          ) : post.category ? (
+                            <span>{post.category}</span>
+                          ) : null}
+                        </p>
+                        <h3>{post.title}</h3>
+                        {post.summary && (
+                          <p className="handscroll-entry__summary">
+                            {post.summary}
+                          </p>
+                        )}
+                      </div>
+                      {post.cover && (
+                        <img
+                          className="handscroll-entry__image"
+                          src={post.cover}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          onError={(event) => {
+                            event.currentTarget.hidden = true;
+                          }}
+                        />
+                      )}
+                      <ArrowUpRight
+                        className="handscroll-entry__arrow"
+                        size={20}
+                        aria-hidden="true"
+                      />
+                    </Link>
+                  ))
+                ) : (
+                  <IndexState
+                    loading={postsLoading}
+                    error={postsError}
+                    empty="这一卷，还没有文章。"
+                  />
+                )}
+              </div>
+              <Link to="/posts" className="handscroll-text-link">
+                阅全部文录 <ArrowRight size={17} aria-hidden="true" />
+              </Link>
+            </div>
+          </section>
+          <section
+            className="handscroll-panel handscroll-collection handscroll-projects"
+            data-chapter
+            aria-label="造物"
+          >
+            <ChapterTitle
+              number="贰 / WORKS"
+              title="造物"
+              note="让想法，生出自己的模样。"
+            />
+            <div className="handscroll-collection__body">
+              <div className="handscroll-list" aria-busy={reposLoading}>
+                {!reposLoading && !reposError && projects.length ? (
+                  projects.slice(0, 3).map((repo, index) => (
+                    <a
+                      key={repo.name}
+                      href={repo.html_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="handscroll-entry"
+                    >
+                      <span className="handscroll-entry__number">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <div className="handscroll-entry__copy">
+                        <p className="handscroll-entry__meta">
+                          {repo.language && <span>{repo.language}</span>}
+                          <span>
+                            <Star size={12} aria-hidden="true" />
+                            {repo.stargazers_count}
+                          </span>
+                        </p>
+                        <h3>{repo.name}</h3>
+                        {repo.description && (
+                          <p className="handscroll-entry__summary">
+                            {repo.description}
+                          </p>
+                        )}
+                      </div>
+                      <ArrowUpRight
+                        className="handscroll-entry__arrow"
+                        size={20}
+                        aria-hidden="true"
+                      />
+                    </a>
+                  ))
+                ) : (
+                  <IndexState
+                    loading={reposLoading}
+                    error={reposError}
+                    empty="新的想法，仍在酝酿。"
+                  />
+                )}
+              </div>
               <a
                 href="https://github.com/yurika0211"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="scroll-link"
+                className="handscroll-text-link"
               >
-                仓库
-                <ExternalLink aria-hidden="true" />
+                <Github size={17} aria-hidden="true" /> 去 GitHub 看看{" "}
+                <ArrowUpRight size={17} aria-hidden="true" />
               </a>
-            )}
+            </div>
+          </section>
+          <section
+            className="handscroll-panel handscroll-colophon"
+            data-chapter
+            aria-label="余白"
           >
-            {projects.map((repo) => (
-              <RepoSlip key={repo.name} repo={repo} />
-            ))}
-          </ScrollIndex>
-        ),
-      },
-      {
-        id: 'colophon',
-        width: 'mid',
-        title: '拖尾',
-        kana: 'タクビ',
-        body: <Colophon year={currentYear} latestPostDate={latestPostDate} />,
-      },
-    ],
-    [
-      currentYear,
-      featuredPosts,
-      latestPostDate,
-      postsError,
-      postsLoading,
-      projects,
-      recentPosts,
-      reposError,
-      reposLoading,
-    ],
-  );
-
-  return (
-    <section className="scroll-stage">
-      <div ref={railRef} className="scroll-rail" aria-label="手卷">
-        <div className="scroll-mount">
-          <div className="scroll-rod scroll-rod--head" aria-hidden="true" />
-
-          {leaves.map((leaf) => (
-            <section key={leaf.id} className={`scroll-leaf scroll-leaf--${leaf.width}`}>
-              <div className="scroll-label">
-                <h2 className="scroll-title">{leaf.title}</h2>
-                <p className="scroll-title-kana">{leaf.kana}</p>
-              </div>
-
-              {leaf.body}
-            </section>
-          ))}
-
+            <span className="handscroll-kicker">叁 / UNTIL NEXT TIME</span>
+            <h2>
+              卷有尽时，
+              <br />
+              余韵未央。
+            </h2>
+            <p>
+              谢谢你，读到这里。
+              <br />
+              若有片刻共鸣，不妨留下一笔。
+            </p>
+            <Link to="/guestbook" className="handscroll-text-link">
+              留一页小札 <ArrowUpRight size={18} aria-hidden="true" />
+            </Link>
+            <div className="handscroll-colophon__foot">
+              <span className="scroll-seal" aria-hidden="true">
+                余白
+              </span>
+              <p>
+                {latestPostDate && latestPostDate !== "--"
+                  ? `最近落笔 ${latestPostDate}`
+                  : "静候下一次落笔"}
+                <br />© {new Date().getFullYear()} ユリカのブログ
+              </p>
+            </div>
+          </section>
           <div className="scroll-rod scroll-rod--tail" aria-hidden="true" />
+        </div>
+      </div>
+      <div className="handscroll-curl" aria-hidden="true">
+        <span />
+      </div>
+      <div className="handscroll-controls">
+        <div
+          ref={progressRef}
+          className="handscroll-progress"
+          role="progressbar"
+          aria-label="展卷进度"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={0}
+        >
+          <span />
+        </div>
+        <p id="handscroll-hint" className="handscroll-hint">
+          <span className="handscroll-hint__desktop">
+            滚动 / 拖动，徐徐展卷
+          </span>
+          <span className="handscroll-hint__touch">左右滑动，徐徐展卷</span>
+        </p>
+        <nav className="handscroll-chapters" aria-label="卷中章节">
+          {CHAPTERS.map((label, index) => (
+            <button
+              key={label}
+              aria-current={chapter === index ? "step" : undefined}
+              onClick={() => goTo(index)}
+            >
+              <span>{String(index + 1).padStart(2, "0")}</span>
+              {label}
+            </button>
+          ))}
+        </nav>
+        <div className="handscroll-paging">
+          <button
+            onClick={() => goTo(chapter - 1)}
+            disabled={chapter === 0}
+            aria-label="上一章"
+          >
+            <ArrowLeft size={18} />
+          </button>
+          <button
+            onClick={() => goTo(chapter + 1)}
+            disabled={chapter === CHAPTERS.length - 1}
+            aria-label="下一章"
+          >
+            <ArrowRight size={18} />
+          </button>
         </div>
       </div>
     </section>

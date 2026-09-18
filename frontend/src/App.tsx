@@ -50,7 +50,7 @@ function AppLayout() {
   );
   const contentShellClass = 'grow w-full max-w-7xl mx-auto px-4 py-8';
   const routes = (
-    <Suspense fallback={<div className="flex items-center justify-center py-20 text-gray-500">Loading...</div>}>
+    <Suspense fallback={<div className="page-loading" role="status">正在翻开下一页…</div>}>
       <Routes>
         <Route path="/" element={<Entry />} />
         <Route path="/posts" element={<Home />} />
@@ -132,16 +132,16 @@ function AppLayout() {
       <Header />
 
       {useFullBleedShell ? (
-        <main className="grow w-full">{routes}</main>
+        <main id="main-content" tabIndex={-1} className={`grow w-full${isPostPage ? ' reading-page-shell' : ''}`}>{routes}</main>
       ) : (
-        <div className="paper-page grow flex">
+        <div className="paper-page reading-page-shell grow flex">
           <div className={contentShellClass}>
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-              <main className={showSidebar ? 'lg:col-span-8' : 'lg:col-span-12'}>{routes}</main>
+              <main id="main-content" tabIndex={-1} className={showSidebar ? 'lg:col-span-8' : 'lg:col-span-12'}>{routes}</main>
 
               {showSidebar && (
                 <aside className="lg:col-span-4 space-y-8">
-                  <div className="sticky top-6">
+                  <div className="sticky top-[calc(var(--site-header-height)+1rem)]">
                     <Sidebar />
                   </div>
                 </aside>
