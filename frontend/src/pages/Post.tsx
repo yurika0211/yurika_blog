@@ -309,12 +309,13 @@ export default function Post() {
     const target = headings[tocIndex];
     if (!target) return;
 
-    const headerOffset = 16;
+    const headerOffset = (document.querySelector<HTMLElement>('.site-header')?.offsetHeight ?? 0) + 16;
     const y = target.getBoundingClientRect().top + window.scrollY - headerOffset;
-    window.scrollTo({ top: y, behavior: smooth ? 'smooth' : 'auto' });
+    const animate = smooth && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: y, behavior: animate ? 'smooth' : 'instant' });
     const headingId = tocHeadings[tocIndex]?.id ?? '';
     if (headingId) {
-      window.history.replaceState(null, '', `#${encodeURIComponent(headingId)}`);
+      window.history.replaceState(window.history.state, '', `#${encodeURIComponent(headingId)}`);
     }
   }, [tocHeadings]);
 
@@ -495,7 +496,7 @@ export default function Post() {
           id={headingId}
           data-toc-index={idx}
           {...props}
-          className={`scroll-mt-4 font-semibold ${headingClassMap[level]} ${className}`.trim()}
+          className={`scroll-mt-[calc(var(--site-header-height)+1rem)] font-semibold ${headingClassMap[level]} ${className}`.trim()}
         >
           {children}
         </Tag>
@@ -624,7 +625,9 @@ export default function Post() {
                       />
                     );
                   },
-                  iframe({ node: _node, ...props }: MarkdownIframeProps & { node?: unknown }) {
+                  iframe(input: MarkdownIframeProps & { node?: unknown }) {
+                    const props = { ...input };
+                    delete props.node;
                     const src = typeof props.src === 'string' ? props.src : '';
                     const allowed =
                       /^https:\/\/(www\.youtube\.com\/embed\/|player\.bilibili\.com\/player\.html)/.test(src);
@@ -726,7 +729,7 @@ export default function Post() {
             </div>
 
             <aside className="hidden xl:block w-64 shrink-0">
-              <div className="sticky top-[12%] rounded-lg border border-[#b0aea5]/70 dark:border-gray-700/80 bg-[#f0eee6]/90 dark:bg-gray-900/90 p-4 transition-colors">
+              <div className="sticky top-[calc(var(--site-header-height)+1rem)] rounded-lg border border-[#b0aea5]/70 dark:border-gray-700/80 bg-[#f0eee6]/90 dark:bg-gray-900/90 p-4 transition-colors">
                 <h3 className="text-lg font-medium text-gray-700 dark:text-gray-100 flex items-center gap-2 mb-4">
                   <List className="w-5 h-5 text-blue-500" />
                   Table of Contents
